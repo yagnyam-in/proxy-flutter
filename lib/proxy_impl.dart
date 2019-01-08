@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 
 class ProxyRequestFactoryImpl implements ProxyRequestFactory {
