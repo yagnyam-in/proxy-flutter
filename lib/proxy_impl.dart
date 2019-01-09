@@ -9,9 +9,9 @@ class ProxyRequestFactoryImpl implements ProxyRequestFactory {
   static const platform = const MethodChannel('proxy.yagnyam.in/ProxyRequestFactory');
 
   @override
-  Future<ProxyRequest> createCertificateRequest(
+  Future<ProxyRequest> createProxyRequest(
       String id, String signatureAlgorithm, String revocationPassPhrase) async {
-    final String result = await platform.invokeMethod('createCertificateRequest', {
+    final String result = await platform.invokeMethod('createProxyRequest', {
       "id": id,
       "algorithm": signatureAlgorithm,
       "revocationPassPhrase": revocationPassPhrase,
