@@ -1,4 +1,7 @@
-package com.example.proxyflutter;
+package in.yagnyam.proxy;
+
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
 
 import in.yagnyam.proxy.services.BcCertificateRequestService;
 import in.yagnyam.proxy.services.BcCryptographyService;
@@ -42,6 +45,11 @@ public class ProxyRequestFactoryImpl implements MethodChannel.MethodCallHandler 
     }
 
     private ProxyRequest createCertificateRequest(String id, String algorithm, String revocationPassPhrase) {
-        String revocationPassPhraseSha256 = cryptographyService.
+        try {
+            KeyPair keyPair = cryptographyService.generateKeyPair();
+            String revocationPassPhraseSha256 = cryptographyService.
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        }
     }
 }

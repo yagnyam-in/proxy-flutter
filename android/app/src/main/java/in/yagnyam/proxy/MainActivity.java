@@ -1,4 +1,4 @@
-package com.example.proxyflutter;
+package in.yagnyam.proxy;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

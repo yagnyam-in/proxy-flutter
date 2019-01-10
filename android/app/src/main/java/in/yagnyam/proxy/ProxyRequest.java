@@ -1,4 +1,4 @@
-package com.example.proxyflutter;
+package in.yagnyam.proxy;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,8 @@ public class ProxyRequest {
     @NonNull
     private String id;
 
-    private String alias;
+    @NonNull
+    private String localAlias;
 
     @NonNull
     private String revocationPassPhraseSha256;
