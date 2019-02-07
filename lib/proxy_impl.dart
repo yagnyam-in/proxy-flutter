@@ -1,20 +1,26 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
-import 'package:proxy_core/services.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_core/services.dart';
 
 class ProxyRequestFactoryImpl implements ProxyRequestFactory {
   static const platform = const MethodChannel('proxy.yagnyam.in/ProxyRequestFactory');
 
   @override
   Future<ProxyRequest> createProxyRequest(
-      String id, String signatureAlgorithm, String revocationPassPhrase) async {
+      {String id,
+      String signatureAlgorithm,
+      String revocationPassPhrase,
+      String keyGenerationAlgorithm,
+      int keySize}) async {
     final String result = await platform.invokeMethod('createProxyRequest', {
       "id": id,
-      "algorithm": signatureAlgorithm,
+      "signatureAlgorithm": signatureAlgorithm,
       "revocationPassPhrase": revocationPassPhrase,
+      "keyGenerationAlgorithm": keyGenerationAlgorithm,
+      "keySize": "$keySize",
     });
     return ProxyRequest.fromJson(jsonDecode(result));
   }

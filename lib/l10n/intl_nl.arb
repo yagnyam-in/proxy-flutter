@@ -1,0 +1,7 @@
+{
+  "title": "Proxy",
+  "@title": {
+    "description": "Title for the Proxy application",
+    "type": "text"
+  }
+}

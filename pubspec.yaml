@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl:
+  intl_translation:
   proxy_core:
     path: ../proxy-core-dart
     # git: git://github.com/yagnyam-in/proxy-core-dart.git
@@ -16,6 +20,8 @@ dependencies:
   quiver: '>=2.0.0 <3.0.0'
   http: ^0.12.0
   logging: ^0.11.3+2
+  uuid: ^2.0.0-rc1
+  shared_preferences: ^0.4.3
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -34,6 +40,14 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+
+  assets:
+    - assets/banks.png
+    - assets/hotels.png
+    - assets/key.png
+    - assets/shopping_cart.png
+    - assets/stores.png
+    - assets/wallet.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

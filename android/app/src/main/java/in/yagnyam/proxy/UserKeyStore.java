@@ -45,7 +45,8 @@ public class UserKeyStore {
 
     private static KeyStore bootstrap() throws CryptoException {
         String caSerial = "1646464037041216499760";
-        String caCertificateEncoded = "----BEGIN CERTIFICATE-----\n" +
+        String caSha256Thumbprint = "wEj0uicGyQftTlcFXPoV66p4SwvuCoN3fK94cDVz1O0";
+        String caCertificateEncoded = "-----BEGIN CERTIFICATE-----\n" +
                 "MIIDrTCCApWgAwIBAgIJWUFHTllBTTAwMA0GCSqGSIb3DQEBCwUAMGgxGDAWBgNV\n" +
                 "BAMMD1lhZ255YW0gcm9vdCBDQTEeMBwGA1UECgwVWWFnbnlhbSBFY29tbWVyY2Ug\n" +
                 "TExQMRIwEAYDVQQHDAlCYW5nYWxvcmUxCzAJBgNVBAgMAktBMQswCQYDVQQGEwJJ\n" +
@@ -76,12 +77,20 @@ public class UserKeyStore {
                 keyStore.setCertificateEntry(caSerial, caCertificate);
             }
             return keyStore;
-        } catch (IOException | GeneralSecurityException e) {
+        } catch (Exception e) {
             Log.e(TAG, "failed to add root certificate", e);
             throw new CryptoException("failed to add root certificate", e);
         }
     }
 
+    public static boolean containsAlias(String alias) throws CryptoException {
+        try {
+            return getKeyStore().containsAlias(alias);
+        } catch (Exception e) {
+            Log.e(TAG, "failed to inquire key alias", e);
+            throw new CryptoException("failed to inquire key alias", e);
+        }
+    }
 
     public static List<String> getKeyAliases() throws CryptoException {
         try {
@@ -96,13 +105,14 @@ public class UserKeyStore {
                 }
             }
             return keyAliases;
-        } catch (KeyStoreException e) {
+        } catch (Exception e) {
             Log.e(TAG, "failed to query key aliases", e);
             throw new CryptoException("failed to query key aliases", e);
         }
     }
 
-    public static Proxy getProxy(String alias) throws CryptoException {
+    /*
+    public static ProxyKey getProxyKey(ProxyId proxyId, String alias) throws CryptoException {
         try {
             KeyStore.PrivateKeyEntry keyEntry = (KeyStore.PrivateKeyEntry) getKeyStore()
                     .getEntry(alias, null);
@@ -124,7 +134,7 @@ public class UserKeyStore {
             throw new CryptoException("Failed to retrieve private Key: " + alias, e);
         }
     }
-
+    */
 
     public static List<String> getCertificateAliases() throws CryptoException {
         try {

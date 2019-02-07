@@ -27,6 +27,11 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 android {
     compileSdkVersion 27
 
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
     lintOptions {
         disable 'InvalidPackage'
     }
@@ -34,7 +39,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "in.yagnyam.proxy"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 27
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
