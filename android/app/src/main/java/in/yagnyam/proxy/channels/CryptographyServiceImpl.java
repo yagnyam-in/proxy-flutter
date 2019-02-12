@@ -1,4 +1,4 @@
-package in.yagnyam.proxy;
+package in.yagnyam.proxy.channels;
 
 import in.yagnyam.proxy.services.BcCertificateRequestService;
 import in.yagnyam.proxy.services.BcCryptographyService;
@@ -28,37 +28,18 @@ public class CryptographyServiceImpl implements MethodChannel.MethodCallHandler 
 
     @Override
     public void onMethodCall(MethodCall methodCall, MethodChannel.Result result) {
-        if (methodCall.method.equals("decrypt")) {
-            try {
-                // });
-                ProxyRequest request = decrypt(methodCall);
-                result.success(messageSerializerService.serializeMessage(request));
-            } catch (IllegalArgumentException e) {
-                result.error("MISSING_ARGUMENTS", e.getMessage(), null);
-            } catch (Exception e) {
-                result.error("UNKNOWN_ERROR", e.getMessage(), null);
+        try {
+            if (methodCall.method.equals("decrypt")) {
+                result.notImplemented();
+            } else {
+                result.notImplemented();
             }
-        } else {
-            result.notImplemented();
+        } catch (IllegalArgumentException e) {
+            result.error("MISSING_ARGUMENTS", e.getMessage(), null);
+        } catch (Exception e) {
+            result.error("UNKNOWN_ERROR", e.getMessage(), null);
         }
     }
 
-    private ProxyRequest decrypt(MethodCall methodCall) {
-        return null;
-    }
-
-    private ProxyRequest encrypt(MethodCall methodCall) {
-        return null;
-    }
-
-
-    private ProxyRequest getSignatures(MethodCall methodCall) {
-        return null;
-    }
-
-
-    private ProxyRequest verifySignatures(MethodCall methodCall) {
-        return null;
-    }
 
 }

@@ -83,6 +83,7 @@ public class UserKeyStore {
         }
     }
 
+
     public static boolean containsAlias(String alias) throws CryptoException {
         try {
             return getKeyStore().containsAlias(alias);

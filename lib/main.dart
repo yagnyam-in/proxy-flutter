@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:proxy_flutter/app_state_container.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/home_page.dart';
 import 'package:proxy_flutter/localizations.dart';
@@ -58,7 +59,9 @@ class ProxyAppState extends State<ProxyApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: homePage(context),
+      home: new AppStateContainer(
+        child: homePage(context),
+      )
     );
   }
 

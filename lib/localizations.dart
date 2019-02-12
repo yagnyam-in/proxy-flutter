@@ -53,6 +53,105 @@ class ProxyLocalizations {
     );
   }
 
+
+  String get masterProxyDescription {
+    return Intl.message(
+      'Master Key is never used directly for any transaction, it is used to authorize temporary keys.',
+      name: 'masterProxyDescription',
+      desc: 'Description of Master Proxy/Key',
+    );
+  }
+
+
+  String get revocationPassPhraseDescription {
+    return Intl.message(
+      'Revocation Pass Phrase is useful in case you want to de-activate a Key(s).',
+      name: 'revocationPassPhraseDescription',
+      desc: 'Description of Revocation Pass Phrase',
+    );
+  }
+
+
+  String get proxyId {
+    return Intl.message(
+      'Proxy Id',
+      name: 'proxyId',
+      desc: 'Proxy Id',
+    );
+  }
+
+  String get proxyIdHint {
+    return Intl.message(
+      'Alpha numerics and hyphens',
+      name: 'proxyIdHint',
+      desc: 'Proxy Id hint like characters allowed',
+    );
+  }
+
+  String get invalidProxyId {
+    return Intl.message(
+      'Should be of length 8-36, alpha numerics and hyphens are only allowed',
+      name: 'invalidProxyId',
+      desc: 'Proxy Id entered by user is invalid',
+    );
+  }
+
+  String get revocationPassPhrase {
+    return Intl.message(
+      'Pass Phrase',
+      name: 'revocationPassPhrase',
+      desc: 'Pass Phrase to use for revoking the Proxy Id',
+    );
+  }
+
+  String get revocationPassPhraseHint {
+    return Intl.message(
+      'Alpha Numerics, spaces and Special Symbols',
+      name: 'revocationPassPhraseHint',
+      desc: 'Pass Phrase hint like characters allowed',
+    );
+  }
+
+
+  String get invalidRevocationPassPhrase {
+    return Intl.message(
+      'Should be of length 8-64',
+      name: 'invalidRevocationPassPhrase',
+      desc: 'Revocation Pass Phrase entered by user is invalid',
+    );
+  }
+
+
+  String get agreeTermsAndConditions {
+    return Intl.message(
+      'I agree terms & conditions',
+      name: 'agreeTermsAndConditions',
+      desc: 'I agree terms & conditions',
+    );
+  }
+
+  String get setupProxyButtonLabel {
+    return Intl.message(
+      'Setup',
+      name: 'setupProxyButtonLabel',
+      desc: 'Setup Proxy Button Label',
+    );
+  }
+
+  String fieldIsMandatory(String fieldName) {
+    return Intl.message(
+      '$fieldName is mandatory',
+      name: 'fieldIsMandatory',
+      args: [fieldName],
+      desc: 'Pass Phrase to use for revoking the Proxy Id',
+      examples: {
+        'fieldName': 'Proxy Id',
+      }
+    );
+  }
+
+
+
 }
 
 class ProxyLocalizationsDelegate
