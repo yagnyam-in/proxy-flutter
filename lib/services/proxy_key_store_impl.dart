@@ -40,7 +40,7 @@ class ProxyKeyStoreImpl extends ProxyKeyStore implements ProxyRequestFactory, Pr
   Future<ProxyKey> resolveProxyKey(
     ProxyId proxyId,
   ) {
-    return platform.invokeMethod('saveProxy', {
+    return platform.invokeMethod('resolveProxyKey', {
       "proxyId": jsonEncode(proxyId.toJson()),
     });
   }

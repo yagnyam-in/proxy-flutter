@@ -5,10 +5,11 @@ import android.util.Log;
 import org.bouncycastle.crypto.CryptoException;
 
 import java.security.KeyPair;
+import java.security.cert.X509Certificate;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 
+import in.yagnyam.proxy.Proxy;
 import in.yagnyam.proxy.ProxyId;
 import in.yagnyam.proxy.UserKeyStore;
 import in.yagnyam.proxy.services.BcCertificateRequestService;
@@ -19,56 +20,16 @@ import in.yagnyam.proxy.services.MessageSerializerService;
 import in.yagnyam.proxy.services.PemService;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.ToString;
 
 
-public class ProxyKeyStoreImpl implements MethodChannel.MethodCallHandler {
-
-    @Builder
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    @Getter
-    @ToString
-    private static class ProxyKey {
-
-        @NonNull
-        private ProxyId id;
-
-        @NonNull
-        private String localAlias;
-
-        private String name;
-    }
-
-    @Builder
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    @Getter
-    @ToString
-    private static class ProxyRequest {
-
-        @NonNull
-        private String id;
-
-        @NonNull
-        private String revocationPassPhraseSha256;
-
-        @NonNull
-        private String requestEncoded;
-    }
-
-    private static final String TAG = "ProxyKeyStoreImpl";
+public class ProxyKeyStoreImpl implements MethodChannel.MethodCallHandler, ChannelHelper {
     public static final String CHANNEL = "proxy.yagnyam.in/ProxyKeyStore";
 
-    private final Map<String, KeyPair> inTransitKeys = new LinkedHashMap<String, KeyPair>(13, .75F, true) {
+    private static final String TAG = "ProxyKeyStoreImpl";
+
+    private final Map<String, KeyPair> inTransitKeys = new LinkedHashMap<String, KeyPair>(23, .75F, true) {
         public boolean removeEldestEntry(Map.Entry<String, KeyPair> eldest) {
-            return size() > 7;
+            return size() > 16;
         }
     };
     private final MessageSerializerService messageSerializerService = MessageSerializerService.builder().build();
@@ -90,14 +51,30 @@ public class ProxyKeyStoreImpl implements MethodChannel.MethodCallHandler {
     public void onMethodCall(MethodCall methodCall, MethodChannel.Result result) {
         Log.d(TAG, "onMethodCall(" + methodCall + ")");
         try {
-            if (methodCall.method.equals("createProxyKey")) {
-                ProxyKey proxyKey = createProxyKey(methodCall);
-                result.success(messageSerializerService.serializeMessage(proxyKey));
-            } else if (methodCall.method.equals("createProxyRequest")) {
-                ProxyRequest proxyRequest = createProxyRequest(methodCall);
-                result.success(messageSerializerService.serializeMessage(proxyRequest));
-            } else {
-                result.notImplemented();
+            switch (methodCall.method) {
+                case "createProxyKey": {
+                    ProxyKey proxyKey = createProxyKey(methodCall);
+                    result.success(messageSerializerService.serializeMessage(proxyKey));
+                    break;
+                }
+                case "createProxyRequest": {
+                    ProxyRequest proxyRequest = createProxyRequest(methodCall);
+                    result.success(messageSerializerService.serializeMessage(proxyRequest));
+                    break;
+                }
+                case "saveProxy": {
+                    saveProxy(methodCall);
+                    result.success(null);
+                    break;
+                }
+                case "resolveProxyKey": {
+                    ProxyKey proxyKey = resolveProxyKey(methodCall);
+                    result.success(messageSerializerService.serializeMessage(proxyKey));
+                    break;
+                }
+                default:
+                    result.notImplemented();
+                    break;
             }
         } catch (IllegalArgumentException e) {
             Log.e(TAG, "Missing Arguments", e);
@@ -128,13 +105,14 @@ public class ProxyKeyStoreImpl implements MethodChannel.MethodCallHandler {
         }
     }
 
+
     private String findLocalAlias(String id) throws CryptoException {
         String localAlias = id;
-        for (int i = 0; i < 16; i++) {
+        for (int i = 1; i <= 32; i++) {
             if (!UserKeyStore.containsAlias(id)) {
                 return localAlias;
             }
-            localAlias = UUID.randomUUID().toString();
+            localAlias = id + "-" + i;
         }
         throw new CryptoException("Unable to find local alias for proxy id " + id);
     }
@@ -147,19 +125,19 @@ public class ProxyKeyStoreImpl implements MethodChannel.MethodCallHandler {
             String signatureAlgorithm = arg(methodCall, "signatureAlgorithm");
             String revocationPassPhrase = arg(methodCall, "revocationPassPhrase");
 
-            KeyPair keyPair = inTransitKeys.get(proxyKey.localAlias);
-            StringBuilder revocationPassPhraseSha256Input = new StringBuilder(proxyKey.id + "#" + revocationPassPhrase);
+            KeyPair keyPair = inTransitKeys.get(proxyKey.getLocalAlias());
+            StringBuilder revocationPassPhraseSha256Input = new StringBuilder(proxyKey.getId() + "#" + revocationPassPhrase);
             while (revocationPassPhraseSha256Input.length() < 64) {
                 revocationPassPhraseSha256Input.append("0");
             }
             String revocationPassPhraseSha256 = cryptographyService
-                    .getHash(revocationPassPhraseSha256Input.toString(), "SHA-256");
+                    .getHash("SHA-256", revocationPassPhraseSha256Input.toString());
             String certificateRequest = certificateRequestService
                     .createCertificateRequest(signatureAlgorithm, keyPair,
-                            certificateRequestService.subjectForProxyId(proxyKey.id.getId())
+                            certificateRequestService.subjectForProxyId(proxyKey.getId().getId())
                     );
             return ProxyRequest.builder()
-                    .id(proxyKey.id.getId())
+                    .id(proxyKey.getId().getId())
                     .revocationPassPhraseSha256(revocationPassPhraseSha256)
                     .requestEncoded(certificateRequest)
                     .build();
@@ -168,5 +146,41 @@ public class ProxyKeyStoreImpl implements MethodChannel.MethodCallHandler {
             throw new RuntimeException("Failed to create proxy request");
         }
     }
+
+    private void saveProxy(MethodCall methodCall) {
+        Log.d(TAG, "saveProxy(" + methodCall + ")");
+        try {
+            ProxyKey proxyKey = messageSerializerService.deserializeMessage(arg(methodCall, "proxyKey"), ProxyKey.class);
+            Proxy proxy = messageSerializerService.deserializeMessage(arg(methodCall, "proxy"), Proxy.class);
+
+            KeyPair keyPair = inTransitKeys.get(proxyKey.getLocalAlias());
+            UserKeyStore.addSecretKey(proxyKey.getLocalAlias(), keyPair.getPrivate(), decodeCertificate(proxy.getCertificate().getCertificateEncoded()));
+
+            Log.i(TAG, "List of keys " + UserKeyStore.getKeyAliases());
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to create proxy key", e);
+            throw new RuntimeException("Failed to create proxy key");
+        }
+    }
+
+    private ProxyKey resolveProxyKey(MethodCall methodCall) {
+        Log.d(TAG, "resolveProxyKey(" + methodCall + ")");
+        try {
+            return messageSerializerService.deserializeMessage(arg(methodCall, "proxyKey"), ProxyKey.class);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to resolve proxy key", e);
+            throw new RuntimeException("Failed to resolve proxy key");
+        }
+    }
+
+    private X509Certificate decodeCertificate(String certificateEncoded) throws CryptoException {
+        try {
+            return pemService.decodeCertificate(certificateEncoded);
+        } catch (Exception e) {
+            Log.e(TAG, "failed to decode certificate", e);
+            throw new CryptoException("failed to decode certificate", e);
+        }
+    }
+
 
 }

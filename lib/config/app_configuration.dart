@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
+  static const String TermsAndConditionsAccepted = "termsAndConditionsAcceptedV0";
 
   final SharedPreferences preferences;
   final ProxyId masterProxyId;
@@ -24,4 +25,14 @@ class AppConfiguration {
   set showWelcomePages(bool value) {
     preferences.setBool(ShowWelcomePages, value);
   }
+
+  bool get termsAndConditionsAccepted {
+    bool show = preferences.getBool(TermsAndConditionsAccepted);
+    return show != null && show;
+  }
+
+  set termsAndConditionsAccepted(bool value) {
+    preferences.setBool(TermsAndConditionsAccepted, value);
+  }
+
 }

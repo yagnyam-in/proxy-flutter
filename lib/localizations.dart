@@ -122,6 +122,31 @@ class ProxyLocalizations {
   }
 
 
+  String get termsAndConditionsPageTitle {
+    return Intl.message(
+      'Proxy Term & Conditions',
+      name: 'termsAndConditionsPageTitle',
+      desc: 'Page title for accepting proxy terms & conditions',
+    );
+  }
+
+
+  String get readTermsAndConditions {
+    return Intl.message(
+      'Before accepting, please go through full Terms & Conditions at ',
+      name: 'readTermsAndConditions',
+      desc: 'I agree terms & conditions',
+    );
+  }
+
+  String get termsAndConditionsURL {
+    return Intl.message(
+      'https://proxy.yagnyam.in/tc',
+      name: 'termsAndConditionsURL',
+      desc: 'Proxy Terms & Conditions URL',
+    );
+  }
+
   String get agreeTermsAndConditions {
     return Intl.message(
       'I agree terms & conditions',
@@ -135,6 +160,14 @@ class ProxyLocalizations {
       'Setup',
       name: 'setupProxyButtonLabel',
       desc: 'Setup Proxy Button Label',
+    );
+  }
+
+  String get start {
+    return Intl.message(
+      'Start',
+      name: 'start',
+      desc: 'label for Start',
     );
   }
 

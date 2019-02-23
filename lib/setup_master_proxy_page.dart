@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/app_state_container.dart';
@@ -7,7 +8,9 @@ import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/app_state.dart';
 import 'package:proxy_flutter/services/proxy_key_store_impl.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
+import 'package:proxy_flutter/widgets/raised_button_with_icon.dart';
 import 'package:tuple/tuple.dart';
+
 
 class SetupMasterProxyPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
@@ -21,7 +24,6 @@ class SetupMasterProxyPage extends StatefulWidget {
 }
 
 class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
-
   AppState appState;
   final ProxyKeyStoreImpl proxyKeyStore = ProxyKeyStoreImpl();
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
@@ -50,11 +52,18 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     return proxy;
   }
 
+
+  Future<Tuple2<ProxyKey, Proxy>> saveProxy(ProxyKey proxyKey, Proxy proxy) async {
+    await proxyKeyStore.saveProxy(proxyKey: proxyKey, proxy: proxy);
+    return Tuple2(proxyKey, proxy);
+  }
+
+
   Future<Tuple2<ProxyKey, Proxy>> setup(String proxyId, String revocationPassPhrase) async {
     ProxyKey proxyKey = await createProxyKey(proxyId);
     ProxyRequest proxyRequest = await createProxyRequest(proxyKey, revocationPassPhrase);
     Proxy proxy = await createProxy(proxyRequest);
-    return Tuple2(proxyKey, proxy);
+    return saveProxy(proxyKey, proxy);
   }
 
   void setupMasterProxy(String proxyId, String revocationPassPhrase) {
@@ -68,7 +77,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
       });
     }).catchError((e) {
       setState(() {
-        print("Failure!! $e: ${StackTrace.current}");
+        print("Failure!! $e");
         appState.isLoading = false;
       });
     });
@@ -103,6 +112,8 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
       ),
     );
   }
+
+
 }
 
 typedef SetupProxyCallback = void Function(String proxyId, String revocationPassPhrase);
@@ -118,10 +129,12 @@ class SetupProxyForm extends StatefulWidget {
 
 class _SetupProxyFormState extends State<SetupProxyForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController proxyIdController = TextEditingController();
-  final TextEditingController revocationPassPhraseController = TextEditingController();
 
-  bool _agreedToTOS = true;
+  final FocusNode revocationPassPhraseFocusNode = FocusNode();
+  final FocusNode tosFocusNode = FocusNode();
+
+  final TextEditingController proxyIdController = TextEditingController(text: "hello-there");
+  final TextEditingController revocationPassPhraseController = TextEditingController(text: "hello-there");
 
   @override
   Widget build(BuildContext context) {
@@ -141,10 +154,12 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
             controller: proxyIdController,
             decoration: InputDecoration(
               labelText: localizations.proxyId,
-              hintText: localizations.proxyIdHint,
+              // hintText: localizations.proxyIdHint,
+              helperText: localizations.proxyIdHint,
             ),
             keyboardType: TextInputType.emailAddress,
             validator: (value) => _proxyIdValidator(localizations, value),
+            onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(revocationPassPhraseFocusNode),
           ),
           const SizedBox(height: 32.0),
           Text(
@@ -153,46 +168,29 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
           const SizedBox(height: 16.0),
           TextFormField(
             controller: revocationPassPhraseController,
+            focusNode: revocationPassPhraseFocusNode,
             decoration: InputDecoration(
               labelText: localizations.revocationPassPhrase,
-              hintText: localizations.revocationPassPhraseHint,
+              // hintText: localizations.revocationPassPhraseHint,
+              helperText: localizations.revocationPassPhraseHint,
             ),
             validator: (value) => _passphraseIdValidator(localizations, value),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Row(
-              children: <Widget>[
-                Checkbox(
-                  value: _agreedToTOS,
-                  onChanged: _setAgreedToTOS,
-                ),
-                GestureDetector(
-                  onTap: () => _setAgreedToTOS(!_agreedToTOS),
-                  child: Text(
-                    localizations.agreeTermsAndConditions,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 32.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               // const Spacer(),
-              RaisedButton(
-                onPressed: _submittable() ? _submit : null,
-                child: Text(localizations.setupProxyButtonLabel),
+              RaisedButtonWithIcon.withSuffixIcon(
+                onPressed: _submit,
+                icon: Icon(Icons.navigate_next),
+                label: Text(localizations.setupProxyButtonLabel),
               ),
             ],
           ),
         ],
       ),
     );
-  }
-
-  bool _submittable() {
-    return _agreedToTOS;
   }
 
   void _submit() {
@@ -202,12 +200,6 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
     } else {
       print("Validation failure");
     }
-  }
-
-  void _setAgreedToTOS(bool newValue) {
-    setState(() {
-      _agreedToTOS = newValue;
-    });
   }
 
   bool _isValidProxyId(String proxyId) {

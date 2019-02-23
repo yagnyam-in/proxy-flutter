@@ -4,15 +4,14 @@ import android.util.Log;
 
 import org.bouncycastle.crypto.CryptoException;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -32,10 +31,17 @@ public class UserKeyStore {
     private static final Object keyStoreLock = new Object();
     private static AtomicReference<KeyStore> keyStoreRef = new AtomicReference<>();
 
+    private static final Object caCertificateLock = new Object();
+    private static X509Certificate caCertificate = null;
+
     public static KeyStore getKeyStore() throws CryptoException {
         KeyStore keyStore = keyStoreRef.get();
-        if (keyStore == null) {
-            synchronized (keyStoreLock) {
+        if (keyStore != null) {
+            return keyStore;
+        }
+        synchronized (keyStoreLock) {
+            keyStore = keyStoreRef.get();
+            if (keyStore == null) {
                 keyStore = bootstrap();
                 keyStoreRef.set(keyStore);
             }
@@ -43,9 +49,13 @@ public class UserKeyStore {
         return keyStore;
     }
 
-    private static KeyStore bootstrap() throws CryptoException {
-        String caSerial = "1646464037041216499760";
-        String caSha256Thumbprint = "wEj0uicGyQftTlcFXPoV66p4SwvuCoN3fK94cDVz1O0";
+
+    public static X509Certificate getCaCertificate() throws CryptoException {
+
+        if (caCertificate != null) {
+            return caCertificate;
+        }
+
         String caCertificateEncoded = "-----BEGIN CERTIFICATE-----\n" +
                 "MIIDrTCCApWgAwIBAgIJWUFHTllBTTAwMA0GCSqGSIb3DQEBCwUAMGgxGDAWBgNV\n" +
                 "BAMMD1lhZ255YW0gcm9vdCBDQTEeMBwGA1UECgwVWWFnbnlhbSBFY29tbWVyY2Ug\n" +
@@ -68,12 +78,34 @@ public class UserKeyStore {
                 "X8wWi+QbNY7l3fVKmPkIjPko4PmRp0Qq53Tr4LqcWoQJ8BmDhRLnH3MElDdzhlY4\n" +
                 "aHPZ+mEFHSpAY5/GJdbYgTZ8Iv2BMAslRO0h0CwayPuE\n" +
                 "-----END CERTIFICATE-----";
+
+        synchronized (caCertificateLock) {
+            if (caCertificate == null) {
+                caCertificate = decodeCertificate(caCertificateEncoded);
+            }
+        }
+        return caCertificate;
+    }
+
+
+    private static X509Certificate decodeCertificate(String certificateEncoded) throws CryptoException {
+        try {
+            return PemService.builder().build().decodeCertificate(certificateEncoded);
+        } catch (Exception e) {
+            Log.e(TAG, "failed to decode certificate", e);
+            throw new CryptoException("failed to decode certificate", e);
+        }
+    }
+
+
+    private static KeyStore bootstrap() throws CryptoException {
+        String caSerial = "1646464037041216499760";
         try {
             KeyStore keyStore = KeyStore.getInstance(PROVIDER);
             keyStore.load(null);
             Certificate existing = keyStore.getCertificate(caSerial);
             if (existing == null) {
-                X509Certificate caCertificate = PemService.builder().build().decodeCertificate(caCertificateEncoded);
+                X509Certificate caCertificate = getCaCertificate();
                 keyStore.setCertificateEntry(caSerial, caCertificate);
             }
             return keyStore;
@@ -94,13 +126,14 @@ public class UserKeyStore {
     }
 
     public static List<String> getKeyAliases() throws CryptoException {
+        KeyStore keyStore = getKeyStore();
         try {
             List<String> keyAliases = new ArrayList<>();
-            Enumeration<String> aliases = getKeyStore().aliases();
+            Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 Log.i(TAG, "Got entry " + alias);
-                if (getKeyStore().isKeyEntry(alias)) {
+                if (keyStore.isKeyEntry(alias)) {
                     Log.d(TAG, "found key alias - " + alias);
                     keyAliases.add(alias);
                 }
@@ -164,14 +197,22 @@ public class UserKeyStore {
         }
     }
 
-    public static void addSecretKey(String alias, PrivateKey privateKey, X509Certificate[] certChain)
+    public static void addSecretKey(String alias, PrivateKey privateKey, X509Certificate certificate)
             throws CryptoException {
         try {
-            // mKeyStore.deleteEntry(alias);
-            getKeyStore().setKeyEntry(alias, privateKey, null, certChain);
+            getKeyStore().setKeyEntry(alias, privateKey, null, new X509Certificate[]{certificate, getCaCertificate()});
         } catch (KeyStoreException e) {
             Log.e(TAG, "failed to add secret key: " + alias, e);
             throw new CryptoException("failed to add secret key: " + alias, e);
+        }
+    }
+
+    public static PrivateKey getSecretKey(String alias) throws CryptoException {
+        try {
+            return (PrivateKey) getKeyStore().getKey(alias, null);
+        } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
+            Log.e(TAG, "failed to fetch secret key: " + alias, e);
+            throw new CryptoException("failed to fetch secret key: " + alias, e);
         }
     }
 

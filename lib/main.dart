@@ -56,9 +56,6 @@ class ProxyAppState extends State<ProxyApp> {
         const Locale('nl', 'NL'),
         const Locale('te', 'IN'),
       ],
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
       home: new AppStateContainer(
         child: homePage(context),
       )

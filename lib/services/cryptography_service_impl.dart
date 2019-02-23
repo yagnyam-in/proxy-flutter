@@ -52,7 +52,7 @@ class CryptographyServiceImpl extends CryptographyService {
     String input,
     Map<String, String> signatures,
   }) {
-    return platform.invokeMethod('getSignatures', {
+    return platform.invokeMethod('verifySignatures', {
       'proxy': jsonEncode(proxy.toJson()),
       'input': input,
       'signatures': signatures,
