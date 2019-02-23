@@ -5,16 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
   static const String TermsAndConditionsAccepted = "termsAndConditionsAcceptedV0";
+  static const String MasterProxyId = "masterProxyId";
 
   final SharedPreferences preferences;
-  final ProxyId masterProxyId;
 
-  AppConfiguration({@required this.preferences, this.masterProxyId}) {
+  AppConfiguration({@required this.preferences}) {
     assert(preferences != null);
-  }
-
-  void persist() {
-    preferences.setString('masterProxyId', masterProxyId.toString());
   }
 
   bool get showWelcomePages {
@@ -35,4 +31,16 @@ class AppConfiguration {
     preferences.setBool(TermsAndConditionsAccepted, value);
   }
 
+  ProxyId get masterProxyId {
+    String proxyId = preferences.getString(MasterProxyId);
+    if (proxyId != null && proxyId.isNotEmpty) {
+      return ProxyId.fromUniqueId(proxyId);
+    } else {
+      return null;
+    }
+  }
+
+  set masterProxyId(ProxyId proxyId) {
+    preferences.setString(MasterProxyId, proxyId.uniqueId);
+  }
 }

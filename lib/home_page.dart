@@ -17,12 +17,14 @@ class _HomePageState extends State<HomePage> {
   final AppConfiguration appConfiguration;
   bool _showWelcomePages = true;
   bool _termsAndConditionsAccepted = false;
+  bool _masterProxySetup = false;
 
   ProxyVersion proxyVersion = ProxyVersion.latestVersion();
 
   _HomePageState(this.appConfiguration) {
     _showWelcomePages = appConfiguration.showWelcomePages;
     _termsAndConditionsAccepted = appConfiguration.termsAndConditionsAccepted;
+    _masterProxySetup = appConfiguration.masterProxyId != null;
   }
 
   @override
@@ -33,7 +35,10 @@ class _HomePageState extends State<HomePage> {
         termsAndConditionsAcceptedCallback: termsAndConditionsAcceptedCallback,
       );
     } else {
-      return SetupMasterProxyPage(appConfiguration: appConfiguration);
+      return SetupMasterProxyPage(
+        appConfiguration: appConfiguration,
+        setupMasterProxyCallback: setupMasterProxyCallback,
+      );
     }
   }
 
@@ -50,4 +55,12 @@ class _HomePageState extends State<HomePage> {
       widget.appConfiguration.termsAndConditionsAccepted = _termsAndConditionsAccepted;
     });
   }
+
+  void setupMasterProxyCallback(ProxyId proxyId) {
+    setState(() {
+      _masterProxySetup = true;
+      widget.appConfiguration.masterProxyId = proxyId;
+    });
+  }
+
 }

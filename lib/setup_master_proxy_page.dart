@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/app_state_container.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/db/db.dart';
+import 'package:proxy_flutter/db/proxy_key_repo.dart';
+import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/app_state.dart';
 import 'package:proxy_flutter/services/proxy_key_store_impl.dart';
@@ -11,11 +16,14 @@ import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_flutter/widgets/raised_button_with_icon.dart';
 import 'package:tuple/tuple.dart';
 
+typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
 class SetupMasterProxyPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
+  final SetupMasterProxyCallback setupMasterProxyCallback;
 
-  SetupMasterProxyPage({Key key, @required this.appConfiguration}) : super(key: key) {
+  SetupMasterProxyPage({Key key, @required this.appConfiguration, @required this.setupMasterProxyCallback})
+      : super(key: key) {
     print("Constructing SetupMasterProxyPage");
   }
 
@@ -25,6 +33,7 @@ class SetupMasterProxyPage extends StatefulWidget {
 
 class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
   AppState appState;
+
   final ProxyKeyStoreImpl proxyKeyStore = ProxyKeyStoreImpl();
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final ProxyFactory proxyFactory = ProxyFactory();
@@ -52,12 +61,14 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     return proxy;
   }
 
-
   Future<Tuple2<ProxyKey, Proxy>> saveProxy(ProxyKey proxyKey, Proxy proxy) async {
     await proxyKeyStore.saveProxy(proxyKey: proxyKey, proxy: proxy);
+    DB.instance().transaction((t) {
+      ProxyRepo.insert(t, proxy);
+      ProxyKeyRepo.insert(t, proxyKey);
+    });
     return Tuple2(proxyKey, proxy);
   }
-
 
   Future<Tuple2<ProxyKey, Proxy>> setup(String proxyId, String revocationPassPhrase) async {
     ProxyKey proxyKey = await createProxyKey(proxyId);
@@ -75,6 +86,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
         print("Success!! ${r.item1} => ${r.item2.isValid()}");
         appState.isLoading = false;
       });
+      widget.setupMasterProxyCallback(r.item1.id);
     }).catchError((e) {
       setState(() {
         print("Failure!! $e");
@@ -112,8 +124,6 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
       ),
     );
   }
-
-
 }
 
 typedef SetupProxyCallback = void Function(String proxyId, String revocationPassPhrase);
