@@ -15,14 +15,14 @@ class ProxyKeyRepo {
   }
 
   Future<ProxyKey> fetchProxy(ProxyId proxyId) async {
-    List<Map> maps = await db.query(
+    List<Map> rows = await db.query(
       TABLE,
       columns: [ID, SHA_256, KEY],
       where: '$ID = ? AND $SHA_256 = ?',
       whereArgs: [proxyId.id, proxyId.sha256Thumbprint],
     );
-    if (maps.isNotEmpty) {
-      return ProxyKey.fromJson(jsonDecode(maps.first[KEY]));
+    if (rows.isNotEmpty) {
+      return ProxyKey.fromJson(jsonDecode(rows.first[KEY]));
     }
     return Future.value(null);
   }
@@ -47,4 +47,5 @@ class ProxyKeyRepo {
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) {
     return Future.value();
   }
+
 }

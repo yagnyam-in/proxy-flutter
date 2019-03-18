@@ -183,7 +183,78 @@ class ProxyLocalizations {
     );
   }
 
+  String get failedProxyCreation {
+    return Intl.message(
+      'Id might be taken. Try different Id',
+      name: 'failedProxyCreation',
+      desc: 'Failed to Create Proxy',
+    );
+  }
 
+  String get bankingTitle {
+    return Intl.message(
+      'Banking',
+      name: 'bankingTitle',
+      desc: 'Banking',
+    );
+  }
+
+  String get deposit {
+    return Intl.message(
+      'Deposit',
+      name: 'deposit',
+      desc: 'Load Money',
+    );
+  }
+
+
+  String get payment {
+    return Intl.message(
+      'Payment',
+      name: 'payment',
+      desc: 'Make Payment',
+    );
+  }
+
+  String get startBanking {
+    return Intl.message(
+      'Start with Deposit',
+      name: 'startBanking',
+      desc: 'Start Banking',
+    );
+  }
+
+  String get addBunqAccountTitle {
+    return Intl.message(
+      'Add Bunq account',
+      name: 'setupBunqAccountTitle',
+      desc: 'Add Bunq account',
+    );
+  }
+
+  String get addBunqAccountDescription {
+    return Intl.message(
+      'By Adding your Bunq account, you can directly start using it anonymously',
+      name: 'setupBunqAccountDescription',
+      desc: 'By Adding your Bunq account, you can directly start using it anonymously',
+    );
+  }
+
+  String get loadMoneyTitle {
+    return Intl.message(
+      'Load Money',
+      name: 'loadMoneyTitle',
+      desc: 'Load Money',
+    );
+  }
+
+  String get loadMoneyDescription {
+    return Intl.message(
+      'By already loading Money, you can make Payments faster',
+      name: 'loadMoneyDescription',
+      desc: 'By already loading Money, you can make Payments faster',
+    );
+  }
 
 }
 

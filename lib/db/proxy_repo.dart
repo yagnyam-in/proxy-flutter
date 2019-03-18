@@ -15,14 +15,14 @@ class ProxyRepo {
   }
 
   Future<Proxy> fetchProxy(ProxyId proxyId) async {
-    List<Map> maps = await db.query(
+    List<Map> rows = await db.query(
       TABLE,
       columns: [ID, SHA_256, PROXY],
       where: '$ID = ? AND $SHA_256 = ?',
       whereArgs: [proxyId.id, proxyId.sha256Thumbprint],
     );
-    if (maps.isNotEmpty) {
-      return Proxy.fromJson(jsonDecode(maps.first[PROXY]));
+    if (rows.isNotEmpty) {
+      return Proxy.fromJson(jsonDecode(rows.first[PROXY]));
     }
     return Future.value(null);
   }

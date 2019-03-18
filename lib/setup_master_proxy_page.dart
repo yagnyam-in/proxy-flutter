@@ -32,11 +32,12 @@ class SetupMasterProxyPage extends StatefulWidget {
 }
 
 class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
-  AppState appState;
-
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final ProxyKeyStoreImpl proxyKeyStore = ProxyKeyStoreImpl();
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final ProxyFactory proxyFactory = ProxyFactory();
+
+  AppState appState;
 
   Future<ProxyKey> createProxyKey(String proxyId) {
     print("createProxyKey");
@@ -77,7 +78,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     return saveProxy(proxyKey, proxy);
   }
 
-  void setupMasterProxy(String proxyId, String revocationPassPhrase) {
+  void setupMasterProxy(BuildContext context, String proxyId, String revocationPassPhrase) {
     setState(() {
       appState.isLoading = true;
     });
@@ -92,7 +93,15 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
         print("Failure!! $e");
         appState.isLoading = false;
       });
+      showError(ProxyLocalizations.of(context).failedProxyCreation);
     });
+  }
+
+  void showError(String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 3),
+    ));
   }
 
   @override
@@ -100,6 +109,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     appState = AppStateContainer.of(context).state;
     double childOpacity = appState.isLoading ? 0.5 : 1;
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(ProxyLocalizations.of(context).setupMasterProxyTitle),
       ),
@@ -115,7 +125,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
               Opacity(
                 opacity: childOpacity,
                 child: SetupProxyForm(
-                  setupProxyCallback: setupMasterProxy,
+                  setupProxyCallback: (String proxyId, String revocationPassPhrase) => setupMasterProxy(context, proxyId, revocationPassPhrase),
                 ),
               ),
             ],

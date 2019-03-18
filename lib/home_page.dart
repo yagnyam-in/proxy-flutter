@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/banking_home.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/setup_master_proxy_page.dart';
 import 'package:proxy_flutter/terms_and_conditions.dart';
@@ -14,12 +15,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final AppConfiguration appConfiguration;
+
   bool _showWelcomePages = true;
   bool _termsAndConditionsAccepted = false;
   bool _masterProxySetup = false;
-
-  ProxyVersion proxyVersion = ProxyVersion.latestVersion();
 
   _HomePageState(this.appConfiguration) {
     _showWelcomePages = appConfiguration.showWelcomePages;
@@ -34,10 +35,14 @@ class _HomePageState extends State<HomePage> {
         appConfiguration: appConfiguration,
         termsAndConditionsAcceptedCallback: termsAndConditionsAcceptedCallback,
       );
-    } else {
+    } else if (!_masterProxySetup) {
       return SetupMasterProxyPage(
         appConfiguration: appConfiguration,
         setupMasterProxyCallback: setupMasterProxyCallback,
+      );
+    } else {
+      return BankingHome(
+        appConfiguration: appConfiguration,
       );
     }
   }
