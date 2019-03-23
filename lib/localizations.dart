@@ -124,9 +124,9 @@ class ProxyLocalizations {
 
   String get termsAndConditionsPageTitle {
     return Intl.message(
-      'Proxy Term & Conditions',
+      'Terms & Conditions',
       name: 'termsAndConditionsPageTitle',
-      desc: 'Page title for accepting proxy terms & conditions',
+      desc: 'Page title for accepting terms & conditions',
     );
   }
 
@@ -143,7 +143,7 @@ class ProxyLocalizations {
     return Intl.message(
       'https://proxy.yagnyam.in/tc',
       name: 'termsAndConditionsURL',
-      desc: 'Proxy Terms & Conditions URL',
+      desc: 'Terms & Conditions URL',
     );
   }
 
@@ -215,6 +215,23 @@ class ProxyLocalizations {
     );
   }
 
+  String get withdraw {
+    return Intl.message(
+      'Withdraw',
+      name: 'withdraw',
+      desc: 'Withdraw from Wallet',
+    );
+  }
+
+  String get archive {
+    return Intl.message(
+      'Archive',
+      name: 'archive',
+      desc: 'Archive Wallet',
+    );
+  }
+
+
   String get startBankingTitle {
     return Intl.message(
       'Start Banking',
@@ -276,6 +293,14 @@ class ProxyLocalizations {
       'Creating Anonymous Account',
       name: 'creatingAccount',
       desc: 'Creating Anonymous Account',
+    );
+  }
+
+  String get canNotDeleteActiveAccount {
+    return Intl.message(
+      'Account is no empty to delete',
+      name: 'canNotDeleteActiveAccount',
+      desc: 'Account is not empty to delete',
     );
   }
 }

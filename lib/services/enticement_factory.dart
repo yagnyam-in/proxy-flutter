@@ -32,12 +32,16 @@ class EnticementFactory {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     Set<String> dismissed = await EnticementRepo.instance(DB.instance()).dismissedEnticements();
     List<EnticementEntity> result = factoryMethods
-        .takeWhile((e) => !dismissed.contains(e.key))
+        .where((e) => !dismissed.contains(e.key))
         .map((e) => e.value(localizations))
         .take(limit)
         .toList();
     print("Returning Enticements $result");
     return result;
+  }
+
+  Future<void> dismissEnticement(BuildContext context, EnticementEntity enticement) async {
+    await EnticementRepo.instance(DB.instance()).dismissEnticement(enticement.enticementId);
   }
 
   static EnticementEntity start(ProxyLocalizations localizations) {

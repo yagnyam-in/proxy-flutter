@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/account_card.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
@@ -10,7 +11,6 @@ import 'package:proxy_flutter/model/enticement_entity.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/services/banking_service.dart';
 import 'package:proxy_flutter/services/enticement_factory.dart';
-import 'package:proxy_flutter/services/proxy_key_store_impl.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -58,12 +58,7 @@ class _BankingHomeState extends State<BankingHome> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _refreshAccounts();
-    EnticementFactory.instance().getEnticement(context).then((enticement) {
-      _setEnticement(enticement);
-    }, onError: (e) {
-      print(e);
-      _setEnticement(null);
-    });
+    _refreshEnticements();
   }
 
   void _refreshAccounts() {
@@ -73,6 +68,15 @@ class _BankingHomeState extends State<BankingHome> {
       print(e);
       showToast(ProxyLocalizations.of(context).errorLoadingAccounts);
       _setAccounts([]);
+    });
+  }
+
+  void _refreshEnticements() {
+    EnticementFactory.instance().getEnticement(context).then((enticement) {
+      _setEnticement(enticement);
+    }, onError: (e) {
+      print(e);
+      _setEnticement(null);
     });
   }
 
@@ -108,28 +112,28 @@ class _BankingHomeState extends State<BankingHome> {
       body: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: ListView(
-            children: rows(),
+            children: rows(context),
           )),
     );
   }
 
-  List<Widget> rows() {
+  List<Widget> rows(BuildContext context) {
     List<Widget> rows = [
       actionBar(context),
     ];
     if (_accounts != null && _accounts.isNotEmpty) {
       print("adding ${_accounts.length} accounts");
-      _accounts.forEach((a) {
+      _accounts.forEach((account) {
         rows.addAll([
-          const SizedBox(height: 16.0),
-          AccountCard(account: a),
+          const SizedBox(height: 8.0),
+          accountCard(context, account),
         ]);
       });
     }
     if (_enticement != null) {
       rows.addAll([
-        const SizedBox(height: 16.0),
-        EnticementCard(enticement: _enticement),
+        const SizedBox(height: 8.0),
+        enticementCard(context, _enticement),
       ]);
     }
     return rows;
@@ -159,14 +163,17 @@ class _BankingHomeState extends State<BankingHome> {
   }
 
   void createNewAccount() async {
-    showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
     String currency = await showDialog(
       context: context,
       builder: (context) => currencyDialog(context),
     );
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(widget.appConfiguration.masterProxyId);
-    await bankingService.createProxyWallet(proxyKey, currency);
-    _refreshAccounts();
+    if (Currency.isValidCurrency(currency)) {
+      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
+      ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(widget.appConfiguration.masterProxyId);
+      await bankingService.createProxyWallet(proxyKey, currency);
+      _refreshAccounts();
+      _refreshEnticements();
+    }
   }
 
   Widget currencyDialog(BuildContext context) {
@@ -185,30 +192,70 @@ class _BankingHomeState extends State<BankingHome> {
             Navigator.pop(context, Currency.EUR);
           },
         ),
-        SimpleDialogOption(
-          child: new Text('Cancel'),
-          onPressed: () {
-            Navigator.pop(context, '');
-          },
+      ],
+    );
+  }
+
+  Widget accountCard(BuildContext context, ProxyAccountEntity account) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return Slidable(
+      delegate: new SlidableDrawerDelegate(),
+      actionExtentRatio: 0.25,
+      child: AccountCard(account: account),
+      actions: <Widget>[
+        new IconSlideAction(
+          caption: localizations.deposit,
+          color: Colors.blue,
+          icon: Icons.file_download,
+          onTap: () => showToast('Deposit'),
+        ),
+        new IconSlideAction(
+          caption: 'Withdraw',
+          color: Colors.indigo,
+          icon: Icons.file_upload,
+          onTap: () => showToast('Widthdraw'),
+        ),
+      ],
+      secondaryActions: <Widget>[
+        new IconSlideAction(
+          caption: localizations.archive,
+          color: Colors.red,
+          icon: Icons.archive,
+          onTap: () => _archiveAccount(context, account),
         ),
       ],
     );
   }
-}
 
-class Accounts extends StatelessWidget {
-  final List<ProxyAccountEntity> accounts;
+  void _deposit(BuildContext context, ProxyAccountEntity proxyAccount) {
 
-  const Accounts({Key key, this.accounts}) : super(key: key);
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      // padding: EdgeInsets.all(8.0),
-      itemExtent: 20.0,
-      itemBuilder: (BuildContext context, int index) {
-        return AccountCard(account: accounts[index]);
-      },
+  void _archiveAccount(BuildContext context, ProxyAccountEntity proxyAccount) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    if (proxyAccount.balance.value != 0) {
+      showToast(localizations.canNotDeleteActiveAccount);
+      return;
+    }
+    proxyAccountRepo.deleteAccount(proxyAccount);
+    _refreshAccounts();
+  }
+
+  Widget enticementCard(BuildContext context, EnticementEntity enticement) {
+    return Slidable(
+      delegate: new SlidableDrawerDelegate(),
+      actionExtentRatio: 0.25,
+      child: EnticementCard(enticement: enticement),
+      secondaryActions: <Widget>[
+        new IconSlideAction(
+            caption: 'Delete',
+            color: Colors.red,
+            icon: Icons.delete,
+            onTap: () {
+              EnticementFactory.instance().dismissEnticement(context, enticement);
+              _refreshEnticements();
+            }),
+      ],
     );
   }
 }

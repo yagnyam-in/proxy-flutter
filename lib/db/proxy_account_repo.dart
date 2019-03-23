@@ -69,6 +69,15 @@ class ProxyAccountRepo {
     return db.transaction((transaction) => saveAccountInTransaction(transaction, proxyAccount));
   }
 
+  Future<int> deleteAccount(ProxyAccountEntity proxyAccount) {
+    ProxyAccountId accountId = proxyAccount.accountId;
+    return db.delete(
+      TABLE,
+      where: '$ACCOUNT_ID = ? AND $BANK_ID = ?',
+      whereArgs: [accountId.accountId, accountId.bankId],
+    );
+  }
+
   static const String TABLE = "PROXY_ACCOUNT";
   static const String ACCOUNT_ID = "accountId";
   static const String ACCOUNT_NAME = "accountName";

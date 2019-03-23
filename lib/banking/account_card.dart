@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
+import 'package:proxy_messages/banking.dart';
 
 class AccountCard extends StatelessWidget {
   final ProxyAccountEntity account;
@@ -18,27 +19,23 @@ class AccountCard extends StatelessWidget {
       margin: new EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Container(
         decoration: BoxDecoration(
-          // color: Color.fromRGBO(64, 75, 96, .9),
-        ),
+            // color: Color.fromRGBO(64, 75, 96, .9),
+            ),
         child: makeListTile(context),
       ),
     );
   }
 
-  String get accountName => (account.accountName != null && account.accountName.isNotEmpty) ? account.accountName : account.accountId.accountId;
-  
+  String get accountName => (account.accountName != null && account.accountName.isNotEmpty)
+      ? account.accountName
+      : account.accountId.accountId;
+
   String get bankName => account.bankName ?? account.accountId.bankId;
 
-  Icon _userIcon(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-    return Icon(
-      Icons.account_balance_wallet,
-      color: themeData.primaryColor,
-      size: 30.0,
-    );
-  }
+  String get balance => '${account.balance.value} ${Currency.currencySymbol(account.balance.currency)}';
 
   Widget makeListTile(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       title: Text(
@@ -51,7 +48,10 @@ class AccountCard extends StatelessWidget {
           bankName,
         ),
       ),
-      trailing: _userIcon(context),
+      trailing: Text(
+        balance,
+        style: themeData.textTheme.title,
+      ),
     );
   }
 }
