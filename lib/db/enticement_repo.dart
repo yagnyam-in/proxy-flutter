@@ -19,22 +19,29 @@ class EnticementRepo {
       where: '$ACTIVE = ?',
       whereArgs: [0],
     );
-    Set<String> result = Set();
-    rows.forEach((row) => result.add(row[ID]));
-    return result;
+    return rows.map((row) => row[ID] as String).toSet();
   }
 
-  static Future<int> dismissEnticement(Transaction transaction, String enticementId) {
+  static Future<int> dismissEnticementInTransaction(Transaction transaction, String enticementId) {
     Map<String, dynamic> map = {
       ID: enticementId,
       ACTIVE: 0,
     };
-    return transaction.update(TABLE, map).then((updated) {
+    return transaction.update(
+      TABLE,
+      map,
+      where: '$ID = ?',
+      whereArgs: [enticementId],
+    ).then((updated) {
       if (updated == 0) {
         return transaction.insert(TABLE, map);
       }
       return updated;
     });
+  }
+
+  Future<int> dismissEnticement(String enticementId) {
+    return db.transaction((transaction) => dismissEnticementInTransaction(transaction, enticementId));
   }
 
   static const String TABLE = "ENTICEMENT";

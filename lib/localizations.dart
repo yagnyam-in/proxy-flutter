@@ -207,7 +207,6 @@ class ProxyLocalizations {
     );
   }
 
-
   String get payment {
     return Intl.message(
       'Payment',
@@ -216,11 +215,19 @@ class ProxyLocalizations {
     );
   }
 
-  String get startBanking {
+  String get startBankingTitle {
     return Intl.message(
-      'Start with Deposit',
-      name: 'startBanking',
+      'Start Banking',
+      name: 'startBankingTitle',
       desc: 'Start Banking',
+    );
+  }
+
+  String get startBankingDescription {
+    return Intl.message(
+      'Start making payments anonymously',
+      name: 'startBankingDescription',
+      desc: 'Start Banking description',
     );
   }
 
@@ -256,6 +263,21 @@ class ProxyLocalizations {
     );
   }
 
+  String get errorLoadingAccounts {
+    return Intl.message(
+      'Failed to fetch existing accounts',
+      name: 'errorLoadingAccounts',
+      desc: 'Failed to fetch existing accounts',
+    );
+  }
+
+  String get creatingAnonymousAccount {
+    return Intl.message(
+      'Creating Anonymous Account',
+      name: 'creatingAccount',
+      desc: 'Creating Anonymous Account',
+    );
+  }
 }
 
 class ProxyLocalizationsDelegate

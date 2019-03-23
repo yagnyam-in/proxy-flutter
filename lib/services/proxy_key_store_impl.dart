@@ -6,7 +6,7 @@ import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 
-class ProxyKeyStoreImpl extends ProxyKeyStore implements ProxyRequestFactory, ProxyKeyFactory {
+class ProxyKeyStoreImpl implements ProxyRequestFactory, ProxyKeyFactory {
   static const platform = const MethodChannel('proxy.yagnyam.in/ProxyKeyStore');
 
   @override
@@ -37,16 +37,7 @@ class ProxyKeyStoreImpl extends ProxyKeyStore implements ProxyRequestFactory, Pr
     return ProxyRequest.fromJson(jsonDecode(result));
   }
 
-  @override
-  Future<ProxyKey> resolveProxyKey(
-    ProxyId proxyId,
-  ) {
-    return platform.invokeMethod('resolveProxyKey', {
-      "proxyId": jsonEncode(proxyId.toJson()),
-    });
-  }
 
-  @override
   Future<void> saveProxy({
     ProxyKey proxyKey,
     Proxy proxy,

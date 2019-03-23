@@ -62,6 +62,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void setupMasterProxyCallback(ProxyId proxyId) {
+    print("setupMasterProxyCallback($proxyId)");
     setState(() {
       _masterProxySetup = true;
       widget.appConfiguration.masterProxyId = proxyId;

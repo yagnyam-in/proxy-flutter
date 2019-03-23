@@ -14,7 +14,7 @@ import java.util.Map;
 
 import in.yagnyam.proxy.Proxy;
 import in.yagnyam.proxy.UserKeyStore;
-import in.yagnyam.proxy.services.BcCryptographyService;
+import in.yagnyam.proxy.services.AndroidCryptographyService;
 import in.yagnyam.proxy.services.CryptographyService;
 import in.yagnyam.proxy.services.MessageSerializerService;
 import in.yagnyam.proxy.services.PemService;
@@ -28,7 +28,7 @@ public class CryptographyServiceImpl implements MethodChannel.MethodCallHandler,
 
     private final MessageSerializerService messageSerializerService = MessageSerializerService.builder().build();
     private final PemService pemService = PemService.builder().build();
-    private final CryptographyService cryptographyService = BcCryptographyService.builder().build();
+    private final CryptographyService cryptographyService = AndroidCryptographyService.builder().pemService(pemService).build();
 
 
     @Override
@@ -102,6 +102,7 @@ public class CryptographyServiceImpl implements MethodChannel.MethodCallHandler,
             for (String algorithm : algorithms) {
                 signatures.put(algorithm, cryptographyService.getSignature(algorithm, privateKey, input));
             }
+            Log.i(TAG, "getSignatures(" + algorithms + ") => " + signatures);
             return signatures;
         } catch (IOException | GeneralSecurityException e) {
             Log.e(TAG, "failed to sign message", e);

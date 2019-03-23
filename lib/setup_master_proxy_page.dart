@@ -12,6 +12,7 @@ import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/app_state.dart';
 import 'package:proxy_flutter/services/proxy_key_store_impl.dart';
+import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_flutter/widgets/raised_button_with_icon.dart';
 import 'package:tuple/tuple.dart';
@@ -75,7 +76,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     ProxyKey proxyKey = await createProxyKey(proxyId);
     ProxyRequest proxyRequest = await createProxyRequest(proxyKey, revocationPassPhrase);
     Proxy proxy = await createProxy(proxyRequest);
-    return saveProxy(proxyKey, proxy);
+    return saveProxy(proxyKey.copyWith(id: proxy.id), proxy);
   }
 
   void setupMasterProxy(BuildContext context, String proxyId, String revocationPassPhrase) {
@@ -125,7 +126,8 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
               Opacity(
                 opacity: childOpacity,
                 child: SetupProxyForm(
-                  setupProxyCallback: (String proxyId, String revocationPassPhrase) => setupMasterProxy(context, proxyId, revocationPassPhrase),
+                  setupProxyCallback: (String proxyId, String revocationPassPhrase) =>
+                      setupMasterProxy(context, proxyId, revocationPassPhrase),
                 ),
               ),
             ],
@@ -144,7 +146,7 @@ class SetupProxyForm extends StatefulWidget {
   SetupProxyForm({@required this.setupProxyCallback, Key key}) : super(key: key);
 
   @override
-  _SetupProxyFormState createState() => _SetupProxyFormState();
+  _SetupProxyFormState createState() => _SetupProxyFormState(ServiceFactory.proxyIdFactory().proxyId());
 }
 
 class _SetupProxyFormState extends State<SetupProxyForm> {
@@ -152,9 +154,12 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
 
   final FocusNode revocationPassPhraseFocusNode = FocusNode();
   final FocusNode tosFocusNode = FocusNode();
+  final TextEditingController proxyIdController; // = ;
+  final TextEditingController revocationPassPhraseController;
 
-  final TextEditingController proxyIdController = TextEditingController(text: "hello-there");
-  final TextEditingController revocationPassPhraseController = TextEditingController(text: "hello-there");
+  _SetupProxyFormState(String suggestedProxyId)
+      : this.proxyIdController = TextEditingController(text: suggestedProxyId),
+        this.revocationPassPhraseController = TextEditingController(text: suggestedProxyId);
 
   @override
   Widget build(BuildContext context) {

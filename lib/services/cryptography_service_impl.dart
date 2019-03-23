@@ -39,12 +39,16 @@ class CryptographyServiceImpl extends CryptographyService {
     ProxyKey proxyKey,
     String input,
     Set<String> signatureAlgorithms,
-  }) {
-    return platform.invokeMethod('getSignatures', {
+  }) async {
+     Map<dynamic, dynamic> result = await platform.invokeMethod('getSignatures', {
       'proxyKey': jsonEncode(proxyKey.toJson()),
       'input': input,
       'algorithms': signatureAlgorithms.toList(),
     });
+     print(result);
+     Map<String, String> signatures = Map();
+     result.forEach((k, v) => signatures[k] = v.toString());
+     return signatures;
   }
 
   @override
@@ -52,11 +56,12 @@ class CryptographyServiceImpl extends CryptographyService {
     Proxy proxy,
     String input,
     Map<String, String> signatures,
-  }) {
-    return platform.invokeMethod('verifySignatures', {
+  }) async {
+    bool valid = await platform.invokeMethod('verifySignatures', {
       'proxy': jsonEncode(proxy.toJson()),
       'input': input,
       'signatures': signatures,
     });
+    return valid;
   }
 }

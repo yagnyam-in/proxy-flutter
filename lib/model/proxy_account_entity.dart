@@ -1,17 +1,18 @@
-
 import 'package:meta/meta.dart';
+import 'package:proxy_messages/banking.dart';
 
 class ProxyAccountEntity {
-  final String accountId;
+  final ProxyAccountId accountId;
+  final Amount balance;
   final String accountName;
-  
-  final String bankId;
   final String bankName;
-  
-  final String currency;
-  final double balance;
-  
   final String signedProxyAccount;
 
-  ProxyAccountEntity({@required this.accountId, @required this.accountName, @required this.bankId, @required this.bankName, @required this.currency, @required this.balance, @required this.signedProxyAccount});
+  ProxyAccountEntity({
+    @required this.accountId,
+    @required this.accountName,
+    @required this.bankName,
+    @required this.balance,
+    @required this.signedProxyAccount,
+  });
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
@@ -10,10 +9,6 @@ class ProxyAccountRepo {
   final DB db;
 
   ProxyAccountRepo(this.db);
-
-  factory ProxyAccountRepo.instance(DB database) {
-    return ProxyAccountRepo(database);
-  }
 
   Future<ProxyAccountEntity> fetchAccount(ProxyAccountId accountId) async {
     List<Map> rows = await db.query(
@@ -33,27 +28,45 @@ class ProxyAccountRepo {
       TABLE,
       columns: [ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, SIGNED_PROXY_ACCOUNT],
     );
-    return rows.map((e) => _rowToProxyAccountEntity(e));
+    print("Got ${rows.length} rows");
+    return rows.map((e) => _rowToProxyAccountEntity(e)).toList();
   }
 
   ProxyAccountEntity _rowToProxyAccountEntity(Map<String, dynamic> row) {
     return ProxyAccountEntity(
-      accountId: row[ACCOUNT_ID],
+      accountId: ProxyAccountId(accountId: row[ACCOUNT_ID], bankId: row[BANK_ID]),
       accountName: row[ACCOUNT_NAME],
-      bankId: row[BANK_ID],
       bankName: row[BANK_NAME],
-      currency: row[CURRENCY],
-      balance: row[BALANCE],
+      balance: Amount(row[CURRENCY], row[BALANCE]),
       signedProxyAccount: row[SIGNED_PROXY_ACCOUNT],
     );
   }
 
-  static Future<int> insert(Transaction transaction, ProxyAccount proxyAccount) {
-    return transaction.insert(TABLE, {
-      ACCOUNT_ID: proxyAccount.proxyAccountId.accountId,
-      BANK_ID: proxyAccount.proxyAccountId.bankId,
-      SIGNED_PROXY_ACCOUNT: jsonEncode(proxyAccount.toJson()),
-    });
+  static Future<int> saveAccountInTransaction(Transaction transaction, ProxyAccountEntity proxyAccount) async {
+    ProxyAccountId accountId = proxyAccount.accountId;
+    Map<String, dynamic> values = {
+      ACCOUNT_ID: accountId.accountId,
+      ACCOUNT_NAME: proxyAccount.accountName,
+      BANK_ID: accountId.bankId,
+      BANK_NAME: proxyAccount.bankName,
+      CURRENCY: proxyAccount.balance.currency,
+      BALANCE: proxyAccount.balance.value,
+      SIGNED_PROXY_ACCOUNT: proxyAccount.signedProxyAccount,
+    };
+    int updated = await transaction.update(
+      TABLE,
+      values,
+      where: '$ACCOUNT_ID = ? AND $BANK_ID = ?',
+      whereArgs: [accountId.accountId, accountId.bankId],
+    );
+    if (updated == 0) {
+      updated = await transaction.insert(TABLE, values);
+    }
+    return updated;
+  }
+
+  Future<int> saveAccount(ProxyAccountEntity proxyAccount) {
+    return db.transaction((transaction) => saveAccountInTransaction(transaction, proxyAccount));
   }
 
   static const String TABLE = "PROXY_ACCOUNT";
@@ -77,5 +90,4 @@ class ProxyAccountRepo {
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) {
     return Future.value();
   }
-
 }

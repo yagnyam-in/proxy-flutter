@@ -14,8 +14,8 @@ class AccountCard extends StatelessWidget {
 
   Widget makeCard(BuildContext context) {
     return Card(
-      elevation: 8.0,
-      margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+      elevation: 4.0,
+      margin: new EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Container(
         decoration: BoxDecoration(
           // color: Color.fromRGBO(64, 75, 96, .9),
@@ -25,9 +25,9 @@ class AccountCard extends StatelessWidget {
     );
   }
 
-  String get accountName => account.accountName ?? account.accountId;
+  String get accountName => (account.accountName != null && account.accountName.isNotEmpty) ? account.accountName : account.accountId.accountId;
   
-  String get bankName => account.bankName ?? account.bankId; 
+  String get bankName => account.bankName ?? account.accountId.bankId;
 
   Icon _userIcon(BuildContext context) {
     ThemeData themeData = Theme.of(context);
