@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/accept_amount_dialog.dart';
 import 'package:proxy_flutter/banking/account_card.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
@@ -13,6 +14,7 @@ import 'package:proxy_flutter/services/banking_service.dart';
 import 'package:proxy_flutter/services/enticement_factory.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 final Uuid uuidFactory = Uuid();
@@ -151,8 +153,21 @@ class _BankingHomeState extends State<BankingHome> {
   }
 
   void deposit() async {
-    if (_accounts.isEmpty) {
-      return createNewAccount();
+    Amount amount = await Navigator.of(context).push(new MaterialPageRoute<Amount>(
+        builder: (context)  => AcceptAmountDialog(),
+        fullscreenDialog: true
+    ));
+    if (amount != null && Currency.isValidCurrency(amount.currency)) {
+      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
+      ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(widget.appConfiguration.masterProxyId);
+      String depositLink = await bankingService.deposit(proxyKey, amount);
+      if (await canLaunch(depositLink)) {
+        await launch(depositLink);
+      } else {
+        throw 'Could not launch $depositLink';
+      }
+      _refreshAccounts();
+      _refreshEnticements();
     }
   }
 
@@ -227,9 +242,7 @@ class _BankingHomeState extends State<BankingHome> {
     );
   }
 
-  void _deposit(BuildContext context, ProxyAccountEntity proxyAccount) {
-
-  }
+  void _deposit(BuildContext context, ProxyAccountEntity proxyAccount) {}
 
   void _archiveAccount(BuildContext context, ProxyAccountEntity proxyAccount) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);

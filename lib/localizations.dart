@@ -303,6 +303,63 @@ class ProxyLocalizations {
       desc: 'Account is not empty to delete',
     );
   }
+
+  String get enterAmountTitle {
+    return Intl.message(
+      'Enter Account',
+      name: 'enterAmountTitle',
+      desc: 'Dialog title to accept amount',
+    );
+  }
+
+  String get invalidAmount {
+    return Intl.message(
+      'Invalid Amount',
+      name: 'invalidAmount',
+      desc: 'Invalid Amount',
+    );
+  }
+
+  String get currency {
+    return Intl.message(
+      'Currency',
+      name: 'currency',
+      desc: 'Currency',
+    );
+  }
+
+  String get currencyHint {
+    return Intl.message(
+      'Choose Currency',
+      name: 'currencyHint',
+      desc: 'Hint for Currency',
+    );
+  }
+
+  String get amount {
+    return Intl.message(
+      'Amount',
+      name: 'amount',
+      desc: 'Amount',
+    );
+  }
+
+  String get amountHint {
+    return Intl.message(
+      'Amount',
+      name: 'amountHint',
+      desc: 'Hint for Amount',
+    );
+  }
+
+
+  String get okButtonLabel {
+    return Intl.message(
+      'OK',
+      name: 'okButtonLabel',
+      desc: 'OK',
+    );
+  }
 }
 
 class ProxyLocalizationsDelegate

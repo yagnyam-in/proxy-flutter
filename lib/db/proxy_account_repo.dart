@@ -38,7 +38,7 @@ class ProxyAccountRepo {
       accountName: row[ACCOUNT_NAME],
       bankName: row[BANK_NAME],
       balance: Amount(row[CURRENCY], row[BALANCE]),
-      signedProxyAccount: row[SIGNED_PROXY_ACCOUNT],
+      signedProxyAccountJson: row[SIGNED_PROXY_ACCOUNT],
     );
   }
 
@@ -51,7 +51,7 @@ class ProxyAccountRepo {
       BANK_NAME: proxyAccount.bankName,
       CURRENCY: proxyAccount.balance.currency,
       BALANCE: proxyAccount.balance.value,
-      SIGNED_PROXY_ACCOUNT: proxyAccount.signedProxyAccount,
+      SIGNED_PROXY_ACCOUNT: proxyAccount.signedProxyAccountJson,
     };
     int updated = await transaction.update(
       TABLE,

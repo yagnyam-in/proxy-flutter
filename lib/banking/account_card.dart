@@ -26,11 +26,9 @@ class AccountCard extends StatelessWidget {
     );
   }
 
-  String get accountName => (account.accountName != null && account.accountName.isNotEmpty)
-      ? account.accountName
-      : account.accountId.accountId;
+  String get accountName => account.validAccountName;
 
-  String get bankName => account.bankName ?? account.accountId.bankId;
+  String get bankName => account.validBankName;
 
   String get balance => '${account.balance.value} ${Currency.currencySymbol(account.balance.currency)}';
 
