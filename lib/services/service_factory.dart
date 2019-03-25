@@ -51,6 +51,7 @@ class ServiceFactory {
       messageFactory: messageFactory(),
       messageSigningService: messageSigningService(),
       proxyAccountRepo: proxyAccountRepo(),
+      proxyKeyRepo: proxyKeyRepo(),
     );
   }
 

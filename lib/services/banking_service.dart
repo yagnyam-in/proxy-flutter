@@ -6,6 +6,7 @@ import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
+import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/services/enticement_factory.dart';
 import 'package:proxy_messages/banking.dart';
@@ -18,6 +19,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
   final ProxyAccountRepo proxyAccountRepo;
+  final ProxyKeyRepo proxyKeyRepo;
 
   BankingService({
     String proxyBankingUrl,
@@ -25,6 +27,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.messageFactory,
     @required this.messageSigningService,
     @required this.proxyAccountRepo,
+    @required this.proxyKeyRepo,
   })
       : proxyBankingUrl = proxyBankingUrl ?? "https://proxy-banking.appspot.com/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
@@ -87,6 +90,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       accountName: "",
       bankName: "Wallet",
       balance: Amount(proxyAccount.currency, 0),
+      ownerProxyId: owner,
       signedProxyAccountJson: jsonEncode(response.proxyAccount.toJson()),
     );
     DB.instance().transaction((transaction) {
@@ -96,8 +100,32 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     return proxyAccountEntity;
   }
 
-  Future<void> refreshAccount(ProxyAccountId accountId) {
+  Future<void> refreshAccount(ProxyAccountId accountId) async {
     print('Refreshing $accountId');
-    return null;
+    ProxyAccountEntity proxyAccount = await proxyAccountRepo.fetchAccount(accountId);
+    if (proxyAccount == null) {
+      // This can happen when alert reaches earlier than API response.
+      print("Account $proxyAccount not found");
+      return null;
+    }
+    ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(proxyAccount.ownerProxyId);
+    AccountBalanceRequest request = AccountBalanceRequest(
+      requestId: uuidFactory.v4(),
+      proxyAccount: proxyAccount.signedProxyAccount,
+    );
+    SignedMessage<AccountBalanceRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
+    String signedRequestJson = jsonEncode(signedRequest.toJson());
+    print("Sending $signedRequestJson to $proxyBankingUrl");
+    String jsonResponse = await post(
+      httpClientFactory(),
+      proxyBankingUrl,
+      signedRequestJson,
+    );
+    print("Received $jsonResponse from $proxyBankingUrl");
+    SignedMessage<AccountBalanceResponse> signedResponse =
+        await messageFactory.buildAndVerifySignedMessage(jsonResponse, AccountBalanceResponse.fromJson);
+    proxyAccount.balance = signedResponse.message.balance;
+    print("Account $accountId has balance => ${proxyAccount.balance}");
+    proxyAccountRepo.saveAccount(proxyAccount);
   }
 }

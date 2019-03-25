@@ -50,9 +50,11 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   void tokenRefresh(String newToken) async {
     print("New FCM Token $newToken");
-    List<ProxyKey> outdatedProxies = await ServiceFactory.proxyKeyRepo().fetchProxiesWithoutFcmToken(newToken);
-    print('Got ${outdatedProxies.length} proxies to update');
-    outdatedProxies.forEach((key) => updateToken(key, newToken));
+    if (newToken != null) {
+      List<ProxyKey> outdatedProxies = await ServiceFactory.proxyKeyRepo().fetchProxiesWithoutFcmToken(newToken);
+      print('Got ${outdatedProxies.length} proxies to update');
+      outdatedProxies.forEach((key) => updateToken(key, newToken));
+    }
   }
 
   void updateToken(ProxyKey proxyKey, String newToken) async {
@@ -81,14 +83,13 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   Future<void> onMessage(Map<String, dynamic> message) {
     print("onMessage $message");
-    Map<String, dynamic> data = message['data'];
+    Map<dynamic, dynamic> data = message['data'];
     print('data: $data');
-    String type = data != null ? data['Type'] : null;
+    String type = data != null ? data['alertType'] : null;
     print('type: $type');
-    if (type == 'in.yagnyam.proxy.messages.banking.alerts.AccountUpdatedAler') {
-      String accountId = data['AccountId'];
-      String bankId = data['BankId'];
-      ServiceFactory.bankingService().refreshAccount(ProxyAccountId(bankId: bankId, accountId: accountId));
+    if (type == AccountUpdatedAlert.ALERT_TYPE) {
+      AccountUpdatedAlert alert = AccountUpdatedAlert.fromJson(data);
+      ServiceFactory.bankingService().refreshAccount(alert.proxyAccountId);
     }
     return null;
   }

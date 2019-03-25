@@ -4,10 +4,11 @@ import 'package:proxy_messages/banking.dart';
 
 class ProxyAccountEntity with ProxyUtils {
   final ProxyAccountId accountId;
-  final Amount balance;
   final String accountName;
   final String bankName;
+  final ProxyId ownerProxyId;
   final String signedProxyAccountJson;
+  Amount balance;
   SignedMessage<ProxyAccount> _signedProxyAccount;
 
   String get validAccountName => isNotEmpty(accountName) ? accountName : accountId.accountId;
@@ -27,6 +28,7 @@ class ProxyAccountEntity with ProxyUtils {
     @required this.accountName,
     @required this.bankName,
     @required this.balance,
+    @required this.ownerProxyId,
     @required this.signedProxyAccountJson,
   });
 }

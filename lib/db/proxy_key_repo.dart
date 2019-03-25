@@ -26,6 +26,7 @@ class ProxyKeyRepo {
   }
 
   Future<List<ProxyKey>> fetchProxiesWithoutFcmToken(String fcmToken) async {
+
     List<Map> rows = await db.query(
       TABLE,
       columns: [ID, SHA_256, KEY],

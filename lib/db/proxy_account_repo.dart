@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
@@ -15,20 +16,20 @@ class ProxyAccountRepo {
   Future<ProxyAccountEntity> fetchAccount(ProxyAccountId accountId) async {
     List<Map> rows = await db.query(
       TABLE,
-      columns: [ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, SIGNED_PROXY_ACCOUNT],
+      columns: [ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, OWNER_PROXY_ID, OWNER_PROXY_SHA256, SIGNED_PROXY_ACCOUNT],
       where: '$ACCOUNT_ID = ? AND $BANK_ID = ?',
       whereArgs: [accountId.accountId, accountId.bankId],
     );
     if (rows.isNotEmpty) {
       return _rowToProxyAccountEntity(rows.first);
     }
-    return Future.error("No Such Account $accountId");
+    return null;
   }
 
   Future<List<ProxyAccountEntity>> fetchAccounts() async {
     List<Map> rows = await db.query(
       TABLE,
-      columns: [ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, SIGNED_PROXY_ACCOUNT],
+      columns: [ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, OWNER_PROXY_ID, OWNER_PROXY_SHA256, SIGNED_PROXY_ACCOUNT],
     );
     print("Got ${rows.length} rows");
     return rows.map((e) => _rowToProxyAccountEntity(e)).toList();
@@ -41,6 +42,7 @@ class ProxyAccountRepo {
       bankName: row[BANK_NAME],
       balance: Amount(row[CURRENCY], row[BALANCE]),
       signedProxyAccountJson: row[SIGNED_PROXY_ACCOUNT],
+      ownerProxyId: new ProxyId(row[OWNER_PROXY_ID], row[OWNER_PROXY_SHA256]),
     );
   }
 
@@ -53,6 +55,8 @@ class ProxyAccountRepo {
       BANK_NAME: proxyAccount.bankName,
       CURRENCY: proxyAccount.balance.currency,
       BALANCE: proxyAccount.balance.value,
+      OWNER_PROXY_ID: proxyAccount.ownerProxyId.id,
+      OWNER_PROXY_SHA256: proxyAccount.ownerProxyId.sha256Thumbprint,
       SIGNED_PROXY_ACCOUNT: proxyAccount.signedProxyAccountJson,
     };
     int updated = await transaction.update(
@@ -87,6 +91,9 @@ class ProxyAccountRepo {
   static const String BANK_NAME = "bankName";
   static const String CURRENCY = "currency";
   static const String BALANCE = "balance";
+  static const String OWNER_PROXY_ID = "ownerProxyId";
+  static const String OWNER_PROXY_SHA256 = "ownerProxySha256";
+
   static const String SIGNED_PROXY_ACCOUNT = "account";
 
   static Future<void> onCreate(DB db, int version) {
@@ -94,6 +101,7 @@ class ProxyAccountRepo {
         '$ACCOUNT_ID TEXT PRIMARY KEY, $ACCOUNT_NAME TEXT, '
         '$BANK_ID TEXT, $BANK_NAME TEXT, '
         '$CURRENCY TEXT, $BALANCE DOUBLE, '
+        '$OWNER_PROXY_ID TEXT, $OWNER_PROXY_SHA256 TEXT, '
         '$SIGNED_PROXY_ACCOUNT TEXT'
         ')');
   }
