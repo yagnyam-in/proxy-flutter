@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "128004560964",
+    "firebase_url": "https://proxy-cs.firebaseio.com",
+    "project_id": "proxy-cs",
+    "storage_bucket": "proxy-cs.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128004560964:android:8625e1fc30c88f79",
+        "android_client_info": {
+          "package_name": "in.yagnyam.proxy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "128004560964-sok3aq4gd5f7hh5gtsht3dks2u5d9umk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtlWPGtuyFlVaiUJTdsVRfN_pYvxprqOA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -9,16 +9,13 @@ import 'package:sqflite/sqflite.dart';
 
 Database _database;
 
-
-
 class DB {
   final Future<Database> _db;
+  static final DB _instance = DB._internal(database());
 
-  DB(this._db);
+  DB._internal(this._db);
 
-  factory DB.instance() {
-    return DB(database());
-  }
+  factory DB.instance() => _instance;
 
   Future<void> execute(String sql, [List arguments]) async {
     Database db = await _db;
@@ -61,6 +58,24 @@ class DB {
     );
   }
 
+  /// Convenience method for updating rows in the database.
+  ///
+  /// Update [table] with [values], a map from column names to new column
+  /// values. null is a valid value that will be translated to NULL.
+  ///
+  /// [where] is the optional WHERE clause to apply when updating.
+  /// Passing null will update all rows.
+  ///
+  /// You may include ?s in the where clause, which will be replaced by the
+  /// values from [whereArgs]
+  ///
+  /// [conflictAlgorithm] (optional) specifies algorithm to use in case of a
+  /// conflict. See [ConflictResolver] docs for more details
+  Future<int> update(String table, Map<String, dynamic> values,
+      {String where, List<dynamic> whereArgs, ConflictAlgorithm conflictAlgorithm}) async {
+    Database db = await _db;
+    return db.update(table, values, where: where, whereArgs: whereArgs, conflictAlgorithm: conflictAlgorithm);
+  }
 
   /// Convenience method for deleting rows in the database.
   ///
@@ -83,7 +98,6 @@ class DB {
     return db.delete(table, where: where, whereArgs: whereArgs);
   }
 
-
   static Future<Database> _openDatabase() async {
     var databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'proxy.db');
@@ -98,7 +112,7 @@ class DB {
   }
 
   static Future<void> onCreate(Database database, int version) async {
-    DB db = DB(Future.value(database));
+    DB db = DB._internal(Future.value(database));
     await ProxyRepo.onCreate(db, version);
     await ProxyKeyRepo.onCreate(db, version);
     await ProxyAccountRepo.onCreate(db, version);
@@ -106,12 +120,10 @@ class DB {
   }
 
   static Future<void> onUpgrade(Database database, int oldVersion, int newVersion) async {
-    DB db = DB(Future.value(database));
+    DB db = DB._internal(Future.value(database));
     await ProxyRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyKeyRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyAccountRepo.onUpgrade(db, oldVersion, newVersion);
     await EnticementRepo.onUpgrade(db, oldVersion, newVersion);
   }
-
-
 }

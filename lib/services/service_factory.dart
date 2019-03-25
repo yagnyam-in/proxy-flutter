@@ -1,14 +1,19 @@
 import 'package:proxy_core/bootstrap.dart';
-import 'package:proxy_core/services.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/services/banking_service.dart';
 import 'package:proxy_flutter/services/cryptography_service_impl.dart';
-import 'package:uuid/uuid.dart';
+import 'package:proxy_flutter/services/notification_service.dart';
 
 class ServiceFactory {
+  static final NotificationService _notificationServiceInstance =
+      NotificationService(messageSigningService: messageSigningService());
+
+  static NotificationService notificationService() => _notificationServiceInstance;
+
   static CryptographyService cryptographyService() {
     return CryptographyServiceImpl();
   }
@@ -24,21 +29,21 @@ class ServiceFactory {
   static MessageBuilder messageBuilder() {
     return MessageBuilder();
   }
+
   static MessageFactory messageFactory() {
     return MessageFactory(messageBuilder: messageBuilder(), messageVerificationService: messageVerificationService());
   }
 
   static MessageSigningService messageSigningService() {
-    return new MessageSigningService(cryptographyService: cryptographyService());
+    return MessageSigningService(cryptographyService: cryptographyService());
   }
 
-
   static ProxyKeyRepo proxyKeyRepo() {
-    return new ProxyKeyRepo.instance(DB.instance());
+    return ProxyKeyRepo.instance(DB.instance());
   }
 
   static ProxyAccountRepo proxyAccountRepo() {
-    return new ProxyAccountRepo(DB.instance());
+    return ProxyAccountRepo.instance(DB.instance());
   }
 
   static BankingService bankingService() {
@@ -50,5 +55,4 @@ class ServiceFactory {
   }
 
   static ProxyIdFactory proxyIdFactory() => ProxyIdFactory.instance();
-
 }

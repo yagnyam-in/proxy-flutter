@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/banking_home.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/setup_master_proxy_page.dart';
 import 'package:proxy_flutter/terms_and_conditions.dart';
 
@@ -26,6 +27,12 @@ class _HomePageState extends State<HomePage> {
     _showWelcomePages = appConfiguration.showWelcomePages;
     _termsAndConditionsAccepted = appConfiguration.termsAndConditionsAccepted;
     _masterProxySetup = appConfiguration.masterProxyId != null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    ServiceFactory.notificationService().start();
   }
 
   @override
@@ -67,6 +74,6 @@ class _HomePageState extends State<HomePage> {
       _masterProxySetup = true;
       widget.appConfiguration.masterProxyId = proxyId;
     });
+    ServiceFactory.notificationService().refreshToken();
   }
-
 }

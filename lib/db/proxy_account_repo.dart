@@ -8,7 +8,9 @@ import 'package:sqflite/sqflite.dart';
 class ProxyAccountRepo {
   final DB db;
 
-  ProxyAccountRepo(this.db);
+  ProxyAccountRepo._internal(this.db);
+
+  factory ProxyAccountRepo.instance(DB db) => ProxyAccountRepo._internal(db);
 
   Future<ProxyAccountEntity> fetchAccount(ProxyAccountId accountId) async {
     List<Map> rows = await db.query(

@@ -6,11 +6,9 @@ import 'package:sqflite/sqflite.dart';
 class EnticementRepo {
   final DB db;
 
-  EnticementRepo(this.db);
+  EnticementRepo._internal(this.db);
 
-  factory EnticementRepo.instance(DB database) {
-    return EnticementRepo(database);
-  }
+  factory EnticementRepo.instance(DB database) => EnticementRepo._internal(database);
 
   Future<Set<String>> dismissedEnticements() async {
     List<Map> rows = await db.query(

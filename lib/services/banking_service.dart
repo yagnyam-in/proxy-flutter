@@ -95,4 +95,9 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     });
     return proxyAccountEntity;
   }
+
+  Future<void> refreshAccount(ProxyAccountId accountId) {
+    print('Refreshing $accountId');
+    return null;
+  }
 }
