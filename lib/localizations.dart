@@ -348,7 +348,7 @@ class ProxyLocalizations {
     return Intl.message(
       'Amount',
       name: 'amountHint',
-      desc: 'Hint for Amount',
+      desc: 'Only smaller denominations are allowed',
     );
   }
 
@@ -358,6 +358,15 @@ class ProxyLocalizations {
       'OK',
       name: 'okButtonLabel',
       desc: 'OK',
+    );
+  }
+
+
+  String get refreshButtonHint {
+    return Intl.message(
+      'Refresh',
+      name: 'refreshButtonHint',
+      desc: 'Refresh Button Hint',
     );
   }
 }

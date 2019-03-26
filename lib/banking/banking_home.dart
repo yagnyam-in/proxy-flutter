@@ -59,6 +59,10 @@ class _BankingHomeState extends State<BankingHome> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _refresh();
+  }
+
+  void _refresh() {
     _refreshAccounts();
     _refreshEnticements();
   }
@@ -99,15 +103,16 @@ class _BankingHomeState extends State<BankingHome> {
 
   @override
   Widget build(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(ProxyLocalizations.of(context).bankingTitle),
+        title: Text(localizations.bankingTitle),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.playlist_add),
-            tooltip: 'New Wallet',
-            onPressed: createNewAccount,
+            icon: Icon(Icons.refresh),
+            tooltip: localizations.refreshButtonHint,
+            onPressed: _refresh,
           ),
         ],
       ),
@@ -153,14 +158,11 @@ class _BankingHomeState extends State<BankingHome> {
   }
 
   void deposit() async {
-    Amount amount = await Navigator.of(context).push(new MaterialPageRoute<Amount>(
-        builder: (context)  => AcceptAmountDialog(),
-        fullscreenDialog: true
-    ));
+    Amount amount = await Navigator.of(context)
+        .push(new MaterialPageRoute<Amount>(builder: (context) => AcceptAmountDialog(), fullscreenDialog: true));
     if (amount != null && Currency.isValidCurrency(amount.currency)) {
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(widget.appConfiguration.masterProxyId);
-      String depositLink = await bankingService.deposit(proxyKey, amount);
+      String depositLink = await bankingService.depositLink(widget.appConfiguration.masterProxyId, amount);
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
       } else {
@@ -184,8 +186,7 @@ class _BankingHomeState extends State<BankingHome> {
     );
     if (Currency.isValidCurrency(currency)) {
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(widget.appConfiguration.masterProxyId);
-      await bankingService.createProxyWallet(proxyKey, currency);
+      await bankingService.createProxyWallet(widget.appConfiguration.masterProxyId, currency);
       _refreshAccounts();
       _refreshEnticements();
     }
@@ -222,7 +223,7 @@ class _BankingHomeState extends State<BankingHome> {
           caption: localizations.deposit,
           color: Colors.blue,
           icon: Icons.file_download,
-          onTap: () => showToast('Deposit'),
+          onTap: () => _deposit(context, account),
         ),
         new IconSlideAction(
           caption: 'Withdraw',
@@ -242,7 +243,23 @@ class _BankingHomeState extends State<BankingHome> {
     );
   }
 
-  void _deposit(BuildContext context, ProxyAccountEntity proxyAccount) {}
+  void _deposit(BuildContext context, ProxyAccountEntity proxyAccount) async {
+    String amount = await _acceptAmount(context);
+    if (amount != null && double.tryParse(amount) != null) {
+      String depositLink = await bankingService.depositLink(
+        widget.appConfiguration.masterProxyId,
+        Amount(proxyAccount.balance.currency, double.parse(amount)),
+        proxyAccount: proxyAccount,
+      );
+      if (await canLaunch(depositLink)) {
+        await launch(depositLink);
+      } else {
+        throw 'Could not launch $depositLink';
+      }
+      _refreshAccounts();
+      _refreshEnticements();
+    }
+  }
 
   void _archiveAccount(BuildContext context, ProxyAccountEntity proxyAccount) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
@@ -269,6 +286,40 @@ class _BankingHomeState extends State<BankingHome> {
               _refreshEnticements();
             }),
       ],
+    );
+  }
+
+  Future<String> _acceptAmount(BuildContext context) async {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    String amount = '';
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false, // dialog is dismissible with a tap on the barrier
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(localizations.enterAmountTitle),
+          content: new Row(
+            children: <Widget>[
+              new Expanded(
+                  child: new TextField(
+                autofocus: true,
+                decoration: new InputDecoration(labelText: localizations.amount),
+                onChanged: (value) {
+                  amount = value;
+                },
+              ))
+            ],
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text(localizations.okButtonLabel),
+              onPressed: () {
+                Navigator.of(context).pop(amount);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

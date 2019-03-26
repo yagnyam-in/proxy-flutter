@@ -34,7 +34,8 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
-  Future<ProxyAccountEntity> createProxyWallet(ProxyKey proxyKey, String currency) async {
+  Future<ProxyAccountEntity> createProxyWallet(ProxyId ownerProxyId, String currency) async {
+    ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyId: proxyKey.id,
@@ -53,13 +54,14 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<ProxyWalletCreationResponse> signedResponse =
     await messageFactory.buildAndVerifySignedMessage(jsonResponse, ProxyWalletCreationResponse.fromJson);
-    return _saveAccount(proxyKey.id, signedResponse);
+    return _saveAccount(ownerProxyId, signedResponse);
   }
 
-  Future<String> deposit(ProxyKey proxyKey, Amount amount, {ProxyAccountEntity proxyAccount}) async {
+  Future<String> depositLink(ProxyId ownerProxyId, Amount amount, {ProxyAccountEntity proxyAccount}) async {
     if (proxyAccount == null) {
-      proxyAccount = await createProxyWallet(proxyKey, amount.currency);
+      proxyAccount = await createProxyWallet(ownerProxyId, amount.currency);
     }
+    ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
     DepositLinkRequest request = DepositLinkRequest(
       requestId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,
@@ -81,7 +83,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
   }
 
 
-  ProxyAccountEntity _saveAccount(ProxyId owner, SignedMessage<ProxyWalletCreationResponse> signedResponse) {
+  ProxyAccountEntity _saveAccount(ProxyId ownerProxyId, SignedMessage<ProxyWalletCreationResponse> signedResponse) {
     ProxyWalletCreationResponse response = signedResponse.message;
     ProxyAccount proxyAccount = response.proxyAccount.message;
     ProxyAccountId proxyAccountId = proxyAccount.proxyAccountId;
@@ -90,7 +92,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       accountName: "",
       bankName: "Wallet",
       balance: Amount(proxyAccount.currency, 0),
-      ownerProxyId: owner,
+      ownerProxyId: ownerProxyId,
       signedProxyAccountJson: jsonEncode(response.proxyAccount.toJson()),
     );
     DB.instance().transaction((transaction) {
