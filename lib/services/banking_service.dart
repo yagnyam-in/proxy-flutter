@@ -28,8 +28,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.messageSigningService,
     @required this.proxyAccountRepo,
     @required this.proxyKeyRepo,
-  })
-      : proxyBankingUrl = proxyBankingUrl ?? "https://proxy-banking.appspot.com/api",
+  })  : proxyBankingUrl = proxyBankingUrl ?? "https://proxy-banking.appspot.com/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
@@ -43,7 +42,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       currency: currency,
     );
     SignedMessage<ProxyWalletCreationRequest> signedRequest =
-    await messageSigningService.signMessage(request, proxyKey);
+        await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
     print("Sending $signedRequestJson to $proxyBankingUrl");
     String jsonResponse = await post(
@@ -53,14 +52,12 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<ProxyWalletCreationResponse> signedResponse =
-    await messageFactory.buildAndVerifySignedMessage(jsonResponse, ProxyWalletCreationResponse.fromJson);
+        await messageFactory.buildAndVerifySignedMessage(jsonResponse, ProxyWalletCreationResponse.fromJson);
     return _saveAccount(ownerProxyId, signedResponse);
   }
 
-  Future<String> depositLink(ProxyId ownerProxyId, Amount amount, {ProxyAccountEntity proxyAccount}) async {
-    if (proxyAccount == null) {
-      proxyAccount = await createProxyWallet(ownerProxyId, amount.currency);
-    }
+  Future<String> depositLink(ProxyAccountEntity proxyAccount, Amount amount) async {
+    ProxyId ownerProxyId = proxyAccount.ownerProxyId;
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
     DepositLinkRequest request = DepositLinkRequest(
       requestId: uuidFactory.v4(),
@@ -78,10 +75,32 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositLinkResponse> signedResponse =
-    await messageFactory.buildAndVerifySignedMessage(jsonResponse, DepositLinkResponse.fromJson);
+        await messageFactory.buildAndVerifySignedMessage(jsonResponse, DepositLinkResponse.fromJson);
     return signedResponse.message.depositLink;
   }
 
+  Future<void> withdraw(ProxyAccountEntity proxyAccount) async {
+    ProxyId ownerProxyId = proxyAccount.ownerProxyId;
+    ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
+    Withdrawal request = new Withdrawal(
+      withdrawalId: uuidFactory.v4(),
+      proxyAccount: proxyAccount.signedProxyAccount,
+      amount: proxyAccount.balance,
+      destinationAccount: NonProxyAccount(bank: "BUNQ", accountNumber: "NL49BUNQ9900202430", accountHolder: "Carly", currency: "EUR"),
+    );
+    SignedMessage<Withdrawal> signedRequest = await messageSigningService.signMessage(request, proxyKey);
+    String signedRequestJson = jsonEncode(signedRequest.toJson());
+    print("Sending $signedRequestJson to $proxyBankingUrl");
+    String jsonResponse = await post(
+      httpClientFactory(),
+      proxyBankingUrl,
+      signedRequestJson,
+    );
+    print("Received $jsonResponse from $proxyBankingUrl");
+    SignedMessage<WithdrawalStatus> signedResponse =
+    await messageFactory.buildAndVerifySignedMessage(jsonResponse, WithdrawalStatus.fromJson);
+    // TODO: Create an Event
+  }
 
   ProxyAccountEntity _saveAccount(ProxyId ownerProxyId, SignedMessage<ProxyWalletCreationResponse> signedResponse) {
     ProxyWalletCreationResponse response = signedResponse.message;

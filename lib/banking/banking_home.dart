@@ -162,7 +162,8 @@ class _BankingHomeState extends State<BankingHome> {
         .push(new MaterialPageRoute<Amount>(builder: (context) => AcceptAmountDialog(), fullscreenDialog: true));
     if (amount != null && Currency.isValidCurrency(amount.currency)) {
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      String depositLink = await bankingService.depositLink(widget.appConfiguration.masterProxyId, amount);
+      ProxyAccountEntity proxyAccount = await bankingService.createProxyWallet(widget.appConfiguration.masterProxyId, amount.currency);
+      String depositLink = await bankingService.depositLink(proxyAccount, amount);
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
       } else {
@@ -229,7 +230,7 @@ class _BankingHomeState extends State<BankingHome> {
           caption: 'Withdraw',
           color: Colors.indigo,
           icon: Icons.file_upload,
-          onTap: () => showToast('Widthdraw'),
+          onTap: () => _withdraw(context, account),
         ),
       ],
       secondaryActions: <Widget>[
@@ -247,9 +248,8 @@ class _BankingHomeState extends State<BankingHome> {
     String amount = await _acceptAmount(context);
     if (amount != null && double.tryParse(amount) != null) {
       String depositLink = await bankingService.depositLink(
-        widget.appConfiguration.masterProxyId,
+        proxyAccount,
         Amount(proxyAccount.balance.currency, double.parse(amount)),
-        proxyAccount: proxyAccount,
       );
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
@@ -259,6 +259,12 @@ class _BankingHomeState extends State<BankingHome> {
       _refreshAccounts();
       _refreshEnticements();
     }
+  }
+
+  void _withdraw(BuildContext context, ProxyAccountEntity proxyAccount) async {
+    await bankingService.withdraw(proxyAccount);
+    _refreshAccounts();
+    _refreshEnticements();
   }
 
   void _archiveAccount(BuildContext context, ProxyAccountEntity proxyAccount) {
