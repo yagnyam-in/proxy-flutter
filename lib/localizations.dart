@@ -369,6 +369,86 @@ class ProxyLocalizations {
       desc: 'Refresh Button Hint',
     );
   }
+
+  String get receivingAccountsButtonHint {
+    return Intl.message(
+      'Receiving Accounts',
+      name: 'receivingAccountsButtonHint',
+      desc: 'Receiving Accounts Button Hint',
+    );
+  }
+
+  String get receivingAccountsPageTitle {
+    return Intl.message(
+      'Receiving Accounts',
+      name: 'receivingAccountsPageTitle',
+      desc: 'Receiving Accounts Page Hint',
+    );
+  }
+
+  String get newReceivingAccountsButtonHint {
+    return Intl.message(
+      'New Receiving Account',
+      name: 'newReceivingAccountsButtonHint',
+      desc: 'New Receiving Account Button Hint',
+    );
+  }
+
+  String get thisField {
+    return Intl.message(
+      'This field',
+      name: 'thisField',
+      desc: 'This field - to show in errors',
+    );
+  }
+
+  String get bank {
+    return Intl.message(
+      'Bak',
+      name: 'bank',
+      desc: 'Bank field name',
+    );
+  }
+
+  String get accountNumber {
+    return Intl.message(
+      'Account Number',
+      name: 'accountNumber',
+      desc: 'Account Number field name',
+    );
+  }
+
+  String get accountHolder {
+    return Intl.message(
+      'Account Holder',
+      name: 'accountHolder',
+      desc: 'Account Holder field name',
+    );
+  }
+
+  String get accountName {
+    return Intl.message(
+      'Account Name',
+      name: 'accountName',
+      desc: 'Account Name field name',
+    );
+  }
+
+  String get ifscCode {
+    return Intl.message(
+      'IFSC Code',
+      name: 'ifscCode',
+      desc: 'IFSC code field name',
+    );
+  }
+
+  String get edit {
+    return Intl.message(
+      'Edit',
+      name: 'edit',
+      desc: 'Edit',
+    );
+  }
 }
 
 class ProxyLocalizationsDelegate

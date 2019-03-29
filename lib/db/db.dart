@@ -5,6 +5,7 @@ import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
+import 'package:proxy_flutter/db/receiving_account_repo.dart';
 import 'package:sqflite/sqflite.dart';
 
 Database _database;
@@ -117,6 +118,7 @@ class DB {
     await ProxyKeyRepo.onCreate(db, version);
     await ProxyAccountRepo.onCreate(db, version);
     await EnticementRepo.onCreate(db, version);
+    await ReceivingAccountRepo.onCreate(db, version);
   }
 
   static Future<void> onUpgrade(Database database, int oldVersion, int newVersion) async {
@@ -125,5 +127,6 @@ class DB {
     await ProxyKeyRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyAccountRepo.onUpgrade(db, oldVersion, newVersion);
     await EnticementRepo.onUpgrade(db, oldVersion, newVersion);
+    await ReceivingAccountRepo.onUpgrade(db, oldVersion, newVersion);
   }
 }

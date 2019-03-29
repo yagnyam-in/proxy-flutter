@@ -4,6 +4,7 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/accept_amount_dialog.dart';
 import 'package:proxy_flutter/banking/account_card.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
+import 'package:proxy_flutter/banking/receiving_accounts.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
@@ -114,6 +115,11 @@ class _BankingHomeState extends State<BankingHome> {
             tooltip: localizations.refreshButtonHint,
             onPressed: _refresh,
           ),
+          IconButton(
+            icon: Icon(Icons.account_balance),
+            tooltip: localizations.receivingAccountsButtonHint,
+            onPressed: _manageReceivingAccounts,
+          ),
         ],
       ),
       body: Padding(
@@ -151,19 +157,29 @@ class _BankingHomeState extends State<BankingHome> {
     return ButtonBar(
       alignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
-        RaisedButton.icon(onPressed: deposit, icon: Icon(Icons.file_download), label: Text(localizations.deposit)),
-        RaisedButton.icon(onPressed: payment, icon: Icon(Icons.file_upload), label: Text(localizations.payment)),
+        RaisedButton.icon(
+            onPressed: deposit,
+            icon: Icon(Icons.file_download),
+            label: Text(localizations.deposit)),
+        RaisedButton.icon(
+            onPressed: payment,
+            icon: Icon(Icons.file_upload),
+            label: Text(localizations.payment)),
       ],
     );
   }
 
   void deposit() async {
-    Amount amount = await Navigator.of(context)
-        .push(new MaterialPageRoute<Amount>(builder: (context) => AcceptAmountDialog(), fullscreenDialog: true));
+    Amount amount = await Navigator.of(context).push(
+        new MaterialPageRoute<Amount>(
+            builder: (context) => AcceptAmountDialog(),
+            fullscreenDialog: true));
     if (amount != null && Currency.isValidCurrency(amount.currency)) {
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      ProxyAccountEntity proxyAccount = await bankingService.createProxyWallet(widget.appConfiguration.masterProxyId, amount.currency);
-      String depositLink = await bankingService.depositLink(proxyAccount, amount);
+      ProxyAccountEntity proxyAccount = await bankingService.createProxyWallet(
+          widget.appConfiguration.masterProxyId, amount.currency);
+      String depositLink =
+          await bankingService.depositLink(proxyAccount, amount);
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
       } else {
@@ -187,7 +203,8 @@ class _BankingHomeState extends State<BankingHome> {
     );
     if (Currency.isValidCurrency(currency)) {
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      await bankingService.createProxyWallet(widget.appConfiguration.masterProxyId, currency);
+      await bankingService.createProxyWallet(
+          widget.appConfiguration.masterProxyId, currency);
       _refreshAccounts();
       _refreshEnticements();
     }
@@ -288,7 +305,8 @@ class _BankingHomeState extends State<BankingHome> {
             color: Colors.red,
             icon: Icons.delete,
             onTap: () {
-              EnticementFactory.instance().dismissEnticement(context, enticement);
+              EnticementFactory.instance()
+                  .dismissEnticement(context, enticement);
               _refreshEnticements();
             }),
       ],
@@ -300,7 +318,8 @@ class _BankingHomeState extends State<BankingHome> {
     String amount = '';
     return showDialog<String>(
       context: context,
-      barrierDismissible: false, // dialog is dismissible with a tap on the barrier
+      barrierDismissible: false,
+      // dialog is dismissible with a tap on the barrier
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(localizations.enterAmountTitle),
@@ -309,7 +328,8 @@ class _BankingHomeState extends State<BankingHome> {
               new Expanded(
                   child: new TextField(
                 autofocus: true,
-                decoration: new InputDecoration(labelText: localizations.amount),
+                decoration:
+                    new InputDecoration(labelText: localizations.amount),
                 onChanged: (value) {
                   amount = value;
                 },
@@ -327,5 +347,14 @@ class _BankingHomeState extends State<BankingHome> {
         );
       },
     );
+  }
+
+  void _manageReceivingAccounts() {
+    Navigator.push(
+        context,
+        new MaterialPageRoute(
+            builder: (context) => new ReceivingAccounts(
+                  appConfiguration: widget.appConfiguration,
+                )));
   }
 }

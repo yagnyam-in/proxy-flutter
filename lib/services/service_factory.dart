@@ -4,6 +4,7 @@ import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
+import 'package:proxy_flutter/db/receiving_account_repo.dart';
 import 'package:proxy_flutter/services/banking_service.dart';
 import 'package:proxy_flutter/services/cryptography_service_impl.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
@@ -44,6 +45,10 @@ class ServiceFactory {
 
   static ProxyAccountRepo proxyAccountRepo() {
     return ProxyAccountRepo.instance(DB.instance());
+  }
+
+  static ReceivingAccountRepo receivingAccountRepo() {
+    return ReceivingAccountRepo.instance(DB.instance());
   }
 
   static BankingService bankingService() {
