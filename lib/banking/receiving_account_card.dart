@@ -31,7 +31,7 @@ class ReceivingAccountCard extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       title: Text(
-        account.bank,
+        '${account.bank} - ${account.proxyUniverse}',
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Padding(

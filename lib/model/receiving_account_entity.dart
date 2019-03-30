@@ -2,6 +2,7 @@ import 'package:meta/meta.dart';
 
 class ReceivingAccountEntity {
   final int id;
+  final String proxyUniverse;
   final String accountName;
   final String accountNumber;
   final String accountHolder;
@@ -12,6 +13,7 @@ class ReceivingAccountEntity {
 
   ReceivingAccountEntity({
     int id,
+    @required this.proxyUniverse,
     @required this.accountName,
     @required this.accountNumber,
     @required this.accountHolder,

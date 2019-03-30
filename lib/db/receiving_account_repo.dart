@@ -8,16 +8,14 @@ class ReceivingAccountRepo {
 
   ReceivingAccountRepo._instance(this.db);
 
-  factory ReceivingAccountRepo.instance(DB database) =>
-      ReceivingAccountRepo._instance(database);
+  factory ReceivingAccountRepo.instance(DB database) => ReceivingAccountRepo._instance(database);
 
-  Future<List<ReceivingAccountEntity>> fetchAccountsForCurrency(
-      String currency) async {
+  Future<List<ReceivingAccountEntity>> fetchAccountsForCurrency({String proxyUniverse, String currency}) async {
     List<Map> rows = await db.query(
       TABLE,
       columns: ALL_COLUMNS,
-      where: '$CURRENCY = ? AND $ACTIVE = 1',
-      whereArgs: [currency],
+      where: '$CURRENCY = ? AND $PROXY_UNIVERSE = ? AND $ACTIVE = 1',
+      whereArgs: [currency, proxyUniverse],
     );
     return rows.map(_mapToEntity).toList();
   }
@@ -55,6 +53,7 @@ class ReceivingAccountRepo {
   static Map<String, dynamic> _entityToMap(ReceivingAccountEntity entity) {
     return {
       // Ignore ID
+      PROXY_UNIVERSE: entity.proxyUniverse,
       ACCOUNT_NAME: entity.accountName,
       ACCOUNT_NUMBER: entity.accountNumber,
       ACCOUNT_HOLDER: entity.accountHolder,
@@ -68,6 +67,7 @@ class ReceivingAccountRepo {
   static ReceivingAccountEntity _mapToEntity(Map<dynamic, dynamic> map) {
     return ReceivingAccountEntity(
       id: map[ID],
+      proxyUniverse: map[PROXY_UNIVERSE],
       accountName: map[ACCOUNT_NAME],
       accountNumber: map[ACCOUNT_NUMBER],
       accountHolder: map[ACCOUNT_HOLDER],
@@ -80,6 +80,7 @@ class ReceivingAccountRepo {
 
   static const String TABLE = "RECEIVING_ACCOUNT";
   static const String ID = "id";
+  static const String PROXY_UNIVERSE = "proxyUniverse";
   static const String ACCOUNT_NAME = "accountName";
   static const String ACCOUNT_NUMBER = "accountNumber";
   static const String ACCOUNT_HOLDER = "accountHolder";
@@ -90,6 +91,7 @@ class ReceivingAccountRepo {
 
   static const ALL_COLUMNS = [
     ID,
+    PROXY_UNIVERSE,
     ACCOUNT_NAME,
     ACCOUNT_NUMBER,
     ACCOUNT_HOLDER,
@@ -102,6 +104,7 @@ class ReceivingAccountRepo {
   static Future<void> onCreate(DB db, int version) {
     return db.execute('CREATE TABLE $TABLE ('
         '$ID INTEGER PRIMARY KEY, '
+        '$PROXY_UNIVERSE TEXT, '
         '$ACCOUNT_NAME TEXT, '
         '$ACCOUNT_NUMBER TEXT, '
         '$ACCOUNT_HOLDER TEXT, '

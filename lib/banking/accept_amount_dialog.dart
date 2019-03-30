@@ -3,13 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:tuple/tuple.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
+
 class AcceptAmountDialog extends StatefulWidget {
+  final String proxyUniverse;
   final String currency;
 
-  AcceptAmountDialog({Key key, this.currency}) : super(key: key) {
+  AcceptAmountDialog({Key key, this.proxyUniverse, this.currency}) : super(key: key) {
     print("Constructing AcceptAmountDialog");
   }
 
@@ -23,7 +26,9 @@ class _AcceptAmountDialogState extends State<AcceptAmountDialog> {
 
   final TextEditingController valueController = TextEditingController();
   final List<String> validCurrencies = [Currency.INR, Currency.EUR];
+  final List<String> validProxyUniverses = [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
 
+  String _proxyUniverse;
   String _currency;
 
   void showError(String message) {
@@ -67,8 +72,36 @@ class _AcceptAmountDialogState extends State<AcceptAmountDialog> {
             builder: (FormFieldState state) {
               return InputDecorator(
                 decoration: InputDecoration(
+                  labelText: localizations.proxyUniverse,
+                ),
+                isEmpty: _proxyUniverse == '',
+                child: new DropdownButtonHideUnderline(
+                  child: new DropdownButton(
+                    value: _proxyUniverse,
+                    isDense: true,
+                    onChanged: (String newValue) {
+                      setState(() {
+                        _proxyUniverse = newValue;
+                        state.didChange(newValue);
+                      });
+                    },
+                    items: validProxyUniverses.map((String value) {
+                      return new DropdownMenuItem(
+                        value: value,
+                        child: new Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16.0),
+          new FormField(
+            builder: (FormFieldState state) {
+              return InputDecorator(
+                decoration: InputDecoration(
                   labelText: localizations.currency,
-                  // helperText: localizations.currencyHint,
                 ),
                 isEmpty: _currency == '',
                 child: new DropdownButtonHideUnderline(
@@ -110,7 +143,7 @@ class _AcceptAmountDialogState extends State<AcceptAmountDialog> {
   void _submit() {
     if (_formKey.currentState.validate()) {
       print("Accepting amount $_currency ${valueController.text}");
-      Navigator.of(context).pop(new Amount(_currency, double.parse(valueController.value.text)));
+      Navigator.of(context).pop(new Tuple2(_proxyUniverse, Amount(_currency, double.parse(valueController.value.text))));
     } else {
       print("Validation failure");
     }

@@ -3,6 +3,7 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_messages/banking.dart';
 
 class ProxyAccountEntity with ProxyUtils {
+  final String proxyUniverse;
   final ProxyAccountId accountId;
   final String accountName;
   final String bankName;
@@ -24,6 +25,7 @@ class ProxyAccountEntity with ProxyUtils {
   }
 
   ProxyAccountEntity({
+    @required this.proxyUniverse,
     @required this.accountId,
     @required this.accountName,
     @required this.bankName,

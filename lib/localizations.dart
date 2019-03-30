@@ -449,6 +449,38 @@ class ProxyLocalizations {
       desc: 'Edit',
     );
   }
+
+  String get proxyUniverse {
+    return Intl.message(
+      'Proxy Universe',
+      name: 'proxyUniverse',
+      desc: 'Proxy Universe',
+    );
+  }
+
+  String get chooseReceivingAccount{
+    return Intl.message(
+      'Choose Account',
+      name: 'chooseReceivingAccount',
+      desc: 'Choose Receiving Account',
+    );
+  }
+
+  String get newReceivingAccountTitle {
+    return Intl.message(
+      'New Account',
+      name: 'newReceivingAccountTitle',
+      desc: 'New Receiving Account',
+    );
+  }
+
+  String get modifyReceivingAccountTitle {
+    return Intl.message(
+      'Modify Account',
+      name: 'modifyReceivingAccountTitle',
+      desc: 'Modify Receiving Account',
+    );
+  }
 }
 
 class ProxyLocalizationsDelegate

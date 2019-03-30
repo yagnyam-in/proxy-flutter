@@ -16,9 +16,9 @@ class ProxyAccountRepo {
   Future<ProxyAccountEntity> fetchAccount(ProxyAccountId accountId) async {
     List<Map> rows = await db.query(
       TABLE,
-      columns: [ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, OWNER_PROXY_ID, OWNER_PROXY_SHA256, SIGNED_PROXY_ACCOUNT],
-      where: '$ACCOUNT_ID = ? AND $BANK_ID = ?',
-      whereArgs: [accountId.accountId, accountId.bankId],
+      columns: ALL_COLUMNS,
+      where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
+      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
     );
     if (rows.isNotEmpty) {
       return _rowToProxyAccountEntity(rows.first);
@@ -29,7 +29,7 @@ class ProxyAccountRepo {
   Future<List<ProxyAccountEntity>> fetchAccounts() async {
     List<Map> rows = await db.query(
       TABLE,
-      columns: [ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, OWNER_PROXY_ID, OWNER_PROXY_SHA256, SIGNED_PROXY_ACCOUNT],
+      columns: ALL_COLUMNS,
     );
     print("Got ${rows.length} rows");
     return rows.map((e) => _rowToProxyAccountEntity(e)).toList();
@@ -37,7 +37,8 @@ class ProxyAccountRepo {
 
   ProxyAccountEntity _rowToProxyAccountEntity(Map<String, dynamic> row) {
     return ProxyAccountEntity(
-      accountId: ProxyAccountId(accountId: row[ACCOUNT_ID], bankId: row[BANK_ID]),
+      proxyUniverse: row[PROXY_UNIVERSE],
+      accountId: ProxyAccountId(accountId: row[ACCOUNT_ID], bankId: row[BANK_ID], proxyUniverse: row[PROXY_UNIVERSE]),
       accountName: row[ACCOUNT_NAME],
       bankName: row[BANK_NAME],
       balance: Amount(row[CURRENCY], row[BALANCE]),
@@ -49,6 +50,7 @@ class ProxyAccountRepo {
   static Future<int> saveAccountInTransaction(Transaction transaction, ProxyAccountEntity proxyAccount) async {
     ProxyAccountId accountId = proxyAccount.accountId;
     Map<String, dynamic> values = {
+      PROXY_UNIVERSE: proxyAccount.proxyUniverse,
       ACCOUNT_ID: accountId.accountId,
       ACCOUNT_NAME: proxyAccount.accountName,
       BANK_ID: accountId.bankId,
@@ -62,8 +64,8 @@ class ProxyAccountRepo {
     int updated = await transaction.update(
       TABLE,
       values,
-      where: '$ACCOUNT_ID = ? AND $BANK_ID = ?',
-      whereArgs: [accountId.accountId, accountId.bankId],
+      where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
+      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
     );
     if (updated == 0) {
       updated = await transaction.insert(TABLE, values);
@@ -79,12 +81,13 @@ class ProxyAccountRepo {
     ProxyAccountId accountId = proxyAccount.accountId;
     return db.delete(
       TABLE,
-      where: '$ACCOUNT_ID = ? AND $BANK_ID = ?',
-      whereArgs: [accountId.accountId, accountId.bankId],
+      where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
+      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
     );
   }
 
   static const String TABLE = "PROXY_ACCOUNT";
+  static const String PROXY_UNIVERSE = "proxyUniverse";
   static const String ACCOUNT_ID = "accountId";
   static const String ACCOUNT_NAME = "accountName";
   static const String BANK_ID = "bankId";
@@ -96,8 +99,11 @@ class ProxyAccountRepo {
 
   static const String SIGNED_PROXY_ACCOUNT = "account";
 
+  static const ALL_COLUMNS = [PROXY_UNIVERSE, ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, OWNER_PROXY_ID, OWNER_PROXY_SHA256, SIGNED_PROXY_ACCOUNT];
+
   static Future<void> onCreate(DB db, int version) {
     return db.execute('CREATE TABLE $TABLE ('
+        '$PROXY_UNIVERSE TEXT, '
         '$ACCOUNT_ID TEXT PRIMARY KEY, $ACCOUNT_NAME TEXT, '
         '$BANK_ID TEXT, $BANK_NAME TEXT, '
         '$CURRENCY TEXT, $BALANCE DOUBLE, '

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
@@ -8,6 +9,7 @@ import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
+import 'package:proxy_flutter/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/services/enticement_factory.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -33,12 +35,13 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
-  Future<ProxyAccountEntity> createProxyWallet(ProxyId ownerProxyId, String currency) async {
+  Future<ProxyAccountEntity> createProxyWallet(
+      {@required ProxyId ownerProxyId, @required String proxyUniverse, @required String currency}) async {
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyId: proxyKey.id,
-      bankId: ProxyId("wallet"),
+      bankId: ProxyId("test-wallet"),
       currency: currency,
     );
     SignedMessage<ProxyWalletCreationRequest> signedRequest =
@@ -79,14 +82,19 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     return signedResponse.message.depositLink;
   }
 
-  Future<void> withdraw(ProxyAccountEntity proxyAccount) async {
+  Future<void> withdraw(ProxyAccountEntity proxyAccount, ReceivingAccountEntity receivingAccount) async {
     ProxyId ownerProxyId = proxyAccount.ownerProxyId;
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
     Withdrawal request = new Withdrawal(
       withdrawalId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,
       amount: proxyAccount.balance,
-      destinationAccount: NonProxyAccount(bank: "BUNQ", accountNumber: "NL49BUNQ9900202430", accountHolder: "Carly", currency: "EUR"),
+      destinationAccount: NonProxyAccount(
+        bank: receivingAccount.bank,
+        accountNumber: receivingAccount.accountNumber,
+        accountHolder: receivingAccount.accountHolder,
+        currency: receivingAccount.currency,
+      ),
     );
     SignedMessage<Withdrawal> signedRequest = await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
@@ -98,7 +106,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<WithdrawalStatus> signedResponse =
-    await messageFactory.buildAndVerifySignedMessage(jsonResponse, WithdrawalStatus.fromJson);
+        await messageFactory.buildAndVerifySignedMessage(jsonResponse, WithdrawalStatus.fromJson);
     // TODO: Create an Event
   }
 
@@ -107,9 +115,10 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     ProxyAccount proxyAccount = response.proxyAccount.message;
     ProxyAccountId proxyAccountId = proxyAccount.proxyAccountId;
     ProxyAccountEntity proxyAccountEntity = ProxyAccountEntity(
+      proxyUniverse: proxyAccountId.proxyUniverse,
       accountId: proxyAccountId,
       accountName: "",
-      bankName: "Wallet",
+      bankName: "Wallet - ${proxyAccountId.proxyUniverse}",
       balance: Amount(proxyAccount.currency, 0),
       ownerProxyId: ownerProxyId,
       signedProxyAccountJson: jsonEncode(response.proxyAccount.toJson()),

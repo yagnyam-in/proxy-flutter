@@ -14,8 +14,7 @@ class ReceivingAccountDialog extends StatefulWidget {
   }
 
   @override
-  _ReceivingAccountDialogState createState() =>
-      _ReceivingAccountDialogState(receivingAccount);
+  _ReceivingAccountDialogState createState() => _ReceivingAccountDialogState(receivingAccount);
 }
 
 class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
@@ -29,19 +28,18 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   final TextEditingController bankController;
   final TextEditingController ifscCodeController;
   final List<String> validCurrencies = [Currency.INR, Currency.EUR];
+  final List<String> validProxyUniverses = [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
 
+  String _proxyUniverse;
   String _currency;
 
   _ReceivingAccountDialogState(this.receivingAccount)
-      : accountNameController =
-            TextEditingController(text: receivingAccount?.accountName),
-        accountNumberController =
-            TextEditingController(text: receivingAccount?.accountNumber),
-        accountHolderController =
-            TextEditingController(text: receivingAccount?.accountHolder),
+      : accountNameController = TextEditingController(text: receivingAccount?.accountName),
+        accountNumberController = TextEditingController(text: receivingAccount?.accountNumber),
+        accountHolderController = TextEditingController(text: receivingAccount?.accountHolder),
         bankController = TextEditingController(text: receivingAccount?.bank),
-        ifscCodeController =
-            TextEditingController(text: receivingAccount?.ifscCode) {
+        ifscCodeController = TextEditingController(text: receivingAccount?.ifscCode) {
+    _proxyUniverse = receivingAccount?.proxyUniverse;
     _currency = receivingAccount?.currency;
   }
 
@@ -55,19 +53,17 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-
+    String title =
+        receivingAccount == null ? localizations.newReceivingAccountTitle : localizations.modifyReceivingAccountTitle;
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.enterAmountTitle),
+        title: Text(title),
         actions: [
           new FlatButton(
               onPressed: () => _submit(localizations),
               child: new Text(localizations.okButtonLabel,
-                  style: Theme.of(context)
-                      .textTheme
-                      .subhead
-                      .copyWith(color: Colors.white))),
+                  style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white))),
         ],
       ),
       body: Padding(
@@ -84,6 +80,36 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
       key: _formKey,
       child: ListView(
         children: <Widget>[
+          new FormField(
+            builder: (FormFieldState state) {
+              return InputDecorator(
+                decoration: InputDecoration(
+                  labelText: localizations.proxyUniverse,
+                  // helperText: localizations.currencyHint,
+                ),
+                isEmpty: _proxyUniverse == '',
+                child: new DropdownButtonHideUnderline(
+                  child: new DropdownButton(
+                    value: _proxyUniverse,
+                    isDense: true,
+                    onChanged: (String newValue) {
+                      setState(() {
+                        _proxyUniverse = newValue;
+                        state.didChange(newValue);
+                      });
+                    },
+                    items: validProxyUniverses.map((String value) {
+                      return new DropdownMenuItem(
+                        value: value,
+                        child: new Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8.0),
           new FormField(
             builder: (FormFieldState state) {
               return InputDecorator(
@@ -160,13 +186,17 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   }
 
   void _submit(ProxyLocalizations localizations) {
-    if (_currency == null || _currency.isEmpty) {
+    if (_proxyUniverse == null || _proxyUniverse.isEmpty) {
+      print("Invalid Proxy Universe");
+      showError(localizations.fieldIsMandatory(localizations.proxyUniverse));
+    } else if (_currency == null || _currency.isEmpty) {
       print("Invalid currency");
       showError(localizations.fieldIsMandatory(localizations.currency));
     } else if (!_formKey.currentState.validate()) {
       print("Validation failure");
     } else {
       Navigator.of(context).pop(new ReceivingAccountEntity(
+        proxyUniverse: _proxyUniverse,
         id: receivingAccount?.id,
         accountName: accountNameController.text,
         accountNumber: accountNumberController.text,
