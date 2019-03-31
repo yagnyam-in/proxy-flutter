@@ -19,6 +19,7 @@
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name="in.yagnyam.proxy.MainActivity"
+            android:allowBackup="false"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density"

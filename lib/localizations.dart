@@ -481,6 +481,30 @@ class ProxyLocalizations {
       desc: 'Modify Receiving Account',
     );
   }
+
+  String get customerName {
+    return Intl.message(
+      'Customer Name',
+      name: 'customerName',
+      desc: 'Customer Name',
+    );
+  }
+
+  String get customerPhone {
+    return Intl.message(
+      'Customer Phone',
+      name: 'customerPhone',
+      desc: 'Customer Phone',
+    );
+  }
+
+  String get customerEmail {
+    return Intl.message(
+      'Customer Email',
+      name: 'customerEmail',
+      desc: 'Customer Email',
+    );
+  }
 }
 
 class ProxyLocalizationsDelegate

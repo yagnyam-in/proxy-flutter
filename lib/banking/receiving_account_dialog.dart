@@ -76,102 +76,91 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   Widget form(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
-    return Form(
-      key: _formKey,
-      child: ListView(
-        children: <Widget>[
-          new FormField(
-            builder: (FormFieldState state) {
-              return InputDecorator(
-                decoration: InputDecoration(
-                  labelText: localizations.proxyUniverse,
-                  // helperText: localizations.currencyHint,
-                ),
-                isEmpty: _proxyUniverse == '',
-                child: new DropdownButtonHideUnderline(
-                  child: new DropdownButton(
-                    value: _proxyUniverse,
-                    isDense: true,
-                    onChanged: (String newValue) {
-                      setState(() {
-                        _proxyUniverse = newValue;
-                        state.didChange(newValue);
-                      });
-                    },
-                    items: validProxyUniverses.map((String value) {
-                      return new DropdownMenuItem(
-                        value: value,
-                        child: new Text(value),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 8.0),
-          new FormField(
-            builder: (FormFieldState state) {
-              return InputDecorator(
-                decoration: InputDecoration(
-                  labelText: localizations.currency,
-                  // helperText: localizations.currencyHint,
-                ),
-                isEmpty: _currency == '',
-                child: new DropdownButtonHideUnderline(
-                  child: new DropdownButton(
-                    value: _currency,
-                    isDense: true,
-                    onChanged: (String newValue) {
-                      setState(() {
-                        _currency = newValue;
-                        state.didChange(newValue);
-                      });
-                    },
-                    items: validCurrencies.map((String value) {
-                      return new DropdownMenuItem(
-                        value: value,
-                        child: new Text(value),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 8.0),
-          TextFormField(
-            controller: bankController,
+    List<Widget> children = [
+      new FormField(
+        builder: (FormFieldState state) {
+          return InputDecorator(
             decoration: InputDecoration(
-              labelText: localizations.bank,
+              labelText: localizations.proxyUniverse,
+              // helperText: localizations.currencyHint,
             ),
-            validator: (value) => _fieldValidator(localizations, value),
-          ),
-          const SizedBox(height: 8.0),
-          TextFormField(
-            controller: accountNumberController,
+            isEmpty: _proxyUniverse == '',
+            child: new DropdownButtonHideUnderline(
+              child: new DropdownButton(
+                value: _proxyUniverse,
+                isDense: true,
+                onChanged: (String newValue) {
+                  setState(() {
+                    _proxyUniverse = newValue;
+                    state.didChange(newValue);
+                  });
+                },
+                items: validProxyUniverses.map((String value) {
+                  return new DropdownMenuItem(
+                    value: value,
+                    child: new Text(value),
+                  );
+                }).toList(),
+              ),
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 8.0),
+      new FormField(
+        builder: (FormFieldState state) {
+          return InputDecorator(
             decoration: InputDecoration(
-              labelText: localizations.accountNumber,
+              labelText: localizations.currency,
+              // helperText: localizations.currencyHint,
             ),
-            validator: (value) => _fieldValidator(localizations, value),
-          ),
-          const SizedBox(height: 8.0),
-          TextFormField(
-            controller: accountHolderController,
-            decoration: InputDecoration(
-              labelText: localizations.accountHolder,
+            isEmpty: _currency == '',
+            child: new DropdownButtonHideUnderline(
+              child: new DropdownButton(
+                value: _currency,
+                isDense: true,
+                onChanged: (String newValue) {
+                  setState(() {
+                    _currency = newValue;
+                    state.didChange(newValue);
+                  });
+                },
+                items: validCurrencies.map((String value) {
+                  return new DropdownMenuItem(
+                    value: value,
+                    child: new Text(value),
+                  );
+                }).toList(),
+              ),
             ),
-            validator: (value) => _fieldValidator(localizations, value),
-          ),
-          const SizedBox(height: 8.0),
-          TextFormField(
-            controller: ifscCodeController,
-            decoration: InputDecoration(
-              labelText: localizations.ifscCode,
-            ),
-            validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
-          ),
-          /*
+          );
+        },
+      ),
+      const SizedBox(height: 8.0),
+      TextFormField(
+        controller: bankController,
+        decoration: InputDecoration(
+          labelText: localizations.bank,
+        ),
+        validator: (value) => _fieldValidator(localizations, value),
+      ),
+      const SizedBox(height: 8.0),
+      new TextFormField(
+        controller: accountNumberController,
+        decoration: InputDecoration(
+          labelText: localizations.accountNumber,
+        ),
+        validator: (value) => _fieldValidator(localizations, value),
+      ),
+      const SizedBox(height: 8.0),
+      new TextFormField(
+        controller: accountHolderController,
+        decoration: InputDecoration(
+          labelText: localizations.accountHolder,
+        ),
+        validator: (value) => _fieldValidator(localizations, value),
+      ),
+      /*
           const SizedBox(height: 8.0),
           TextFormField(
             controller: accountNameController,
@@ -180,7 +169,25 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
             ),
           ),
           */
-        ],
+    ];
+
+    if (_currency == Currency.INR) {
+      children.addAll([
+        const SizedBox(height: 8.0),
+        new TextFormField(
+          controller: ifscCodeController,
+          decoration: InputDecoration(
+            labelText: localizations.ifscCode,
+          ),
+          validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
+        ),
+      ]);
+    }
+
+    return Form(
+      key: _formKey,
+      child: ListView(
+        children: children,
       ),
     );
   }

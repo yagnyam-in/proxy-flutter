@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
@@ -59,14 +60,15 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     return _saveAccount(ownerProxyId, signedResponse);
   }
 
-  Future<String> depositLink(ProxyAccountEntity proxyAccount, Amount amount) async {
+  Future<String> depositLink(ProxyAccountEntity proxyAccount, DepositRequestInput input) async {
     ProxyId ownerProxyId = proxyAccount.ownerProxyId;
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
     DepositLinkRequest request = DepositLinkRequest(
       requestId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,
       accountName: proxyAccount.validAccountName,
-      amount: amount,
+      amount: input.amount,
+      requestingCustomer: input.requestingCustomer,
     );
     SignedMessage<DepositLinkRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());

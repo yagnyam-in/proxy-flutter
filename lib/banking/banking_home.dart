@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/accept_amount_dialog.dart';
+import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/account_card.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
@@ -162,20 +162,30 @@ class _BankingHomeState extends State<BankingHome> {
     return ButtonBar(
       alignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
-        RaisedButton.icon(onPressed: deposit, icon: Icon(Icons.file_download), label: Text(localizations.deposit)),
-        RaisedButton.icon(onPressed: payment, icon: Icon(Icons.file_upload), label: Text(localizations.payment)),
+        RaisedButton.icon(
+          onPressed: () => _createAccountAndDeposit(context),
+          icon: Icon(Icons.file_download),
+          label: Text(localizations.deposit),
+        ),
+        RaisedButton.icon(
+          onPressed: () => _payment(context),
+          icon: Icon(Icons.file_upload),
+          label: Text(localizations.payment),
+        ),
       ],
     );
   }
 
-  void deposit() async {
-    Tuple2<String, Amount> result = await Navigator.of(context)
-        .push(new MaterialPageRoute<Tuple2<String, Amount>>(builder: (context) => AcceptAmountDialog(), fullscreenDialog: true));
+  void _createAccountAndDeposit(BuildContext context) async {
+    DepositRequestInput result = await _acceptDepositRequestInput(context);
     if (result != null) {
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      ProxyAccountEntity proxyAccount =
-          await bankingService.createProxyWallet(ownerProxyId: widget.appConfiguration.masterProxyId, proxyUniverse: result.item1, currency: result.item2.currency,);
-      String depositLink = await bankingService.depositLink(proxyAccount, result.item2);
+      ProxyAccountEntity proxyAccount = await bankingService.createProxyWallet(
+        ownerProxyId: widget.appConfiguration.masterProxyId,
+        proxyUniverse: result.proxyUniverse,
+        currency: result.amount.currency,
+      );
+      String depositLink = await bankingService.depositLink(proxyAccount, result);
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
       } else {
@@ -186,7 +196,7 @@ class _BankingHomeState extends State<BankingHome> {
     }
   }
 
-  void payment() async {
+  void _payment(BuildContext context) async {
     if (_accounts.isEmpty) {
       return createNewAccount();
     }
@@ -252,7 +262,7 @@ class _BankingHomeState extends State<BankingHome> {
           caption: localizations.deposit,
           color: Colors.blue,
           icon: Icons.file_download,
-          onTap: () => _deposit(context, account),
+          onTap: () => _depositToAccount(context, account),
         ),
         new IconSlideAction(
           caption: 'Withdraw',
@@ -272,12 +282,12 @@ class _BankingHomeState extends State<BankingHome> {
     );
   }
 
-  void _deposit(BuildContext context, ProxyAccountEntity proxyAccount) async {
-    String amount = await _acceptAmount(context);
-    if (amount != null && double.tryParse(amount) != null) {
+  void _depositToAccount(BuildContext context, ProxyAccountEntity proxyAccount) async {
+    DepositRequestInput input = await _acceptDepositRequestInput(context, proxyAccount);
+    if (input != null) {
       String depositLink = await bankingService.depositLink(
         proxyAccount,
-        Amount(proxyAccount.balance.currency, double.parse(amount)),
+        input,
       );
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
@@ -381,39 +391,48 @@ class _BankingHomeState extends State<BankingHome> {
                 )));
   }
 
-
   Widget _chooseReceivingAccountDialog(BuildContext context, List<ReceivingAccountEntity> accounts) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return SimpleDialog(
       title: Text(localizations.chooseReceivingAccount),
-      children:
-          accounts.map((a) => SimpleDialogOption(
-            child: new Text('${a.bank} - ${a.accountNumber ?? a.accountNumber}'),
-            onPressed: () {
-              Navigator.pop(context, a);
-            },
-          )).toList(),
+      children: accounts
+          .map((a) => SimpleDialogOption(
+                child: new Text('${a.bank} - ${a.accountNumber ?? a.accountNumber}'),
+                onPressed: () {
+                  Navigator.pop(context, a);
+                },
+              ))
+          .toList(),
     );
   }
 
-  Future<ReceivingAccountEntity> _chooseReceivingAccont(BuildContext context, List<ReceivingAccountEntity> receivingAccounts) async {
+  Future<ReceivingAccountEntity> _chooseReceivingAccont(
+      BuildContext context, List<ReceivingAccountEntity> receivingAccounts) async {
     ReceivingAccountEntity receivingAccountEntity = await showDialog(
-        context: context,
-        builder: (context) => _chooseReceivingAccountDialog(context, receivingAccounts),
+      context: context,
+      builder: (context) => _chooseReceivingAccountDialog(context, receivingAccounts),
     );
     return receivingAccountEntity;
   }
 
-
   Future<ReceivingAccountEntity> _createNewReceivingAccount(BuildContext context) async {
     ReceivingAccountEntity receivingAccount = await Navigator.of(context).push(
         new MaterialPageRoute<ReceivingAccountEntity>(
-            builder: (context) => ReceivingAccountDialog(),
-            fullscreenDialog: true));
+            builder: (context) => ReceivingAccountDialog(), fullscreenDialog: true));
     if (receivingAccount != null) {
       receivingAccountRepo.save(receivingAccount);
     }
     return receivingAccount;
   }
 
+  Future<DepositRequestInput> _acceptDepositRequestInput(BuildContext context,
+      [ProxyAccountEntity proxyAccount]) async {
+    DepositRequestInput depositRequestInput =
+        proxyAccount == null ? null : DepositRequestInput.forAccount(proxyAccount);
+    DepositRequestInput result = await Navigator.of(context).push(MaterialPageRoute<DepositRequestInput>(
+      builder: (context) => DepositRequestInputDialog(depositRequestInput: depositRequestInput),
+      fullscreenDialog: true,
+    ));
+    return result;
+  }
 }
