@@ -5,13 +5,14 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
+import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/services/enticement_factory.dart';
+import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
@@ -21,7 +22,8 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
-  final ProxyAccountRepo proxyAccountRepo;
+  final ProxyAccountsBloc proxyAccountsBloc;
+  final EnticementBloc enticementBloc;
   final ProxyKeyRepo proxyKeyRepo;
 
   BankingService({
@@ -29,7 +31,8 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     HttpClientFactory httpClientFactory,
     @required this.messageFactory,
     @required this.messageSigningService,
-    @required this.proxyAccountRepo,
+    @required this.proxyAccountsBloc,
+    @required this.enticementBloc,
     @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "https://proxy-banking.appspot.com/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
@@ -126,17 +129,17 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       signedProxyAccountJson: jsonEncode(response.proxyAccount.toJson()),
     );
     DB.instance().transaction((transaction) {
-      ProxyAccountRepo.saveAccountInTransaction(transaction, proxyAccountEntity);
-      EnticementRepo.dismissEnticementInTransaction(transaction, EnticementFactory.START);
+      proxyAccountsBloc.saveAccount(proxyAccountEntity);
+      enticementBloc.dismissEnticement(EnticementBloc.START);
     });
     return proxyAccountEntity;
   }
 
   Future<void> refreshAccount(ProxyAccountId accountId) async {
     print('Refreshing $accountId');
-    ProxyAccountEntity proxyAccount = await proxyAccountRepo.fetchAccount(accountId);
+    ProxyAccountEntity proxyAccount = await proxyAccountsBloc.fetchAccount(accountId);
     if (proxyAccount == null) {
-      // This can happen when alert reaches earlier than API response.
+      // This can happen when alert reaches earlier than API response, or account is removed.
       print("Account $proxyAccount not found");
       return null;
     }
@@ -158,6 +161,6 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, AccountBalanceResponse.fromJson);
     proxyAccount.balance = signedResponse.message.balance;
     print("Account $accountId has balance => ${proxyAccount.balance}");
-    proxyAccountRepo.saveAccount(proxyAccount);
+    proxyAccountsBloc.saveAccount(proxyAccount);
   }
 }

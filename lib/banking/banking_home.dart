@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/account_card.dart';
+import 'package:proxy_flutter/banking/banking_service.dart';
+import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
+import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
+import 'package:proxy_flutter/banking/receiving_account_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
-import 'package:proxy_flutter/banking/receiving_accounts.dart';
+import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
+import 'package:proxy_flutter/banking/service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/proxy_account_repo.dart';
-import 'package:proxy_flutter/db/proxy_key_repo.dart';
-import 'package:proxy_flutter/db/receiving_account_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/enticement_entity.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/services/banking_service.dart';
-import 'package:proxy_flutter/services/enticement_factory.dart';
+import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:tuple/tuple.dart';
@@ -39,16 +39,10 @@ class BankingHome extends StatefulWidget {
 
 class _BankingHomeState extends State<BankingHome> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final ProxyKeyRepo proxyKeyRepo = ServiceFactory.proxyKeyRepo();
-  final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
-  final ProxyAccountRepo proxyAccountRepo = ServiceFactory.proxyAccountRepo();
-  final BankingService bankingService = ServiceFactory.bankingService();
-  final ReceivingAccountRepo receivingAccountRepo = ServiceFactory.receivingAccountRepo();
-
-  bool _isLoading = false;
-
-  List<ProxyAccountEntity> _accounts;
-  EnticementEntity _enticement;
+  final ProxyAccountsBloc _proxyAccountsBloc = BankingServiceFactory.proxyAccountsBloc();
+  final BankingService _bankingService = BankingServiceFactory.bankingService();
+  final ReceivingAccountBloc _receivingAccountBloc = BankingServiceFactory.receivingAccountBloc();
+  final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
 
   @override
   void initState() {
@@ -63,63 +57,14 @@ class _BankingHomeState extends State<BankingHome> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _refresh();
-  }
-
-  void _refresh() {
-    _refreshAccounts();
-    _refreshEnticements();
-  }
-
-  void _refreshAccounts() {
-    proxyAccountRepo.fetchAccounts().then((accounts) {
-      _setAccounts(accounts);
-    }, onError: (e) {
-      print(e);
-      showToast(ProxyLocalizations.of(context).errorLoadingAccounts);
-      _setAccounts([]);
-    });
-  }
-
-  void _refreshEnticements() {
-    EnticementFactory.instance().getEnticement(context).then((enticement) {
-      _setEnticement(enticement);
-    }, onError: (e) {
-      print(e);
-      _setEnticement(null);
-    });
-  }
-
-  void _setEnticement(EnticementEntity enticement) {
-    print('setEnticement($enticement)');
-    setState(() {
-      _enticement = enticement;
-    });
-  }
-
-  void _setAccounts(List<ProxyAccountEntity> accounts) {
-    print('setAccounts($accounts)');
-    setState(() {
-      _accounts = accounts;
-      _isLoading = _accounts != null;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
+
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(localizations.bankingTitle),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.refresh),
-            tooltip: localizations.refreshButtonHint,
-            onPressed: _refresh,
-          ),
           IconButton(
             icon: Icon(Icons.account_balance),
             tooltip: localizations.receivingAccountsButtonHint,
@@ -128,33 +73,45 @@ class _BankingHomeState extends State<BankingHome> {
         ],
       ),
       body: Padding(
-          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: ListView(
-            children: rows(context),
-          )),
+        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+        child: StreamBuilder<List<ProxyAccountEntity>>(
+            stream: _proxyAccountsBloc.accounts,
+            initialData: [],
+            builder: (BuildContext context, AsyncSnapshot<List<ProxyAccountEntity>> snapshot) {
+              return accountsWidget(context, snapshot);
+            }),
+      ),
     );
   }
 
-  List<Widget> rows(BuildContext context) {
+  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ProxyAccountEntity>> accounts) {
     List<Widget> rows = [
       actionBar(context),
     ];
-    if (_accounts != null && _accounts.isNotEmpty) {
-      print("adding ${_accounts.length} accounts");
-      _accounts.forEach((account) {
+    if (!accounts.hasData) {
+      rows.add(
+        Center(
+          child: Text("Loading"),
+        ),
+      );
+    } else if (accounts.data.isEmpty) {
+      rows.add(
+        Center(
+          child: Text("No Accounts"),
+        ),
+      );
+    } else {
+      print("adding ${accounts.data.length} accounts");
+      accounts.data.forEach((account) {
         rows.addAll([
           const SizedBox(height: 8.0),
           accountCard(context, account),
         ]);
       });
     }
-    if (_enticement != null) {
-      rows.addAll([
-        const SizedBox(height: 8.0),
-        enticementCard(context, _enticement),
-      ]);
-    }
-    return rows;
+    return ListView(
+      children: rows,
+    );
   }
 
   Widget actionBar(BuildContext context) {
@@ -180,27 +137,21 @@ class _BankingHomeState extends State<BankingHome> {
     DepositRequestInput result = await _acceptDepositRequestInput(context);
     if (result != null) {
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      ProxyAccountEntity proxyAccount = await bankingService.createProxyWallet(
+      ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
         proxyUniverse: result.proxyUniverse,
         currency: result.amount.currency,
       );
-      String depositLink = await bankingService.depositLink(proxyAccount, result);
+      String depositLink = await _bankingService.depositLink(proxyAccount, result);
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
       } else {
         throw 'Could not launch $depositLink';
       }
-      _refreshAccounts();
-      _refreshEnticements();
     }
   }
 
-  void _payment(BuildContext context) async {
-    if (_accounts.isEmpty) {
-      return createNewAccount();
-    }
-  }
+  void _payment(BuildContext context) async {}
 
   void createNewAccount() async {
     Tuple2<String, String> result = await showDialog(
@@ -209,13 +160,11 @@ class _BankingHomeState extends State<BankingHome> {
     );
     if (result != null && Currency.isValidCurrency(result.item2)) {
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      await bankingService.createProxyWallet(
+      await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
         proxyUniverse: result.item1,
         currency: result.item2,
       );
-      _refreshAccounts();
-      _refreshEnticements();
     }
   }
 
@@ -285,7 +234,7 @@ class _BankingHomeState extends State<BankingHome> {
   void _depositToAccount(BuildContext context, ProxyAccountEntity proxyAccount) async {
     DepositRequestInput input = await _acceptDepositRequestInput(context, proxyAccount);
     if (input != null) {
-      String depositLink = await bankingService.depositLink(
+      String depositLink = await _bankingService.depositLink(
         proxyAccount,
         input,
       );
@@ -294,16 +243,16 @@ class _BankingHomeState extends State<BankingHome> {
       } else {
         throw 'Could not launch $depositLink';
       }
-      _refreshAccounts();
-      _refreshEnticements();
     }
   }
 
   void _withdraw(BuildContext context, ProxyAccountEntity proxyAccount) async {
-    List<ReceivingAccountEntity> receivingAccounts = await receivingAccountRepo.fetchAccountsForCurrency(
-      proxyUniverse: proxyAccount.proxyUniverse,
-      currency: proxyAccount.balance.currency,
-    );
+    List<ReceivingAccountEntity> receivingAccounts = await _receivingAccountBloc
+        .getAccountsForCurrency(
+          proxyUniverse: proxyAccount.proxyUniverse,
+          currency: proxyAccount.balance.currency,
+        )
+        .single;
     ReceivingAccountEntity receivingAccountEntity;
     if (receivingAccounts.isEmpty) {
       receivingAccountEntity = await _createNewReceivingAccount(context);
@@ -313,9 +262,7 @@ class _BankingHomeState extends State<BankingHome> {
       receivingAccountEntity = await _chooseReceivingAccont(context, receivingAccounts);
     }
     if (receivingAccountEntity != null) {
-      await bankingService.withdraw(proxyAccount, receivingAccountEntity);
-      _refreshAccounts();
-      _refreshEnticements();
+      await _bankingService.withdraw(proxyAccount, receivingAccountEntity);
     }
   }
 
@@ -325,8 +272,7 @@ class _BankingHomeState extends State<BankingHome> {
       showToast(localizations.canNotDeleteActiveAccount);
       return;
     }
-    proxyAccountRepo.deleteAccount(proxyAccount);
-    _refreshAccounts();
+    _proxyAccountsBloc.deleteAccount(proxyAccount);
   }
 
   Widget enticementCard(BuildContext context, EnticementEntity enticement) {
@@ -340,8 +286,7 @@ class _BankingHomeState extends State<BankingHome> {
             color: Colors.red,
             icon: Icons.delete,
             onTap: () {
-              EnticementFactory.instance().dismissEnticement(context, enticement);
-              _refreshEnticements();
+              _enticementBloc.dismissEnticement(enticement.enticementId);
             }),
       ],
     );
@@ -420,7 +365,7 @@ class _BankingHomeState extends State<BankingHome> {
         new MaterialPageRoute<ReceivingAccountEntity>(
             builder: (context) => ReceivingAccountDialog(), fullscreenDialog: true));
     if (receivingAccount != null) {
-      receivingAccountRepo.save(receivingAccount);
+      _receivingAccountBloc.saveAccount(receivingAccount);
     }
     return receivingAccount;
   }

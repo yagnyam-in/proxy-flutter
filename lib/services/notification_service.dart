@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/banking/service_factory.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -89,7 +90,7 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     print('type: $type');
     if (type == AccountUpdatedAlert.ALERT_TYPE) {
       AccountUpdatedAlert alert = AccountUpdatedAlert.fromJson(data);
-      ServiceFactory.bankingService().refreshAccount(alert.proxyAccountId);
+      BankingServiceFactory.bankingService().refreshAccount(alert.proxyAccountId);
     }
     return null;
   }

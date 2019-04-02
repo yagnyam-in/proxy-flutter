@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:proxy_flutter/db/db.dart';
+import 'package:proxy_flutter/model/enticement_entity.dart';
 import 'package:sqflite/sqflite.dart';
 
 class EnticementRepo {
@@ -10,17 +11,29 @@ class EnticementRepo {
 
   factory EnticementRepo.instance(DB database) => EnticementRepo._internal(database);
 
-  Future<Set<String>> dismissedEnticements() async {
+  static const START = "start";
+  static const LOAD_MONEY = "loadMoney";
+  static const SETUP_BUNQ_ACCOUNT = "setupBunqAccount";
+
+  Future<List<EnticementEntity>> fetchActiveEnticements() async {
     List<Map> rows = await db.query(
       TABLE,
       columns: [ID, ACTIVE],
       where: '$ACTIVE = ?',
-      whereArgs: [0],
+      whereArgs: [1],
     );
-    return rows.map((row) => row[ID] as String).toSet();
+    return rows.map((row) => _rowToEnticementEntity(row)).toList();
   }
 
-  static Future<int> dismissEnticementInTransaction(Transaction transaction, String enticementId) {
+  EnticementEntity _rowToEnticementEntity(Map<dynamic, dynamic> row) {
+    return EnticementEntity(
+      enticementId: row[ID],
+      priority: row[PRIORITY],
+      active: row[ACTIVE] != 0,
+    );
+  }
+
+  static Future<int> _dismissEnticementInTransaction(Transaction transaction, String enticementId) {
     Map<String, dynamic> map = {
       ID: enticementId,
       ACTIVE: 0,
@@ -30,24 +43,23 @@ class EnticementRepo {
       map,
       where: '$ID = ?',
       whereArgs: [enticementId],
-    ).then((updated) {
-      if (updated == 0) {
-        return transaction.insert(TABLE, map);
-      }
-      return updated;
-    });
+    );
   }
 
   Future<int> dismissEnticement(String enticementId) {
-    return db.transaction((transaction) => dismissEnticementInTransaction(transaction, enticementId));
+    return db.transaction((transaction) => _dismissEnticementInTransaction(transaction, enticementId));
   }
 
   static const String TABLE = "ENTICEMENT";
   static const String ID = "id";
+  static const String PRIORITY = "priority";
   static const String ACTIVE = "active";
 
-  static Future<void> onCreate(DB db, int version) {
-    return db.execute('CREATE TABLE $TABLE ($ID TEXT PRIMARY KEY, $ACTIVE INTEGER)');
+  static Future<void> onCreate(DB db, int version) async {
+    await db.execute('CREATE TABLE $TABLE ($ID TEXT PRIMARY KEY, $PRIORITY INTEGER, $ACTIVE INTEGER)');
+    await db.insert(TABLE, {ID: START, PRIORITY: 100, ACTIVE: 1});
+    await db.insert(TABLE, {ID: LOAD_MONEY, PRIORITY: 200, ACTIVE: 1});
+    await db.insert(TABLE, {ID: SETUP_BUNQ_ACCOUNT, PRIORITY: 300, ACTIVE: 1});
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) {

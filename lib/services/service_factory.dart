@@ -2,11 +2,11 @@ import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/db/db.dart';
+import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
-import 'package:proxy_flutter/db/receiving_account_repo.dart';
-import 'package:proxy_flutter/services/banking_service.dart';
 import 'package:proxy_flutter/services/cryptography_service_impl.dart';
+import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
 
 class ServiceFactory {
@@ -47,18 +47,11 @@ class ServiceFactory {
     return ProxyAccountRepo.instance(DB.instance());
   }
 
-  static ReceivingAccountRepo receivingAccountRepo() {
-    return ReceivingAccountRepo.instance(DB.instance());
-  }
-
-  static BankingService bankingService() {
-    return BankingService(
-      messageFactory: messageFactory(),
-      messageSigningService: messageSigningService(),
-      proxyAccountRepo: proxyAccountRepo(),
-      proxyKeyRepo: proxyKeyRepo(),
-    );
-  }
-
   static ProxyIdFactory proxyIdFactory() => ProxyIdFactory.instance();
+
+  static EnticementRepo enticementRepo() {
+    return EnticementRepo.instance(DB.instance());
+  }
+
+  static EnticementBloc enticementBloc() => EnticementBloc(enticementRepo: enticementRepo());
 }

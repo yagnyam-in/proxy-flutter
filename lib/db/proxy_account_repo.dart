@@ -47,7 +47,7 @@ class ProxyAccountRepo {
     );
   }
 
-  static Future<int> saveAccountInTransaction(Transaction transaction, ProxyAccountEntity proxyAccount) async {
+  static Future<int> _saveAccountInTransaction(Transaction transaction, ProxyAccountEntity proxyAccount) async {
     ProxyAccountId accountId = proxyAccount.accountId;
     Map<String, dynamic> values = {
       PROXY_UNIVERSE: proxyAccount.proxyUniverse,
@@ -74,7 +74,7 @@ class ProxyAccountRepo {
   }
 
   Future<int> saveAccount(ProxyAccountEntity proxyAccount) {
-    return db.transaction((transaction) => saveAccountInTransaction(transaction, proxyAccount));
+    return db.transaction((transaction) => _saveAccountInTransaction(transaction, proxyAccount));
   }
 
   Future<int> deleteAccount(ProxyAccountEntity proxyAccount) {

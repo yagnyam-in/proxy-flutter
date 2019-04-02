@@ -30,7 +30,7 @@ class DepositRequestInput with ProxyUtils {
   }
 
   RequestingCustomer get requestingCustomer {
-    if (customerName != null && customerPhone != null && customerEmail != null) {
+    if (isNotEmpty(customerName) && isNotEmpty(customerPhone) && isNotEmpty(customerEmail)) {
       return RequestingCustomer(name: customerName, phone: customerPhone, email: customerEmail);
     }
     return null;
