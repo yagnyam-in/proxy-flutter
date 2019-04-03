@@ -9,14 +9,16 @@ typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
 class DepositRequestInput with ProxyUtils {
   final String proxyUniverse;
-  final Amount amount;
+  final String currency;
+  final double amount;
   final String customerName;
   final String customerPhone;
   final String customerEmail;
 
   DepositRequestInput({
     @required this.proxyUniverse,
-    @required this.amount,
+    @required this.currency,
+    this.amount,
     this.customerName,
     this.customerPhone,
     this.customerEmail,
@@ -25,7 +27,7 @@ class DepositRequestInput with ProxyUtils {
   factory DepositRequestInput.forAccount(ProxyAccountEntity proxyAccount) {
     return DepositRequestInput(
       proxyUniverse: proxyAccount.proxyUniverse,
-      amount: Amount(proxyAccount.balance.currency, 0),
+      currency: proxyAccount.balance.currency,
     );
   }
 
@@ -38,9 +40,9 @@ class DepositRequestInput with ProxyUtils {
 
   void assertValid() {
     assert(isNotEmpty(proxyUniverse));
-    assert(amount != null);
-    amount.assertValid();
-    if (amount.currency == Currency.INR) {
+    assert(currency != null);
+    assert(Currency.isValidCurrency(currency));
+    if (currency == Currency.INR) {
       assert(isNotEmpty(customerName));
       assert(isNotEmpty(customerPhone));
       assert(isNotEmpty(customerEmail));
@@ -75,15 +77,14 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
   String _currency;
 
   _DepositRequestInputDialogState(this.depositRequestInput)
-      : amountController = TextEditingController(text: depositRequestInput?.amount?.value?.toString()),
+      : amountController = TextEditingController(),
         nameController = TextEditingController(text: depositRequestInput?.customerName),
         phoneController = TextEditingController(text: depositRequestInput?.customerPhone),
         emailController = TextEditingController(text: depositRequestInput?.customerEmail),
-        _currency = depositRequestInput?.amount?.currency,
+        _currency = depositRequestInput?.currency,
         _proxyUniverse = depositRequestInput?.proxyUniverse,
-        validCurrencies = depositRequestInput?.amount?.currency != null
-            ? [depositRequestInput.amount.currency]
-            : [Currency.INR, Currency.EUR],
+        validCurrencies =
+            depositRequestInput?.currency != null ? [depositRequestInput.currency] : [Currency.INR, Currency.EUR],
         validProxyUniverses = depositRequestInput?.proxyUniverse != null
             ? [depositRequestInput?.proxyUniverse]
             : [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
@@ -105,7 +106,7 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
         title: Text(localizations.enterAmountTitle),
         actions: [
           new FlatButton(
-              onPressed: _submit,
+              onPressed: () => _submit(localizations),
               child: new Text(localizations.okButtonLabel,
                   style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white))),
         ],
@@ -120,36 +121,43 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
   Widget form(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
-    List<Widget> children = [
-      const SizedBox(height: 16.0),
-      new FormField(
-        builder: (FormFieldState state) {
-          return InputDecorator(
-            decoration: InputDecoration(
-              labelText: localizations.proxyUniverse,
-            ),
-            isEmpty: _proxyUniverse == '',
-            child: new DropdownButtonHideUnderline(
-              child: new DropdownButton(
-                value: _proxyUniverse,
-                isDense: true,
-                onChanged: (String newValue) {
-                  setState(() {
-                    _proxyUniverse = newValue;
-                    state.didChange(newValue);
-                  });
-                },
-                items: validProxyUniverses.map((String value) {
-                  return new DropdownMenuItem(
-                    value: value,
-                    child: new Text(value),
-                  );
-                }).toList(),
+    List<Widget> children = [];
+
+    if (depositRequestInput?.proxyUniverse != ProxyUniverse.PRODUCTION) {
+      children.addAll([
+        const SizedBox(height: 16.0),
+        new FormField(
+          builder: (FormFieldState state) {
+            return InputDecorator(
+              decoration: InputDecoration(
+                labelText: localizations.proxyUniverse,
               ),
-            ),
-          );
-        },
-      ),
+              isEmpty: _proxyUniverse == '',
+              child: new DropdownButtonHideUnderline(
+                child: new DropdownButton(
+                  value: _proxyUniverse,
+                  isDense: true,
+                  onChanged: (String newValue) {
+                    setState(() {
+                      _proxyUniverse = newValue;
+                      state.didChange(newValue);
+                    });
+                  },
+                  items: validProxyUniverses.map((String value) {
+                    return new DropdownMenuItem(
+                      value: value,
+                      child: new Text(value),
+                    );
+                  }).toList(),
+                ),
+              ),
+            );
+          },
+        ),
+      ]);
+    }
+
+    children.addAll([
       const SizedBox(height: 16.0),
       new FormField(
         builder: (FormFieldState state) {
@@ -188,7 +196,7 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
         keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
         validator: (value) => _amountValidator(localizations, value),
       ),
-    ];
+    ]);
 
     if (_currency == Currency.INR) {
       children.addAll([
@@ -230,12 +238,15 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
     );
   }
 
-  void _submit() {
-    if (_formKey.currentState.validate()) {
+  void _submit(ProxyLocalizations localizations) {
+    if (_currency == null) {
+      showError(localizations.fieldIsMandatory(localizations.currency));
+    } else if (_formKey.currentState.validate()) {
       DepositRequestInput result = DepositRequestInput(
         proxyUniverse: _proxyUniverse,
         customerName: nameController.text,
-        amount: Amount(_currency, double.parse(amountController.text)),
+        currency: _currency,
+        amount: double.parse(amountController.text),
         customerEmail: emailController.text,
         customerPhone: phoneController.text,
       );

@@ -6,8 +6,6 @@ import 'package:proxy_flutter/banking/banking_service.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
-import 'package:proxy_flutter/banking/receiving_account_bloc.dart';
-import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
 import 'package:proxy_flutter/banking/service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
@@ -41,12 +39,16 @@ class _BankingHomeState extends State<BankingHome> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ProxyAccountsBloc _proxyAccountsBloc = BankingServiceFactory.proxyAccountsBloc();
   final BankingService _bankingService = BankingServiceFactory.bankingService();
-  final ReceivingAccountBloc _receivingAccountBloc = BankingServiceFactory.receivingAccountBloc();
   final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   void showToast(String message) {
@@ -68,7 +70,7 @@ class _BankingHomeState extends State<BankingHome> {
           IconButton(
             icon: Icon(Icons.account_balance),
             tooltip: localizations.receivingAccountsButtonHint,
-            onPressed: _manageReceivingAccounts,
+            onPressed: () => _manageReceivingAccounts(context),
           ),
         ],
       ),
@@ -85,10 +87,17 @@ class _BankingHomeState extends State<BankingHome> {
   }
 
   Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ProxyAccountEntity>> accounts) {
+    print("Constructing Accounts list");
     List<Widget> rows = [
       actionBar(context),
     ];
-    if (!accounts.hasData) {
+    if (accounts.hasError) {
+      rows.add(
+        Center(
+          child: Text("Error loading accounts"),
+        ),
+      );
+    } else if (!accounts.hasData) {
       rows.add(
         Center(
           child: Text("Loading"),
@@ -140,7 +149,7 @@ class _BankingHomeState extends State<BankingHome> {
       ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
         proxyUniverse: result.proxyUniverse,
-        currency: result.amount.currency,
+        currency: result.currency,
       );
       String depositLink = await _bankingService.depositLink(proxyAccount, result);
       if (await canLaunch(depositLink)) {
@@ -247,22 +256,13 @@ class _BankingHomeState extends State<BankingHome> {
   }
 
   void _withdraw(BuildContext context, ProxyAccountEntity proxyAccount) async {
-    List<ReceivingAccountEntity> receivingAccounts = await _receivingAccountBloc
-        .getAccountsForCurrency(
-          proxyUniverse: proxyAccount.proxyUniverse,
-          currency: proxyAccount.balance.currency,
-        )
-        .single;
-    ReceivingAccountEntity receivingAccountEntity;
-    if (receivingAccounts.isEmpty) {
-      receivingAccountEntity = await _createNewReceivingAccount(context);
-    } else if (receivingAccounts.length == 1) {
-      receivingAccountEntity = receivingAccounts.first;
-    } else {
-      receivingAccountEntity = await _chooseReceivingAccont(context, receivingAccounts);
-    }
+    print("_withdraw from $proxyAccount");
+    ReceivingAccountEntity receivingAccountEntity = await _chooseReceivingAccountDialog(context, proxyAccount);
     if (receivingAccountEntity != null) {
+      print("Actual Withdraw");
       await _bankingService.withdraw(proxyAccount, receivingAccountEntity);
+    } else {
+      print("Ignoring withdraw");
     }
   }
 
@@ -327,47 +327,28 @@ class _BankingHomeState extends State<BankingHome> {
     );
   }
 
-  void _manageReceivingAccounts() {
+  void _manageReceivingAccounts(BuildContext context) {
     Navigator.push(
-        context,
-        new MaterialPageRoute(
-            builder: (context) => new ReceivingAccounts(
-                  appConfiguration: widget.appConfiguration,
-                )));
-  }
-
-  Widget _chooseReceivingAccountDialog(BuildContext context, List<ReceivingAccountEntity> accounts) {
-    ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    return SimpleDialog(
-      title: Text(localizations.chooseReceivingAccount),
-      children: accounts
-          .map((a) => SimpleDialogOption(
-                child: new Text('${a.bank} - ${a.accountNumber ?? a.accountNumber}'),
-                onPressed: () {
-                  Navigator.pop(context, a);
-                },
-              ))
-          .toList(),
+      context,
+      new MaterialPageRoute(
+        builder: (context) => ReceivingAccountsPage.manage(
+              appConfiguration: widget.appConfiguration,
+            ),
+      ),
     );
   }
 
-  Future<ReceivingAccountEntity> _chooseReceivingAccont(
-      BuildContext context, List<ReceivingAccountEntity> receivingAccounts) async {
-    ReceivingAccountEntity receivingAccountEntity = await showDialog(
-      context: context,
-      builder: (context) => _chooseReceivingAccountDialog(context, receivingAccounts),
+  Future<ReceivingAccountEntity> _chooseReceivingAccountDialog(BuildContext context, ProxyAccountEntity proxyAccount) {
+    return Navigator.push(
+      context,
+      new MaterialPageRoute<ReceivingAccountEntity>(
+        builder: (context) => ReceivingAccountsPage.choose(
+              appConfiguration: widget.appConfiguration,
+              proxyUniverse: proxyAccount.proxyUniverse,
+              currency: proxyAccount.balance.currency,
+            ),
+      ),
     );
-    return receivingAccountEntity;
-  }
-
-  Future<ReceivingAccountEntity> _createNewReceivingAccount(BuildContext context) async {
-    ReceivingAccountEntity receivingAccount = await Navigator.of(context).push(
-        new MaterialPageRoute<ReceivingAccountEntity>(
-            builder: (context) => ReceivingAccountDialog(), fullscreenDialog: true));
-    if (receivingAccount != null) {
-      _receivingAccountBloc.saveAccount(receivingAccount);
-    }
-    return receivingAccount;
   }
 
   Future<DepositRequestInput> _acceptDepositRequestInput(BuildContext context,

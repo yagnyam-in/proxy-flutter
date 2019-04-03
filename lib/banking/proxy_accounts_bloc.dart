@@ -4,10 +4,12 @@ import 'package:meta/meta.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:rxdart/rxdart.dart';
 
 class ProxyAccountsBloc {
   final ProxyAccountRepo _proxyAccountRepo;
-  final _accountStreamController = StreamController<List<ProxyAccountEntity>>.broadcast();
+  final BehaviorSubject<List<ProxyAccountEntity>> _accountStreamController =
+      BehaviorSubject<List<ProxyAccountEntity>>();
 
   ProxyAccountsBloc({@required ProxyAccountRepo proxyAccountRepo}) : _proxyAccountRepo = proxyAccountRepo {
     assert(this._proxyAccountRepo != null);
@@ -17,23 +19,23 @@ class ProxyAccountsBloc {
   void _refresh() {
     print("refreshing proxy accounts");
     _proxyAccountRepo.fetchAccounts().then(
-      (r) {
-        print("Got ${r.length} accounts");
-        _accountStreamController.sink.add(r);
+      (accounts) {
+        print("Sending $accounts to stream");
+        _accountStreamController.sink.add(accounts);
       },
       onError: (e) {
-        print("Failed to fetch Receiving Accounts");
+        print("Error fetching proxy Accounts $e");
       },
     );
   }
 
   Stream<List<ProxyAccountEntity>> get accounts {
-    return _accountStreamController.stream;
+    return _accountStreamController;
   }
 
   Future<void> saveAccount(ProxyAccountEntity proxyAccount) async {
     print("save account $proxyAccount");
-    _proxyAccountRepo.saveAccount(proxyAccount);
+    await _proxyAccountRepo.saveAccount(proxyAccount);
     _refresh();
   }
 
@@ -48,6 +50,7 @@ class ProxyAccountsBloc {
   }
 
   void dispose() {
+    print('closing _accountStreamController');
     _accountStreamController.close();
   }
 }

@@ -1,9 +1,9 @@
+import 'package:proxy_flutter/banking/banking_service.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_account_bloc.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/receiving_account_repo.dart';
-import 'package:proxy_flutter/banking/banking_service.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 
 class BankingServiceFactory {
@@ -25,11 +25,15 @@ class BankingServiceFactory {
     );
   }
 
-  static ReceivingAccountBloc receivingAccountBloc() {
-    return ReceivingAccountBloc(receivingAccountRepo: receivingAccountRepo());
-  }
+  static final ReceivingAccountBloc _receivingAccountBlocInstance = ReceivingAccountBloc(
+    receivingAccountRepo: receivingAccountRepo(),
+  );
 
-  static ProxyAccountsBloc proxyAccountsBloc() {
-    return ProxyAccountsBloc(proxyAccountRepo: proxyAccountRepo());
-  }
+  static ReceivingAccountBloc receivingAccountBloc() => _receivingAccountBlocInstance;
+
+  static final ProxyAccountsBloc _proxyAccountsBlocInstance = ProxyAccountsBloc(
+    proxyAccountRepo: proxyAccountRepo(),
+  );
+
+  static ProxyAccountsBloc proxyAccountsBloc() => _proxyAccountsBlocInstance;
 }

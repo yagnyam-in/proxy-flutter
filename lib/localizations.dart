@@ -388,7 +388,7 @@ class ProxyLocalizations {
 
   String get newReceivingAccountsButtonHint {
     return Intl.message(
-      'New Receiving Account',
+      'New Account',
       name: 'newReceivingAccountsButtonHint',
       desc: 'New Receiving Account Button Hint',
     );
@@ -476,7 +476,7 @@ class ProxyLocalizations {
 
   String get modifyReceivingAccountTitle {
     return Intl.message(
-      'Modify Account',
+      'Modify',
       name: 'modifyReceivingAccountTitle',
       desc: 'Modify Receiving Account',
     );

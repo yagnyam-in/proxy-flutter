@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:proxy_flutter/db/receiving_account_repo.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';
+import 'package:rxdart/rxdart.dart';
 
 class ReceivingAccountBloc {
   final ReceivingAccountRepo _receivingAccountRepo;
-  final _accountStreamController = StreamController<List<ReceivingAccountEntity>>.broadcast();
+  final BehaviorSubject<List<ReceivingAccountEntity>> _accountStreamController =
+      BehaviorSubject<List<ReceivingAccountEntity>>();
 
   ReceivingAccountBloc({@required ReceivingAccountRepo receivingAccountRepo})
       : _receivingAccountRepo = receivingAccountRepo {
@@ -27,15 +29,7 @@ class ReceivingAccountBloc {
   }
 
   Stream<List<ReceivingAccountEntity>> get accounts {
-    return _accountStreamController.stream;
-  }
-
-  Stream<List<ReceivingAccountEntity>> getAccountsForCurrency(
-      {@required String proxyUniverse, @required String currency}) {
-    assert(proxyUniverse != null);
-    assert(currency != null);
-    return _accountStreamController.stream
-        .map((r) => r.where((a) => a.proxyUniverse == proxyUniverse && a.currency == currency).toList());
+    return _accountStreamController;
   }
 
   Future<void> saveAccount(ReceivingAccountEntity receivingAccount) async {
@@ -44,6 +38,6 @@ class ReceivingAccountBloc {
   }
 
   void dispose() {
-    _accountStreamController.close();
+    _accountStreamController?.close();
   }
 }

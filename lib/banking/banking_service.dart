@@ -6,9 +6,6 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
-import 'package:proxy_flutter/db/db.dart';
-import 'package:proxy_flutter/db/enticement_repo.dart';
-import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';
@@ -70,7 +67,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       requestId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,
       accountName: proxyAccount.validAccountName,
-      amount: input.amount,
+      amount: Amount(input.currency, input.amount),
       requestingCustomer: input.requestingCustomer,
     );
     SignedMessage<DepositLinkRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
@@ -128,10 +125,8 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       ownerProxyId: ownerProxyId,
       signedProxyAccountJson: jsonEncode(response.proxyAccount.toJson()),
     );
-    DB.instance().transaction((transaction) {
-      proxyAccountsBloc.saveAccount(proxyAccountEntity);
-      enticementBloc.dismissEnticement(EnticementBloc.START);
-    });
+    proxyAccountsBloc.saveAccount(proxyAccountEntity);
+    enticementBloc.dismissEnticement(EnticementBloc.START);
     return proxyAccountEntity;
   }
 

@@ -11,22 +11,56 @@ import 'package:uuid/uuid.dart';
 
 final Uuid uuidFactory = Uuid();
 
-class ReceivingAccounts extends StatefulWidget {
-  final AppConfiguration appConfiguration;
+enum PageMode { choose, manage }
 
-  ReceivingAccounts({Key key, @required this.appConfiguration}) : super(key: key) {
+class ReceivingAccountsPage extends StatefulWidget {
+  final AppConfiguration appConfiguration;
+  final PageMode pageMode;
+  final String proxyUniverse;
+  final String currency;
+
+  ReceivingAccountsPage(
+      {Key key, @required this.appConfiguration, @required this.pageMode, this.proxyUniverse, this.currency})
+      : super(key: key) {
     print("Constructing ReceivingAccounts");
   }
 
+  factory ReceivingAccountsPage.choose({
+    Key key,
+    @required AppConfiguration appConfiguration,
+    @required String proxyUniverse,
+    @required String currency,
+  }) {
+    return ReceivingAccountsPage(
+      appConfiguration: appConfiguration,
+      pageMode: PageMode.choose,
+      proxyUniverse: proxyUniverse,
+      currency: currency,
+    );
+  }
+
+  factory ReceivingAccountsPage.manage({
+    Key key,
+    @required AppConfiguration appConfiguration,
+  }) {
+    return ReceivingAccountsPage(
+      appConfiguration: appConfiguration,
+      pageMode: PageMode.manage,
+    );
+  }
+
   @override
-  _ReceivingAccountsState createState() {
-    return _ReceivingAccountsState();
+  _ReceivingAccountsPageState createState() {
+    return _ReceivingAccountsPageState(pageMode);
   }
 }
 
-class _ReceivingAccountsState extends State<ReceivingAccounts> {
+class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
+  final PageMode pageMode;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ReceivingAccountBloc receivingAccountBloc = BankingServiceFactory.receivingAccountBloc();
+
+  _ReceivingAccountsPageState(this.pageMode);
 
   @override
   void initState() {
@@ -40,6 +74,14 @@ class _ReceivingAccountsState extends State<ReceivingAccounts> {
     ));
   }
 
+  bool _showAccount(ReceivingAccountEntity account) {
+    if (pageMode == PageMode.manage) {
+      return true;
+    } else {
+      return account.proxyUniverse == widget.proxyUniverse && account.currency == widget.currency;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
@@ -47,13 +89,6 @@ class _ReceivingAccountsState extends State<ReceivingAccounts> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(localizations.receivingAccountsPageTitle),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.add_box),
-            tooltip: localizations.newReceivingAccountsButtonHint,
-            onPressed: createNewAccount,
-          ),
-        ],
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -68,30 +103,50 @@ class _ReceivingAccountsState extends State<ReceivingAccounts> {
   }
 
   Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ReceivingAccountEntity>> accounts) {
+    List<Widget> rows = [
+      actionBar(context),
+    ];
     if (!accounts.hasData) {
-      return Center(
-        child: Text("Loading"),
+      rows.add(
+        Center(
+          child: Text("Loading"),
+        ),
       );
-    }
-    if (accounts.data.isEmpty) {
-      return Center(
-        child: Text("No Accounts"),
+    } else if (accounts.data.isEmpty) {
+      rows.add(
+        Center(
+          child: Text("No Accounts"),
+        ),
       );
+    } else {
+      print("adding ${accounts.data.length} accounts");
+      accounts.data.where(_showAccount).forEach((account) {
+        rows.addAll([
+          const SizedBox(height: 8.0),
+          accountCard(context, account),
+        ]);
+      });
     }
-    List<Widget> rows = [];
-    print("adding ${accounts.data.length} accounts");
-    accounts.data.forEach((account) {
-      rows.addAll([
-        const SizedBox(height: 8.0),
-        accountCard(context, account),
-      ]);
-    });
     return ListView(
       children: rows,
     );
   }
 
-  void createNewAccount() async {
+  Widget actionBar(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return ButtonBar(
+      alignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        RaisedButton.icon(
+          onPressed: () => createNewAccount(context),
+          icon: Icon(Icons.add),
+          label: Text(localizations.newReceivingAccountsButtonHint),
+        ),
+      ],
+    );
+  }
+
+  void createNewAccount(BuildContext context) async {
     ReceivingAccountEntity receivingAccount = await Navigator.of(context).push(
         new MaterialPageRoute<ReceivingAccountEntity>(
             builder: (context) => ReceivingAccountDialog(), fullscreenDialog: true));
@@ -107,7 +162,13 @@ class _ReceivingAccountsState extends State<ReceivingAccounts> {
       actionExtentRatio: 0.25,
       child: GestureDetector(
         child: ReceivingAccountCard(account: account),
-        onTap: () => _edit(context, account),
+        onTap: () {
+          if (pageMode == PageMode.manage) {
+            _edit(context, account);
+          } else {
+            Navigator.of(context).pop(account);
+          }
+        },
       ),
       secondaryActions: <Widget>[
         new IconSlideAction(
