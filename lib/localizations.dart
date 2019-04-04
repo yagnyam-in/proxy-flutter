@@ -378,13 +378,22 @@ class ProxyLocalizations {
     );
   }
 
-  String get receivingAccountsPageTitle {
+  String get manageReceivingAccountsPageTitle {
     return Intl.message(
       'Receiving Accounts',
-      name: 'receivingAccountsPageTitle',
+      name: 'manageReceivingAccountsPageTitle',
       desc: 'Receiving Accounts Page Hint',
     );
   }
+
+  String get chooseReceivingAccountsPageTitle {
+    return Intl.message(
+      'Choose Account',
+      name: 'chooseReceivingAccountsPageTitle',
+      desc: 'Receiving Accounts Page Hint',
+    );
+  }
+
 
   String get newReceivingAccountsButtonHint {
     return Intl.message(
@@ -404,7 +413,7 @@ class ProxyLocalizations {
 
   String get bank {
     return Intl.message(
-      'Bak',
+      'Bank',
       name: 'bank',
       desc: 'Bank field name',
     );

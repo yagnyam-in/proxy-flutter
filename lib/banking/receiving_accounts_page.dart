@@ -82,13 +82,19 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
     }
   }
 
+  String _getTitle(ProxyLocalizations localizations) {
+    return pageMode == PageMode.manage
+        ? localizations.manageReceivingAccountsPageTitle
+        : localizations.chooseReceivingAccountsPageTitle;
+  }
+
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.receivingAccountsPageTitle),
+        title: Text(_getTitle(localizations)),
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
