@@ -91,16 +91,20 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       withdrawalId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,
       amount: proxyAccount.balance,
-      destinationAccount: NonProxyAccount(
+      destinationAccount: new NonProxyAccount(
         bank: receivingAccount.bank,
         accountNumber: receivingAccount.accountNumber,
         accountHolder: receivingAccount.accountHolder,
         currency: receivingAccount.currency,
+        ifscCode: receivingAccount.ifscCode,
+        email: receivingAccount.email,
+        phone: receivingAccount.phone,
+        address: receivingAccount.address,
       ),
     );
     SignedMessage<Withdrawal> signedRequest = await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
-    print("Sending $signedRequestJson to $proxyBankingUrl");
+    print("Sending $request to $proxyBankingUrl");
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,

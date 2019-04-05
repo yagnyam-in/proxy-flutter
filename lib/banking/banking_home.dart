@@ -9,7 +9,9 @@ import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
 import 'package:proxy_flutter/banking/service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/model/customer_entity.dart';
 import 'package:proxy_flutter/model/enticement_entity.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';
@@ -37,6 +39,7 @@ class BankingHome extends StatefulWidget {
 
 class _BankingHomeState extends State<BankingHome> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final CustomerRepo _customerRepo = ServiceFactory.customerRepo();
   final ProxyAccountsBloc _proxyAccountsBloc = BankingServiceFactory.proxyAccountsBloc();
   final BankingService _bankingService = BankingServiceFactory.bankingService();
   final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
@@ -44,6 +47,7 @@ class _BankingHomeState extends State<BankingHome> {
   @override
   void initState() {
     super.initState();
+    ServiceFactory.bootService().start();
   }
 
   @override
@@ -353,12 +357,22 @@ class _BankingHomeState extends State<BankingHome> {
 
   Future<DepositRequestInput> _acceptDepositRequestInput(BuildContext context,
       [ProxyAccountEntity proxyAccount]) async {
-    DepositRequestInput depositRequestInput =
-        proxyAccount == null ? null : DepositRequestInput.forAccount(proxyAccount);
+    CustomerEntity customer = await _customerRepo.fetchCustomer();
+    DepositRequestInput depositRequestInput = proxyAccount == null
+        ? DepositRequestInput.fromCustomer(customer)
+        : DepositRequestInput.forAccount(proxyAccount, customer);
     DepositRequestInput result = await Navigator.of(context).push(MaterialPageRoute<DepositRequestInput>(
       builder: (context) => DepositRequestInputDialog(depositRequestInput: depositRequestInput),
       fullscreenDialog: true,
     ));
+    if (result != null) {
+      if (customer != null) {
+        customer = customer.copy(name: result.customerName, phone: result.customerPhone, email: result.customerEmail);
+      } else {
+        customer = CustomerEntity(name: result.customerName, phone: result.customerPhone, email: result.customerEmail);
+      }
+      await _customerRepo.saveCustomer(customer);
+    }
     return result;
   }
 }

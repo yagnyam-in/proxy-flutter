@@ -106,6 +106,12 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    ServiceFactory.bootService().start();
+  }
+
+  @override
   Widget build(BuildContext context) {
     appState = AppStateContainer.of(context).state;
     double childOpacity = appState.isLoading ? 0.5 : 1;

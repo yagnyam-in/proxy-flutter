@@ -493,7 +493,7 @@ class ProxyLocalizations {
 
   String get customerName {
     return Intl.message(
-      'Customer Name',
+      'Name',
       name: 'customerName',
       desc: 'Customer Name',
     );
@@ -501,7 +501,7 @@ class ProxyLocalizations {
 
   String get customerPhone {
     return Intl.message(
-      'Customer Phone',
+      'Phone',
       name: 'customerPhone',
       desc: 'Customer Phone',
     );
@@ -509,11 +509,20 @@ class ProxyLocalizations {
 
   String get customerEmail {
     return Intl.message(
-      'Customer Email',
+      'Email',
       name: 'customerEmail',
       desc: 'Customer Email',
     );
   }
+
+  String get customerAddress {
+    return Intl.message(
+      'Address',
+      name: 'customerAddress',
+      desc: 'Customer Address',
+    );
+  }
+
 }
 
 class ProxyLocalizationsDelegate

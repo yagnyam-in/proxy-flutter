@@ -10,11 +10,9 @@ class ReceivingAccountRepo {
 
   ReceivingAccountRepo._instance(this.db);
 
-  factory ReceivingAccountRepo.instance(DB database) =>
-      ReceivingAccountRepo._instance(database);
+  factory ReceivingAccountRepo.instance(DB database) => ReceivingAccountRepo._instance(database);
 
-  Future<List<ReceivingAccountEntity>> fetchAccountsForCurrency(
-      {String proxyUniverse, String currency}) async {
+  Future<List<ReceivingAccountEntity>> fetchAccountsForCurrency({String proxyUniverse, String currency}) async {
     List<Map> rows = await db.query(
       TABLE,
       columns: ALL_COLUMNS,
@@ -64,6 +62,9 @@ class ReceivingAccountRepo {
       BANK: entity.bank,
       CURRENCY: entity.currency,
       IFSC_CODE: entity.ifscCode,
+      EMAIL: entity.email,
+      PHONE: entity.phone,
+      ADDRESS: entity.address,
       ACTIVE: entity.active ? 1 : 0,
     };
   }
@@ -78,6 +79,9 @@ class ReceivingAccountRepo {
       bank: map[BANK],
       currency: map[CURRENCY],
       ifscCode: map[IFSC_CODE],
+      email: map[EMAIL],
+      phone: map[PHONE],
+      address: map[ADDRESS],
       active: map[ACTIVE] != 0,
     );
   }
@@ -108,7 +112,7 @@ class ReceivingAccountRepo {
     EMAIL,
     PHONE,
     ADDRESS,
-    ACTIVE
+    ACTIVE,
   ];
 
   static Future<void> onCreate(DB db, int version) async {
@@ -144,7 +148,7 @@ class ReceivingAccountRepo {
       proxyUniverse: ProxyUniverse.TEST,
       accountName: 'Success',
       accountNumber: '026291800001191',
-      accountHolder: 'Good',
+      accountHolder: 'Success',
       bank: 'Yes Bank',
       currency: Currency.INR,
       ifscCode: 'YESB0000262',
@@ -157,9 +161,9 @@ class ReceivingAccountRepo {
   static ReceivingAccountEntity get _immediateFailureAccountForInr {
     return new ReceivingAccountEntity(
       proxyUniverse: ProxyUniverse.TEST,
-      accountName: 'Failure',
+      accountName: 'Immediate Failure',
       accountNumber: '026291800001190',
-      accountHolder: 'Bad',
+      accountHolder: 'Immediate Failure',
       bank: 'Yes Bank',
       currency: Currency.INR,
       ifscCode: 'YESB0000262',
@@ -174,7 +178,7 @@ class ReceivingAccountRepo {
       proxyUniverse: ProxyUniverse.TEST,
       accountName: 'Eventually Success',
       accountNumber: '00224412311300',
-      accountHolder: 'Ugly',
+      accountHolder: 'Eventually Success',
       bank: 'Yes Bank',
       currency: Currency.INR,
       ifscCode: 'YESB0000001',
@@ -189,7 +193,7 @@ class ReceivingAccountRepo {
       proxyUniverse: ProxyUniverse.TEST,
       accountName: 'Eventually Failure',
       accountNumber: '7766666351000',
-      accountHolder: 'Bad',
+      accountHolder: 'Eventually Failure',
       bank: 'Yes Bank',
       currency: Currency.INR,
       ifscCode: 'YESB0000001',

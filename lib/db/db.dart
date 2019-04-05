@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:path/path.dart';
+import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
@@ -119,6 +120,7 @@ class DB {
     await ProxyAccountRepo.onCreate(db, version);
     await EnticementRepo.onCreate(db, version);
     await ReceivingAccountRepo.onCreate(db, version);
+    await CustomerRepo.onCreate(db, version);
   }
 
   static Future<void> onUpgrade(Database database, int oldVersion, int newVersion) async {
@@ -128,5 +130,6 @@ class DB {
     await ProxyAccountRepo.onUpgrade(db, oldVersion, newVersion);
     await EnticementRepo.onUpgrade(db, oldVersion, newVersion);
     await ReceivingAccountRepo.onUpgrade(db, oldVersion, newVersion);
+    await CustomerRepo.onUpgrade(db, oldVersion, newVersion);
   }
 }

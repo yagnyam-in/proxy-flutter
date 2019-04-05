@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/widgets/link_text_span.dart';
-import 'package:proxy_flutter/widgets/raised_button_with_icon.dart';
 
 typedef TermsAndConditionsAcceptedCallback = void Function();
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/model/customer_entity.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
@@ -15,7 +16,7 @@ class DepositRequestInput with ProxyUtils {
   final String customerPhone;
   final String customerEmail;
 
-  DepositRequestInput({
+  DepositRequestInput._internal({
     @required this.proxyUniverse,
     @required this.currency,
     this.amount,
@@ -24,10 +25,23 @@ class DepositRequestInput with ProxyUtils {
     this.customerEmail,
   });
 
-  factory DepositRequestInput.forAccount(ProxyAccountEntity proxyAccount) {
-    return DepositRequestInput(
+  factory DepositRequestInput.forAccount(ProxyAccountEntity proxyAccount, [CustomerEntity customer]) {
+    return DepositRequestInput._internal(
       proxyUniverse: proxyAccount.proxyUniverse,
       currency: proxyAccount.balance.currency,
+      customerName: customer?.name,
+      customerPhone: customer?.phone,
+      customerEmail: customer?.email,
+    );
+  }
+
+  factory DepositRequestInput.fromCustomer(CustomerEntity customer) {
+    return DepositRequestInput._internal(
+      proxyUniverse: null,
+      currency: null,
+      customerName: customer?.name,
+      customerPhone: customer?.phone,
+      customerEmail: customer?.email,
     );
   }
 
@@ -242,7 +256,7 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
     if (_currency == null) {
       showError(localizations.fieldIsMandatory(localizations.currency));
     } else if (_formKey.currentState.validate()) {
-      DepositRequestInput result = DepositRequestInput(
+      DepositRequestInput result = DepositRequestInput._internal(
         proxyUniverse: _proxyUniverse,
         customerName: nameController.text,
         currency: _currency,

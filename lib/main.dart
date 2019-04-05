@@ -43,23 +43,21 @@ class ProxyAppState extends State<ProxyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // locale: const Locale('nl', 'NL'),
-      onGenerateTitle: (BuildContext context) =>
-          ProxyLocalizations.of(context).title,
-      localizationsDelegates: [
-        const ProxyLocalizationsDelegate(),
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: [
-        const Locale('en', 'US'),
-        const Locale('nl', 'NL'),
-        const Locale('te', 'IN'),
-      ],
-      home: new AppStateContainer(
-        child: homePage(context),
-      )
-    );
+        // locale: const Locale('nl', 'NL'),
+        onGenerateTitle: (BuildContext context) => ProxyLocalizations.of(context).title,
+        localizationsDelegates: [
+          const ProxyLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: [
+          const Locale('en', 'US'),
+          const Locale('nl', 'NL'),
+          const Locale('te', 'IN'),
+        ],
+        home: new AppStateContainer(
+          child: homePage(context),
+        ));
   }
 
   Widget homePage(BuildContext context) {

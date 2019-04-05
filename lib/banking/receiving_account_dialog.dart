@@ -26,7 +26,12 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   final TextEditingController accountNumberController;
   final TextEditingController accountHolderController;
   final TextEditingController bankController;
+
   final TextEditingController ifscCodeController;
+  final TextEditingController emailController;
+  final TextEditingController phoneController;
+  final TextEditingController addressController;
+
   final List<String> validCurrencies = [Currency.INR, Currency.EUR];
   final List<String> validProxyUniverses = [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
 
@@ -38,7 +43,10 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
         accountNumberController = TextEditingController(text: receivingAccount?.accountNumber),
         accountHolderController = TextEditingController(text: receivingAccount?.accountHolder),
         bankController = TextEditingController(text: receivingAccount?.bank),
-        ifscCodeController = TextEditingController(text: receivingAccount?.ifscCode) {
+        ifscCodeController = TextEditingController(text: receivingAccount?.ifscCode),
+        emailController = TextEditingController(text: receivingAccount?.email),
+        phoneController = TextEditingController(text: receivingAccount?.phone),
+        addressController = TextEditingController(text: receivingAccount?.address) {
     _proxyUniverse = receivingAccount?.proxyUniverse;
     _currency = receivingAccount?.currency;
   }
@@ -181,6 +189,33 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
           ),
           validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
         ),
+        const SizedBox(height: 8.0),
+        new TextFormField(
+          controller: emailController,
+          decoration: InputDecoration(
+            labelText: localizations.customerEmail,
+          ),
+          keyboardType: TextInputType.emailAddress,
+          validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
+        ),
+        const SizedBox(height: 8.0),
+        new TextFormField(
+          controller: phoneController,
+          decoration: InputDecoration(
+            labelText: localizations.customerPhone,
+          ),
+          keyboardType: TextInputType.phone,
+          validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
+        ),
+        const SizedBox(height: 8.0),
+        new TextFormField(
+          controller: addressController,
+          decoration: InputDecoration(
+            labelText: localizations.customerAddress,
+          ),
+          keyboardType: TextInputType.text,
+          validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
+        ),
       ]);
     }
 
@@ -211,6 +246,9 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
         bank: bankController.text,
         currency: _currency,
         ifscCode: ifscCodeController.text,
+        email: emailController.text,
+        phone: phoneController.text,
+        address: addressController.text,
         active: receivingAccount?.active ?? true,
       ));
     }
