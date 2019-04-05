@@ -9,17 +9,23 @@ class ReceivingAccountEntity {
   final String bank;
   final String currency;
   final String ifscCode;
+  final String email;
+  final String phone;
+  final String address;
   bool active;
 
   ReceivingAccountEntity({
-    int id,
+    this.id,
     @required this.proxyUniverse,
     @required this.accountName,
     @required this.accountNumber,
     @required this.accountHolder,
     @required this.bank,
     @required this.currency,
-    String ifscCode,
+    this.ifscCode,
+    this.email,
+    this.phone,
+    this.address,
     bool active = true,
-  })  : this.id = id, this.ifscCode = ifscCode, this.active = active;
+  }) : this.active = active;
 }

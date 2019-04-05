@@ -1,16 +1,20 @@
 import 'dart:async';
 
+import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';
+import 'package:proxy_messages/banking.dart';
 
 class ReceivingAccountRepo {
   final DB db;
 
   ReceivingAccountRepo._instance(this.db);
 
-  factory ReceivingAccountRepo.instance(DB database) => ReceivingAccountRepo._instance(database);
+  factory ReceivingAccountRepo.instance(DB database) =>
+      ReceivingAccountRepo._instance(database);
 
-  Future<List<ReceivingAccountEntity>> fetchAccountsForCurrency({String proxyUniverse, String currency}) async {
+  Future<List<ReceivingAccountEntity>> fetchAccountsForCurrency(
+      {String proxyUniverse, String currency}) async {
     List<Map> rows = await db.query(
       TABLE,
       columns: ALL_COLUMNS,
@@ -87,6 +91,9 @@ class ReceivingAccountRepo {
   static const String BANK = "bank";
   static const String CURRENCY = "currency";
   static const String IFSC_CODE = "ifscCode";
+  static const String EMAIL = "email";
+  static const String PHONE = "phone";
+  static const String ADDRESS = "address";
   static const String ACTIVE = "active";
 
   static const ALL_COLUMNS = [
@@ -98,11 +105,14 @@ class ReceivingAccountRepo {
     BANK,
     CURRENCY,
     IFSC_CODE,
+    EMAIL,
+    PHONE,
+    ADDRESS,
     ACTIVE
   ];
 
-  static Future<void> onCreate(DB db, int version) {
-    return db.execute('CREATE TABLE $TABLE ('
+  static Future<void> onCreate(DB db, int version) async {
+    await db.execute('CREATE TABLE $TABLE ('
         '$ID INTEGER PRIMARY KEY, '
         '$PROXY_UNIVERSE TEXT, '
         '$ACCOUNT_NAME TEXT, '
@@ -111,10 +121,92 @@ class ReceivingAccountRepo {
         '$BANK TEXT, '
         '$CURRENCY TEXT, '
         '$IFSC_CODE TEXT, '
+        '$EMAIL TEXT, '
+        '$PHONE TEXT, '
+        '$ADDRESS TEXT, '
         '$ACTIVE INTEGER)');
+    List<ReceivingAccountEntity> testAccounts = [
+      _immediateSuccessfulAccountForInr,
+      _eventualSuccessfulAccountForInr,
+      _eventualFailureAccountForInr,
+      _immediateFailureAccountForInr,
+      _bunqAccountForEUR,
+    ];
+    testAccounts.forEach((e) => db.insert(TABLE, _entityToMap(e)));
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) {
     return Future.value();
+  }
+
+  static ReceivingAccountEntity get _immediateSuccessfulAccountForInr {
+    return new ReceivingAccountEntity(
+      proxyUniverse: ProxyUniverse.TEST,
+      accountName: 'Success',
+      accountNumber: '026291800001191',
+      accountHolder: 'Good',
+      bank: 'Yes Bank',
+      currency: Currency.INR,
+      ifscCode: 'YESB0000262',
+      email: 'good@dummy.in',
+      phone: '987654321',
+      address: 'dummy',
+    );
+  }
+
+  static ReceivingAccountEntity get _immediateFailureAccountForInr {
+    return new ReceivingAccountEntity(
+      proxyUniverse: ProxyUniverse.TEST,
+      accountName: 'Failure',
+      accountNumber: '026291800001190',
+      accountHolder: 'Bad',
+      bank: 'Yes Bank',
+      currency: Currency.INR,
+      ifscCode: 'YESB0000262',
+      email: 'bad@dummy.in',
+      phone: '987654321',
+      address: 'dummy',
+    );
+  }
+
+  static ReceivingAccountEntity get _eventualSuccessfulAccountForInr {
+    return new ReceivingAccountEntity(
+      proxyUniverse: ProxyUniverse.TEST,
+      accountName: 'Eventually Success',
+      accountNumber: '00224412311300',
+      accountHolder: 'Ugly',
+      bank: 'Yes Bank',
+      currency: Currency.INR,
+      ifscCode: 'YESB0000001',
+      email: 'ugly@dummy.in',
+      phone: '987654321',
+      address: 'dummy',
+    );
+  }
+
+  static ReceivingAccountEntity get _eventualFailureAccountForInr {
+    return new ReceivingAccountEntity(
+      proxyUniverse: ProxyUniverse.TEST,
+      accountName: 'Eventually Failure',
+      accountNumber: '7766666351000',
+      accountHolder: 'Bad',
+      bank: 'Yes Bank',
+      currency: Currency.INR,
+      ifscCode: 'YESB0000001',
+      email: 'bad@dummy.in',
+      phone: '987654321',
+      address: 'dummy',
+    );
+  }
+
+  static ReceivingAccountEntity get _bunqAccountForEUR {
+    return new ReceivingAccountEntity(
+      proxyUniverse: ProxyUniverse.TEST,
+      accountName: 'Bunq Account',
+      accountNumber: 'NL49BUNQ9900202430',
+      accountHolder: 'Carly',
+      bank: 'Bunq',
+      currency: Currency.EUR,
+    );
   }
 }
