@@ -3,7 +3,6 @@ import 'package:proxy_core/services.dart';
 
 class BootService with ProxyUtils, HttpClientUtils, DebugUtils {
   final String proxyCentralHealthCheck;
-  final String proxyBankingHealthCheck;
   final HttpClientFactory httpClientFactory;
 
   bool _started = false;
@@ -13,7 +12,6 @@ class BootService with ProxyUtils, HttpClientUtils, DebugUtils {
     String proxyBankingHealthCheck,
     HttpClientFactory httpClientFactory,
   })  : proxyCentralHealthCheck = proxyCentralHealthCheck ?? "https://proxy-cs.appspot.com/health-check",
-        proxyBankingHealthCheck = proxyBankingHealthCheck ?? "https://proxy-banking.appspot.com/health-check",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
     assert(isNotEmpty(this.proxyCentralHealthCheck));
   }
@@ -31,11 +29,5 @@ class BootService with ProxyUtils, HttpClientUtils, DebugUtils {
     }, onError: (error) {
       print("Proxy Central Health Check $error");
     });
-    get(httpClientFactory(), proxyBankingHealthCheck).then((health) {
-      print("Proxy Banking Health Check $health");
-    }, onError: (error) {
-      print("Proxy Central Health Check $error");
-    });
-
   }
 }

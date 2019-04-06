@@ -4,6 +4,7 @@ import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
+import 'package:proxy_flutter/db/event_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
@@ -11,11 +12,14 @@ import 'package:proxy_flutter/services/cryptography_service_impl.dart';
 import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
 
+import 'event_bloc.dart';
+
 class ServiceFactory {
   static final NotificationService _notificationServiceInstance =
       NotificationService(messageSigningService: messageSigningService());
 
-  static NotificationService notificationService() => _notificationServiceInstance;
+  static NotificationService notificationService() =>
+      _notificationServiceInstance;
 
   static CryptographyService cryptographyService() {
     return CryptographyServiceImpl();
@@ -26,7 +30,9 @@ class ServiceFactory {
   }
 
   static MessageVerificationService messageVerificationService() {
-    return new MessageVerificationService(cryptographyService: cryptographyService(), proxyResolver: proxyResolver());
+    return new MessageVerificationService(
+        cryptographyService: cryptographyService(),
+        proxyResolver: proxyResolver());
   }
 
   static MessageBuilder messageBuilder() {
@@ -34,7 +40,9 @@ class ServiceFactory {
   }
 
   static MessageFactory messageFactory() {
-    return MessageFactory(messageBuilder: messageBuilder(), messageVerificationService: messageVerificationService());
+    return MessageFactory(
+        messageBuilder: messageBuilder(),
+        messageVerificationService: messageVerificationService());
   }
 
   static MessageSigningService messageSigningService() {
@@ -59,9 +67,16 @@ class ServiceFactory {
     return CustomerRepo.instance(DB.instance());
   }
 
-  static EnticementBloc enticementBloc() => EnticementBloc(enticementRepo: enticementRepo());
+  static EnticementBloc enticementBloc() =>
+      EnticementBloc(enticementRepo: enticementRepo());
 
   static final BootService _bootServiceInstance = BootService();
 
   static BootService bootService() => _bootServiceInstance;
+
+  static EventRepo eventRepo() => EventRepo.instance(DB.instance());
+
+  static final EventBloc _eventBlocInstance = EventBloc(eventRepo: eventRepo());
+
+  static EventBloc eventBloc() => _eventBlocInstance;
 }

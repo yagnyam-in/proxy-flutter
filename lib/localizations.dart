@@ -523,6 +523,73 @@ class ProxyLocalizations {
     );
   }
 
+  String get notEligibleForArchiving {
+    return Intl.message(
+      'Not eligible for Archiving',
+      name: 'notEligibleForArchiving',
+      desc: 'Not eligible for Archiving',
+    );
+  }
+
+  String get withdrawalNotYetComplete {
+    return Intl.message(
+      'Not Complete',
+      name: 'withdrawalNotYetComplete',
+      desc: 'Not Complete',
+    );
+  }
+
+
+  String get eventsPageTitle {
+    return Intl.message(
+      'Events',
+      name: 'eventsPageTitle',
+      desc: 'Events',
+    );
+  }
+
+  String get withdrawalEventTitle {
+    return Intl.message(
+        'Withdrawal',
+        name: 'withdrawalEventTitle',
+        desc: 'withdrawal event title',
+    );
+  }
+
+
+  String withdrawalEventSubTitle(String destinationAccount) {
+    return Intl.message(
+        'To Account $destinationAccount',
+        name: 'withdrawalEventSubTitle',
+        args: [destinationAccount],
+        desc: 'Withdrawing to Account',
+        examples: {
+          'destinationAccount': 'NL11INGB040037899',
+        }
+    );
+  }
+
+  String get depositEventTitle {
+    return Intl.message(
+      'Deposit',
+      name: 'depositEventTitle',
+      desc: 'deposit event title',
+    );
+  }
+
+
+  String depositEventSubTitle(String destinationAccount) {
+    return Intl.message(
+        'To Account $destinationAccount',
+        name: 'depositEventSubTitle',
+        args: [destinationAccount],
+        desc: 'Depositing to Account',
+        examples: {
+          'destinationAccount': 'abcd-defghij',
+        }
+    );
+  }
+
 }
 
 class ProxyLocalizationsDelegate
