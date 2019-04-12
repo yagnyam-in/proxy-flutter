@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
@@ -105,7 +106,7 @@ class DB {
   static Future<Database> _openDatabase() async {
     var databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'proxy.db');
-    return openDatabase(path, version: 1, onCreate: onCreate, onUpgrade: onUpgrade);
+    return openDatabase(path, version: 2, onCreate: onCreate, onUpgrade: onUpgrade);
   }
 
   static Future<Database> database() async {
@@ -137,5 +138,13 @@ class DB {
     await CustomerRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyUniverseRepo.onUpgrade(db, oldVersion, newVersion);
     await EventRepo.onUpgrade(db, oldVersion, newVersion);
+  }
+
+  Future<void> addColumn({
+    @required String table,
+    @required String column,
+    @required String type,
+  }) {
+      return execute('ALTER TABLE $table ADD COLUMN $column $type');
   }
 }

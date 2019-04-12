@@ -45,7 +45,7 @@ class ProxyKeyRepo {
     );
   }
 
-  static Future<int> insert(Transaction transaction, ProxyKey proxyKey) {
+  static Future<int> insertInTransaction(Transaction transaction, ProxyKey proxyKey) {
     return transaction.insert(TABLE, {
       ID: proxyKey.id.id,
       SHA_256: proxyKey.id.sha256Thumbprint,

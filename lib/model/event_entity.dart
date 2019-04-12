@@ -69,8 +69,8 @@ abstract class EventEntity {
         eventType = stringToEventType(row[EVENT_TYPE]),
         eventId = row[EVENT_ID],
         completed = (row[COMPLETED] as int) != 0,
-        creationTime = DateTime.fromMillisecondsSinceEpoch(row[CREATION_TIME] as int).toLocal(),
-        lastUpdatedTime = DateTime.fromMillisecondsSinceEpoch(row[LAST_UPDATED_TIME] as int).toLocal() {
+        creationTime = DateTime.fromMillisecondsSinceEpoch(row[CREATION_TIME] as int, isUtc: true).toLocal(),
+        lastUpdatedTime = DateTime.fromMillisecondsSinceEpoch(row[LAST_UPDATED_TIME] as int, isUtc: true).toLocal() {
     print("Completed: $completed");
   }
 

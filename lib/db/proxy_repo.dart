@@ -15,34 +15,73 @@ class ProxyRepo {
   Future<Proxy> fetchProxy(ProxyId proxyId) async {
     List<Map> rows = await db.query(
       TABLE,
-      columns: [ID, SHA_256, PROXY],
+      columns: [ID, SHA_256, PROXY, LAST_ACCESSED],
       where: '$ID = ? AND $SHA_256 = ?',
       whereArgs: [proxyId.id, proxyId.sha256Thumbprint],
     );
     if (rows.isNotEmpty) {
+      updateLastAccessed(proxyId, rows.first[LAST_ACCESSED]);
       return Proxy.fromJson(jsonDecode(rows.first[PROXY]));
     }
-    return Future.value(null);
+    return null;
   }
-  
-  static Future<int> insert(Transaction transaction, Proxy proxy) {
+
+  Future<void> updateLastAccessed(ProxyId proxyId, int lastAccessed) async {
+    if (_shouldUpdateLastAccessed(lastAccessed)) {
+      db.update(
+        TABLE,
+        {
+          LAST_ACCESSED: DateTime.now().toUtc().millisecondsSinceEpoch,
+        },
+        where: '$ID = ? AND $SHA_256 = ?',
+        whereArgs: [proxyId.id, proxyId.sha256Thumbprint],
+      );
+    }
+  }
+
+  bool _shouldUpdateLastAccessed(int lastAccessed) {
+    if (lastAccessed == null) {
+      return true;
+    }
+    DateTime lastAccessedDateTime =
+        DateTime.fromMillisecondsSinceEpoch(lastAccessed, isUtc: true);
+    if (DateTime.now().difference(lastAccessedDateTime).inDays > 1) {
+      print("Need to update last Accessed");
+      return true;
+    }
+    return false;
+  }
+
+  Future<int> insert(Proxy proxy) {
+    return db.transaction((t) => insertInTransaction(t, proxy));
+  }
+
+  static Future<int> insertInTransaction(Transaction transaction, Proxy proxy) {
     return transaction.insert(TABLE, {
       ID: proxy.id.id,
       SHA_256: proxy.id.sha256Thumbprint,
       PROXY: jsonEncode(proxy.toJson()),
+      LAST_ACCESSED: DateTime.now().toUtc().millisecondsSinceEpoch,
     });
   }
 
   static const String TABLE = "PROXY";
   static const String ID = "id";
   static const String SHA_256 = "sha256";
+  static const String LAST_ACCESSED = "lastAccessed";
   static const String PROXY = "proxy";
 
-  static Future<void> onCreate(DB db, int version) {
-    return db.execute('CREATE TABLE $TABLE ($ID TEXT PRIMARY KEY, $SHA_256 TEXT, $PROXY TEXT)');
+  static Future<void> onCreate(DB db, int version) async {
+    await db.execute(
+        'CREATE TABLE IF NOT EXISTS $TABLE ($ID TEXT PRIMARY KEY, $SHA_256 TEXT, $PROXY TEXT)');
   }
 
-  static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) {
-    return Future.value();
+  static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) async {
+    print("onUpgrade($oldVersion to $newVersion)");
+    switch (oldVersion) {
+      case 1:
+        await db.addColumn(
+            table: TABLE, column: LAST_ACCESSED, type: 'INTEGER');
+    }
   }
 }

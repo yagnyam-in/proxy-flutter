@@ -66,8 +66,8 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
   Future<Tuple2<ProxyKey, Proxy>> saveProxy(ProxyKey proxyKey, Proxy proxy) async {
     await proxyKeyStore.saveProxy(proxyKey: proxyKey, proxy: proxy);
     DB.instance().transaction((t) {
-      ProxyRepo.insert(t, proxy);
-      ProxyKeyRepo.insert(t, proxyKey);
+      ProxyRepo.insertInTransaction(t, proxy);
+      ProxyKeyRepo.insertInTransaction(t, proxyKey);
     });
     return Tuple2(proxyKey, proxy);
   }

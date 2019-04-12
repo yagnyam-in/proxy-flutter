@@ -7,9 +7,11 @@ import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/event_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
+import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
 import 'package:proxy_flutter/services/cryptography_service_impl.dart';
 import 'package:proxy_flutter/services/enticement_bloc.dart';
+import 'package:proxy_flutter/services/local_proxy_resolver.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
 
 import 'event_bloc.dart';
@@ -18,21 +20,23 @@ class ServiceFactory {
   static final NotificationService _notificationServiceInstance =
       NotificationService(messageSigningService: messageSigningService());
 
-  static NotificationService notificationService() =>
-      _notificationServiceInstance;
+  static NotificationService notificationService() => _notificationServiceInstance;
+
+  static final ProxyResolver _proxyResolverInstance = new CachedProxyResolver(
+    proxyResolver: LocalProxyResolver(
+      remoteProxyResolver: RemoteProxyResolver(),
+      proxyRepo: ProxyRepo.instance(DB.instance()),
+    ),
+  );
+
+  static ProxyResolver proxyResolver() => _proxyResolverInstance;
 
   static CryptographyService cryptographyService() {
     return CryptographyServiceImpl();
   }
 
-  static ProxyResolver proxyResolver() {
-    return new RemoteProxyResolver();
-  }
-
   static MessageVerificationService messageVerificationService() {
-    return new MessageVerificationService(
-        cryptographyService: cryptographyService(),
-        proxyResolver: proxyResolver());
+    return new MessageVerificationService(cryptographyService: cryptographyService(), proxyResolver: proxyResolver());
   }
 
   static MessageBuilder messageBuilder() {
@@ -40,9 +44,7 @@ class ServiceFactory {
   }
 
   static MessageFactory messageFactory() {
-    return MessageFactory(
-        messageBuilder: messageBuilder(),
-        messageVerificationService: messageVerificationService());
+    return MessageFactory(messageBuilder: messageBuilder(), messageVerificationService: messageVerificationService());
   }
 
   static MessageSigningService messageSigningService() {
@@ -67,8 +69,7 @@ class ServiceFactory {
     return CustomerRepo.instance(DB.instance());
   }
 
-  static EnticementBloc enticementBloc() =>
-      EnticementBloc(enticementRepo: enticementRepo());
+  static EnticementBloc enticementBloc() => EnticementBloc(enticementRepo: enticementRepo());
 
   static final BootService _bootServiceInstance = BootService();
 
