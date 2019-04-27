@@ -47,7 +47,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     DepositRequest request = DepositRequest(
       depositId: depositId,
       proxyAccount: proxyAccount.signedProxyAccount,
-      accountName: proxyAccount.validAccountName,
+      message: input.message,
       amount: Amount(input.currency, input.amount),
       requestingCustomer: input.requestingCustomer,
     );

@@ -12,6 +12,8 @@ class DepositRequestInput with ProxyUtils {
   final String proxyUniverse;
   final String currency;
   final double amount;
+  final String accountName;
+  final String message;
   final String customerName;
   final String customerPhone;
   final String customerEmail;
@@ -20,6 +22,8 @@ class DepositRequestInput with ProxyUtils {
     @required this.proxyUniverse,
     @required this.currency,
     this.amount,
+    this.accountName,
+    this.message,
     this.customerName,
     this.customerPhone,
     this.customerEmail,
@@ -29,6 +33,7 @@ class DepositRequestInput with ProxyUtils {
     return DepositRequestInput._internal(
       proxyUniverse: proxyAccount.proxyUniverse,
       currency: proxyAccount.balance.currency,
+      accountName: proxyAccount.validAccountName,
       customerName: customer?.name,
       customerPhone: customer?.phone,
       customerEmail: customer?.email,
@@ -56,6 +61,7 @@ class DepositRequestInput with ProxyUtils {
     assert(isNotEmpty(proxyUniverse));
     assert(currency != null);
     assert(Currency.isValidCurrency(currency));
+    assert(isNotEmpty(message));
     if (currency == Currency.INR) {
       assert(isNotEmpty(customerName));
       assert(isNotEmpty(customerPhone));
@@ -83,15 +89,18 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
   final List<String> validCurrencies;
   final List<String> validProxyUniverses;
 
+  final TextEditingController messageController;
   final TextEditingController amountController;
   final TextEditingController nameController;
   final TextEditingController phoneController;
   final TextEditingController emailController;
+
   String _proxyUniverse;
   String _currency;
 
   _DepositRequestInputDialogState(this.depositRequestInput)
       : amountController = TextEditingController(),
+        messageController = TextEditingController(text: depositRequestInput?.message),
         nameController = TextEditingController(text: depositRequestInput?.customerName),
         phoneController = TextEditingController(text: depositRequestInput?.customerPhone),
         emailController = TextEditingController(text: depositRequestInput?.customerEmail),
@@ -113,6 +122,9 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    if (messageController.text.isEmpty) {
+      messageController.text = localizations.depositEventSubTitle(depositRequestInput.accountName);
+    }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -258,9 +270,10 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
     } else if (_formKey.currentState.validate()) {
       DepositRequestInput result = DepositRequestInput._internal(
         proxyUniverse: _proxyUniverse,
-        customerName: nameController.text,
         currency: _currency,
         amount: double.parse(amountController.text),
+        message: messageController.text,
+        customerName: nameController.text,
         customerEmail: emailController.text,
         customerPhone: phoneController.text,
       );
