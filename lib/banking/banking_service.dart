@@ -42,6 +42,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
+      proxyUniverse: proxyUniverse,
       proxyId: proxyKey.id,
       bankId: ProxyId("test-wallet"),
       currency: currency,
