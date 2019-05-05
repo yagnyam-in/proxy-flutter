@@ -45,10 +45,10 @@ class _BankingHomeState extends State<BankingHome> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final CustomerRepo _customerRepo = ServiceFactory.customerRepo();
   final ProxyAccountsBloc _proxyAccountsBloc =
-      BankingServiceFactory.proxyAccountsBloc();
+  BankingServiceFactory.proxyAccountsBloc();
   final BankingService _bankingService = BankingServiceFactory.bankingService();
   final WithdrawalService _withdrawalService =
-      BankingServiceFactory.withdrawalService();
+  BankingServiceFactory.withdrawalService();
   final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
   final DepositService _depositService = BankingServiceFactory.depositService();
 
@@ -104,8 +104,7 @@ class _BankingHomeState extends State<BankingHome> {
     );
   }
 
-  Widget accountsWidget(
-      BuildContext context, AsyncSnapshot<List<ProxyAccountEntity>> accounts) {
+  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ProxyAccountEntity>> accounts) {
     print("Constructing Accounts list");
     List<Widget> rows = [
       actionBar(context),
@@ -164,14 +163,16 @@ class _BankingHomeState extends State<BankingHome> {
   void _createAccountAndDeposit(BuildContext context) async {
     DepositRequestInput result = await _acceptDepositRequestInput(context);
     if (result != null) {
-      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
+      showToast(ProxyLocalizations
+          .of(context)
+          .creatingAnonymousAccount);
       ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
         proxyUniverse: result.proxyUniverse,
         currency: result.currency,
       );
       String depositLink =
-          await _depositService.depositLink(proxyAccount, result);
+      await _depositService.depositLink(proxyAccount, result);
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
       } else {
@@ -188,7 +189,9 @@ class _BankingHomeState extends State<BankingHome> {
       builder: (context) => proxyUniverseAndCurrencyDialog(context),
     );
     if (result != null && Currency.isValidCurrency(result.item2)) {
-      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
+      showToast(ProxyLocalizations
+          .of(context)
+          .creatingAnonymousAccount);
       await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
         proxyUniverse: result.item1,
@@ -253,6 +256,12 @@ class _BankingHomeState extends State<BankingHome> {
       ],
       secondaryActions: <Widget>[
         new IconSlideAction(
+          caption: localizations.refreshButtonHint,
+          color: Colors.orange,
+          icon: Icons.refresh,
+          onTap: () => _refresh(context, account),
+        ),
+        new IconSlideAction(
           caption: localizations.archive,
           color: Colors.red,
           icon: Icons.archive,
@@ -262,10 +271,9 @@ class _BankingHomeState extends State<BankingHome> {
     );
   }
 
-  void _depositToAccount(
-      BuildContext context, ProxyAccountEntity proxyAccount) async {
+  void _depositToAccount(BuildContext context, ProxyAccountEntity proxyAccount) async {
     DepositRequestInput input =
-        await _acceptDepositRequestInput(context, proxyAccount);
+    await _acceptDepositRequestInput(context, proxyAccount);
     if (input != null) {
       String depositLink = await _depositService.depositLink(
         proxyAccount,
@@ -282,7 +290,7 @@ class _BankingHomeState extends State<BankingHome> {
   void _withdraw(BuildContext context, ProxyAccountEntity proxyAccount) async {
     print("_withdraw from $proxyAccount");
     ReceivingAccountEntity receivingAccountEntity =
-        await _chooseReceivingAccountDialog(context, proxyAccount);
+    await _chooseReceivingAccountDialog(context, proxyAccount);
     if (receivingAccountEntity != null) {
       print("Actual Withdraw");
       await _withdrawalService.withdraw(proxyAccount, receivingAccountEntity);
@@ -290,6 +298,12 @@ class _BankingHomeState extends State<BankingHome> {
       print("Ignoring withdraw");
     }
   }
+
+  void _refresh(BuildContext context, ProxyAccountEntity proxyAccount) async {
+    print("refresh $proxyAccount");
+    await _bankingService.refreshAccount(proxyAccount.accountId);
+  }
+
 
   void _archiveAccount(BuildContext context, ProxyAccountEntity proxyAccount) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
@@ -331,13 +345,13 @@ class _BankingHomeState extends State<BankingHome> {
             children: <Widget>[
               new Expanded(
                   child: new TextField(
-                autofocus: true,
-                decoration:
+                    autofocus: true,
+                    decoration:
                     new InputDecoration(labelText: localizations.amount),
-                onChanged: (value) {
-                  amount = value;
-                },
-              ))
+                    onChanged: (value) {
+                      amount = value;
+                    },
+                  ))
             ],
           ),
           actions: <Widget>[
@@ -357,7 +371,8 @@ class _BankingHomeState extends State<BankingHome> {
     Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => ReceivingAccountsPage.manage(
+        builder: (context) =>
+            ReceivingAccountsPage.manage(
               appConfiguration: widget.appConfiguration,
             ),
       ),
@@ -368,19 +383,20 @@ class _BankingHomeState extends State<BankingHome> {
     Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => EventsPage(
+        builder: (context) =>
+            EventsPage(
               appConfiguration: widget.appConfiguration,
             ),
       ),
     );
   }
 
-  Future<ReceivingAccountEntity> _chooseReceivingAccountDialog(
-      BuildContext context, ProxyAccountEntity proxyAccount) {
+  Future<ReceivingAccountEntity> _chooseReceivingAccountDialog(BuildContext context, ProxyAccountEntity proxyAccount) {
     return Navigator.push(
       context,
       new MaterialPageRoute<ReceivingAccountEntity>(
-        builder: (context) => ReceivingAccountsPage.choose(
+        builder: (context) =>
+            ReceivingAccountsPage.choose(
               appConfiguration: widget.appConfiguration,
               proxyUniverse: proxyAccount.proxyUniverse,
               currency: proxyAccount.balance.currency,
@@ -396,7 +412,7 @@ class _BankingHomeState extends State<BankingHome> {
         ? DepositRequestInput.fromCustomer(customer)
         : DepositRequestInput.forAccount(proxyAccount, customer);
     DepositRequestInput result =
-        await Navigator.of(context).push(MaterialPageRoute<DepositRequestInput>(
+    await Navigator.of(context).push(MaterialPageRoute<DepositRequestInput>(
       builder: (context) =>
           DepositRequestInputDialog(depositRequestInput: depositRequestInput),
       fullscreenDialog: true,

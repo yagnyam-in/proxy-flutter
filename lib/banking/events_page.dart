@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:proxy_flutter/banking/service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/event_entity.dart';
@@ -106,6 +107,12 @@ class _EventsPageState extends State<EventsPage> {
       ),
       secondaryActions: <Widget>[
         new IconSlideAction(
+          caption: localizations.refreshButtonHint,
+          color: Colors.orange,
+          icon: Icons.refresh,
+          onTap: () => _refreshEvent(context, event),
+        ),
+        new IconSlideAction(
           caption: localizations.archive,
           color: Colors.red,
           icon: Icons.archive,
@@ -121,5 +128,19 @@ class _EventsPageState extends State<EventsPage> {
       showToast(localizations.withdrawalNotYetComplete);
     }
     await eventBloc.deleteEvent(event);
+  }
+
+
+  void _refreshEvent(BuildContext context, EventEntity event) async {
+    switch (event.eventType) {
+      case EventType.Deposit:
+        BankingServiceFactory.depositService().refreshDepositStatus(event);
+        break;
+      case EventType.Withdraw:
+        BankingServiceFactory.withdrawalService().refreshWithdrawalStatus(event);
+        break;
+      default:
+        print("Not yet handled");
+    }
   }
 }

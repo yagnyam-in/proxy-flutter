@@ -86,6 +86,10 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
       print("No Withdrawal Event found with id $withdrawalId");
       return null;
     }
+    return refreshWithdrawalStatus(event);
+  }
+
+  Future<WithdrawalEventEntity> refreshWithdrawalStatus(WithdrawalEventEntity event) async {
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(event.ownerId);
     WithdrawalStatusRequest request = WithdrawalStatusRequest(
       requestId: uuidFactory.v4(),
@@ -102,7 +106,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<WithdrawalStatusResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, WithdrawalStatusResponse.fromJson);
-    await _updateStatus(event, signedResponse.message.status);
+    return await _updateStatus(event, signedResponse.message.status);
   }
 
   Future<WithdrawalEventEntity> _createEvent(String withdrawalId, ProxyAccountEntity proxyAccount,

@@ -71,21 +71,25 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   }
 
   Future<void> processDepositUpdate(DepositUpdatedAlert alert) async {
-    String depositId = alert.depositId;
-    print('Refreshing $alert');
     DepositEventEntity event =
-        await eventRepo.fetchEvent(EventType.Deposit, depositId);
+    await eventRepo.fetchEvent(EventType.Deposit, alert.depositId);
     if (event == null) {
-      print("No Deposit Event found with id $depositId");
+      print("No Deposit Event found with id ${alert.proxyUniverse}:${alert.depositId}");
       return null;
     }
+    return refreshDepositStatus(event);
+  }
+
+  Future<void> refreshDepositStatus(DepositEventEntity event) async {
+    print('Refreshing $event');
+
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(event.ownerId);
     DepositStatusRequest request = DepositStatusRequest(
       requestId: uuidFactory.v4(),
       request: event.signedDepositRequest,
     );
     SignedMessage<DepositStatusRequest> signedRequest =
-        await messageSigningService.signMessage(request, proxyKey);
+    await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
 
     // print("Sending $signedRequestJson to $proxyBankingUrl");
@@ -96,10 +100,11 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     // print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositStatusResponse> signedResponse =
-        await messageFactory.buildAndVerifySignedMessage(
-            jsonResponse, DepositStatusResponse.fromJson);
+    await messageFactory.buildAndVerifySignedMessage(
+        jsonResponse, DepositStatusResponse.fromJson);
     await _updateStatus(event, signedResponse.message.status);
   }
+
 
   Future<DepositEventEntity> _createEvent(ProxyAccountEntity proxyAccount, DepositRequest request, String signedRequest) async {
     DepositEventEntity event = DepositEventEntity(
