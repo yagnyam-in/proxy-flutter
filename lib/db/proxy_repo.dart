@@ -72,8 +72,9 @@ class ProxyRepo {
   static const String PROXY = "proxy";
 
   static Future<void> onCreate(DB db, int version) async {
+    print("onCreate($version)");
     await db.execute(
-        'CREATE TABLE IF NOT EXISTS $TABLE ($ID TEXT PRIMARY KEY, $SHA_256 TEXT, $PROXY TEXT)');
+        'CREATE TABLE IF NOT EXISTS $TABLE ($ID TEXT PRIMARY KEY, $SHA_256 TEXT, $PROXY TEXT, $LAST_ACCESSED INTEGER)');
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) async {

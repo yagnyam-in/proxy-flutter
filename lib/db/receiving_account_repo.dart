@@ -153,7 +153,7 @@ class ReceivingAccountRepo {
       currency: Currency.INR,
       ifscCode: 'YESB0000262',
       email: 'good@dummy.in',
-      phone: '987654321',
+      phone: '09369939993',
       address: 'dummy',
     );
   }
@@ -168,7 +168,7 @@ class ReceivingAccountRepo {
       currency: Currency.INR,
       ifscCode: 'YESB0000262',
       email: 'bad@dummy.in',
-      phone: '987654321',
+      phone: '09369939993',
       address: 'dummy',
     );
   }
@@ -183,7 +183,7 @@ class ReceivingAccountRepo {
       currency: Currency.INR,
       ifscCode: 'YESB0000001',
       email: 'ugly@dummy.in',
-      phone: '987654321',
+      phone: '09369939993',
       address: 'dummy',
     );
   }
@@ -198,7 +198,7 @@ class ReceivingAccountRepo {
       currency: Currency.INR,
       ifscCode: 'YESB0000001',
       email: 'bad@dummy.in',
-      phone: '987654321',
+      phone: '09369939993',
       address: 'dummy',
     );
   }
@@ -207,8 +207,8 @@ class ReceivingAccountRepo {
     return new ReceivingAccountEntity(
       proxyUniverse: ProxyUniverse.TEST,
       accountName: 'Bunq Account',
-      accountNumber: 'NL49BUNQ9900202430',
-      accountHolder: 'Carly',
+      accountNumber: 'NL07BUNQ9900247515',
+      accountHolder: 'Laura Hardy',
       bank: 'Bunq',
       currency: Currency.EUR,
     );
