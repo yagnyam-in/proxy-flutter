@@ -35,6 +35,14 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
+  String _bankId(String proxyUniverse) {
+    if (proxyUniverse == ProxyUniverse.PRODUCTION) {
+      return "wallet";
+    } else {
+      return "test-wallet";
+    }
+  }
+
   Future<ProxyAccountEntity> createProxyWallet(
       {@required ProxyId ownerProxyId,
       @required String proxyUniverse,
@@ -44,7 +52,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       requestId: uuidFactory.v4(),
       proxyUniverse: proxyUniverse,
       proxyId: proxyKey.id,
-      bankId: ProxyId("test-wallet"),
+      bankId: ProxyId(_bankId(proxyUniverse)),
       currency: currency,
     );
     SignedMessage<ProxyWalletCreationRequest> signedRequest =
