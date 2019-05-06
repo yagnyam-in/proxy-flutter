@@ -131,9 +131,12 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
               ),
               Opacity(
                 opacity: childOpacity,
-                child: SetupProxyForm(
-                  setupProxyCallback: (String proxyId, String revocationPassPhrase) =>
-                      setupMasterProxy(context, proxyId, revocationPassPhrase),
+                child: AbsorbPointer(
+                  absorbing: appState.isLoading,
+                  child: SetupProxyForm(
+                    setupProxyCallback: (String proxyId, String revocationPassPhrase) =>
+                        setupMasterProxy(context, proxyId, revocationPassPhrase),
+                  ),
                 ),
               ),
             ],
