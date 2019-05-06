@@ -11,32 +11,33 @@ class LoadingWidget extends StatelessWidget {
   }
 }
 
-class BusyChildWidget extends StatefulWidget {
+class BusyChildWidget extends StatelessWidget {
   final Widget child;
   final Widget loadingWidget;
+  final bool loading;
 
-  const BusyChildWidget({Key key, @required this.child, @required Widget loadingWidget})
-      : loadingWidget = loadingWidget ?? const LoadingWidget(),
+  const BusyChildWidget({
+    Key key,
+    @required this.child,
+    @required this.loading,
+    Widget loadingWidget,
+  })  : loadingWidget = loadingWidget ?? const LoadingWidget(),
         super(key: key);
 
-  @override
-  _BusyChildWidgetState createState() {
-    return _BusyChildWidgetState();
-  }
-}
-
-class _BusyChildWidgetState extends State<BusyChildWidget> {
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: <Widget>[
         Opacity(
-          opacity: 0,
-          child: widget.loadingWidget,
+          opacity: loading ? 1.0 : 0,
+          child: loadingWidget,
         ),
         Opacity(
           opacity: 1,
-          child: widget.child,
+          child: AbsorbPointer(
+            absorbing: loading,
+            child: child,
+          ),
         )
       ],
     );

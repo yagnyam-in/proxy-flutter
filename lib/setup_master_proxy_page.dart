@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/app_state_container.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/app_state.dart';
 import 'package:proxy_flutter/services/proxy_key_store_impl.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
@@ -23,8 +21,11 @@ class SetupMasterProxyPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final SetupMasterProxyCallback setupMasterProxyCallback;
 
-  SetupMasterProxyPage({Key key, @required this.appConfiguration, @required this.setupMasterProxyCallback})
-      : super(key: key) {
+  SetupMasterProxyPage({
+    Key key,
+    @required this.appConfiguration,
+    @required this.setupMasterProxyCallback,
+  }) : super(key: key) {
     print("Constructing SetupMasterProxyPage");
   }
 
@@ -38,7 +39,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final ProxyFactory proxyFactory = ProxyFactory();
 
-  AppState appState;
+  bool loading = false;
 
   Future<ProxyKey> createProxyKey(String proxyId) {
     print("createProxyKey");
@@ -49,7 +50,10 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     );
   }
 
-  Future<ProxyRequest> createProxyRequest(ProxyKey proxyKey, String revocationPassPhrase) {
+  Future<ProxyRequest> createProxyRequest(
+    ProxyKey proxyKey,
+    String revocationPassPhrase,
+  ) {
     print("createProxyRequest");
     return proxyKeyStore.createProxyRequest(
       proxyKey: proxyKey,
@@ -63,7 +67,10 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     return proxy;
   }
 
-  Future<Tuple2<ProxyKey, Proxy>> saveProxy(ProxyKey proxyKey, Proxy proxy) async {
+  Future<Tuple2<ProxyKey, Proxy>> saveProxy(
+    ProxyKey proxyKey,
+    Proxy proxy,
+  ) async {
     await proxyKeyStore.saveProxy(proxyKey: proxyKey, proxy: proxy);
     DB.instance().transaction((t) {
       ProxyRepo.insertInTransaction(t, proxy);
@@ -72,27 +79,35 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     return Tuple2(proxyKey, proxy);
   }
 
-  Future<Tuple2<ProxyKey, Proxy>> setup(String proxyId, String revocationPassPhrase) async {
+  Future<Tuple2<ProxyKey, Proxy>> setup(
+    String proxyId,
+    String revocationPassPhrase,
+  ) async {
     ProxyKey proxyKey = await createProxyKey(proxyId);
-    ProxyRequest proxyRequest = await createProxyRequest(proxyKey, revocationPassPhrase);
+    ProxyRequest proxyRequest =
+        await createProxyRequest(proxyKey, revocationPassPhrase);
     Proxy proxy = await createProxy(proxyRequest);
     return saveProxy(proxyKey.copyWith(id: proxy.id), proxy);
   }
 
-  void setupMasterProxy(BuildContext context, String proxyId, String revocationPassPhrase) {
+  void setupMasterProxy(
+    BuildContext context,
+    String proxyId,
+    String revocationPassPhrase,
+  ) async {
     setState(() {
-      appState.isLoading = true;
+      loading = true;
     });
     setup(proxyId, revocationPassPhrase).then((Tuple2<ProxyKey, Proxy> r) {
       setState(() {
         print("Success!! ${r.item1} => ${r.item2.isValid()}");
-        appState.isLoading = false;
+        loading = false;
       });
       widget.setupMasterProxyCallback(r.item1.id);
     }).catchError((e) {
       setState(() {
         print("Failure!! $e");
-        appState.isLoading = false;
+        loading = false;
       });
       showError(ProxyLocalizations.of(context).failedProxyCreation);
     });
@@ -113,33 +128,18 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
 
   @override
   Widget build(BuildContext context) {
-    appState = AppStateContainer.of(context).state;
-    double childOpacity = appState.isLoading ? 0.5 : 1;
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(ProxyLocalizations.of(context).setupMasterProxyTitle),
       ),
-      body: SingleChildScrollView(
+      body: BusyChildWidget(
+        loading: loading,
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: Stack(
-            children: <Widget>[
-              Opacity(
-                opacity: 1 - childOpacity,
-                child: LoadingWidget(),
-              ),
-              Opacity(
-                opacity: childOpacity,
-                child: AbsorbPointer(
-                  absorbing: appState.isLoading,
-                  child: SetupProxyForm(
-                    setupProxyCallback: (String proxyId, String revocationPassPhrase) =>
-                        setupMasterProxy(context, proxyId, revocationPassPhrase),
-                  ),
-                ),
-              ),
-            ],
+          child: SetupProxyForm(
+            setupProxyCallback: (String proxyId, String revocationPassPhrase) =>
+                setupMasterProxy(context, proxyId, revocationPassPhrase),
           ),
         ),
       ),
@@ -147,15 +147,18 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
   }
 }
 
-typedef SetupProxyCallback = void Function(String proxyId, String revocationPassPhrase);
+typedef SetupProxyCallback = void Function(
+    String proxyId, String revocationPassPhrase);
 
 class SetupProxyForm extends StatefulWidget {
   final SetupProxyCallback setupProxyCallback;
 
-  SetupProxyForm({@required this.setupProxyCallback, Key key}) : super(key: key);
+  SetupProxyForm({@required this.setupProxyCallback, Key key})
+      : super(key: key);
 
   @override
-  _SetupProxyFormState createState() => _SetupProxyFormState(ServiceFactory.proxyIdFactory().proxyId());
+  _SetupProxyFormState createState() =>
+      _SetupProxyFormState(ServiceFactory.proxyIdFactory().proxyId());
 }
 
 class _SetupProxyFormState extends State<SetupProxyForm> {
@@ -168,7 +171,8 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
 
   _SetupProxyFormState(String suggestedProxyId)
       : this.proxyIdController = TextEditingController(text: suggestedProxyId),
-        this.revocationPassPhraseController = TextEditingController(text: suggestedProxyId);
+        this.revocationPassPhraseController =
+            TextEditingController(text: suggestedProxyId);
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +197,8 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
             ),
             keyboardType: TextInputType.emailAddress,
             validator: (value) => _proxyIdValidator(localizations, value),
-            onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(revocationPassPhraseFocusNode),
+            onFieldSubmitted: (s) => FocusScope.of(context)
+                .requestFocus(revocationPassPhraseFocusNode),
           ),
           const SizedBox(height: 32.0),
           Text(
@@ -229,19 +234,26 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
 
   void _submit() {
     if (_formKey.currentState.validate()) {
-      print("Requesting proxy with ${proxyIdController.text}/${revocationPassPhraseController.text}");
-      widget.setupProxyCallback(proxyIdController.text, revocationPassPhraseController.text);
+      print(
+          "Requesting proxy with ${proxyIdController.text}/${revocationPassPhraseController.text}");
+      widget.setupProxyCallback(
+          proxyIdController.text, revocationPassPhraseController.text);
     } else {
       print("Validation failure");
     }
   }
 
   bool _isValidProxyId(String proxyId) {
-    return proxyId != null && proxyId.trim().length >= 8 && proxyId.trim().length <= 36 && ProxyId.isValidId(proxyId);
+    return proxyId != null &&
+        proxyId.trim().length >= 8 &&
+        proxyId.trim().length <= 36 &&
+        ProxyId.isValidId(proxyId);
   }
 
   bool _isValidPassphrase(String passphrase) {
-    return passphrase != null && passphrase.length >= 8 && passphrase.length <= 64;
+    return passphrase != null &&
+        passphrase.length >= 8 &&
+        passphrase.length <= 64;
   }
 
   String _proxyIdValidator(ProxyLocalizations localizations, String proxyId) {
@@ -253,7 +265,8 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
     return null;
   }
 
-  String _passphraseIdValidator(ProxyLocalizations localizations, String passphrase) {
+  String _passphraseIdValidator(
+      ProxyLocalizations localizations, String passphrase) {
     if (passphrase.isEmpty) {
       return localizations.fieldIsMandatory(localizations.revocationPassPhrase);
     } else if (!_isValidPassphrase(passphrase)) {

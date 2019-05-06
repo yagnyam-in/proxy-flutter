@@ -20,7 +20,11 @@ class ReceivingAccountsPage extends StatefulWidget {
   final String currency;
 
   ReceivingAccountsPage(
-      {Key key, @required this.appConfiguration, @required this.pageMode, this.proxyUniverse, this.currency})
+      {Key key,
+      @required this.appConfiguration,
+      @required this.pageMode,
+      this.proxyUniverse,
+      this.currency})
       : super(key: key) {
     print("Constructing ReceivingAccounts");
   }
@@ -58,7 +62,8 @@ class ReceivingAccountsPage extends StatefulWidget {
 class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
   final PageMode pageMode;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final ReceivingAccountBloc receivingAccountBloc = BankingServiceFactory.receivingAccountBloc();
+  final ReceivingAccountBloc receivingAccountBloc =
+      BankingServiceFactory.receivingAccountBloc();
 
   _ReceivingAccountsPageState(this.pageMode);
 
@@ -78,7 +83,8 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
     if (pageMode == PageMode.manage) {
       return true;
     } else {
-      return account.proxyUniverse == widget.proxyUniverse && account.currency == widget.currency;
+      return account.proxyUniverse == widget.proxyUniverse &&
+          account.currency == widget.currency;
     }
   }
 
@@ -101,14 +107,16 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
         child: StreamBuilder<List<ReceivingAccountEntity>>(
             stream: receivingAccountBloc.accounts,
             initialData: [],
-            builder: (BuildContext context, AsyncSnapshot<List<ReceivingAccountEntity>> snapshot) {
+            builder: (BuildContext context,
+                AsyncSnapshot<List<ReceivingAccountEntity>> snapshot) {
               return accountsWidget(context, snapshot);
             }),
       ),
     );
   }
 
-  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ReceivingAccountEntity>> accounts) {
+  Widget accountsWidget(BuildContext context,
+      AsyncSnapshot<List<ReceivingAccountEntity>> accounts) {
     List<Widget> rows = [
       actionBar(context),
     ];
@@ -153,9 +161,15 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
   }
 
   void createNewAccount(BuildContext context) async {
-    ReceivingAccountEntity receivingAccount = await Navigator.of(context).push(
-        new MaterialPageRoute<ReceivingAccountEntity>(
-            builder: (context) => ReceivingAccountDialog(), fullscreenDialog: true));
+    ReceivingAccountEntity receivingAccount = await Navigator.of(context)
+        .push(new MaterialPageRoute<ReceivingAccountEntity>(
+            builder: (context) => ReceivingAccountDialog(
+                  receivingAccount: ReceivingAccountEntity(
+                    proxyUniverse: widget.proxyUniverse,
+                    currency: widget.currency,
+                  ),
+                ),
+            fullscreenDialog: true));
     if (receivingAccount != null) {
       receivingAccountBloc.saveAccount(receivingAccount);
     }
@@ -187,15 +201,20 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
     );
   }
 
-  void _edit(BuildContext context, ReceivingAccountEntity receivingAccount) async {
-    receivingAccount = await Navigator.of(context).push(new MaterialPageRoute<ReceivingAccountEntity>(
-        builder: (context) => ReceivingAccountDialog(receivingAccount: receivingAccount), fullscreenDialog: true));
+  void _edit(
+      BuildContext context, ReceivingAccountEntity receivingAccount) async {
+    receivingAccount = await Navigator.of(context).push(
+        new MaterialPageRoute<ReceivingAccountEntity>(
+            builder: (context) =>
+                ReceivingAccountDialog(receivingAccount: receivingAccount),
+            fullscreenDialog: true));
     if (receivingAccount != null) {
       receivingAccountBloc.saveAccount(receivingAccount);
     }
   }
 
-  void _archiveAccount(BuildContext context, ReceivingAccountEntity receivingAccount) async {
+  void _archiveAccount(
+      BuildContext context, ReceivingAccountEntity receivingAccount) async {
     receivingAccount.active = false;
     await receivingAccountBloc.saveAccount(receivingAccount);
   }
