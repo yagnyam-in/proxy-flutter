@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
@@ -19,6 +20,7 @@ class DepositEventEntity extends EventEntity {
   final ProxyAccountId accountId;
   final ProxyId ownerId;
   final String signedDepositRequestJson;
+  final String depositLink;
   SignedMessage<DepositRequest> _signedDepositRequest;
 
   DepositEventEntity({
@@ -32,7 +34,8 @@ class DepositEventEntity extends EventEntity {
     @required this.amount,
     @required this.accountId,
     @required this.ownerId,
-    @required this.signedDepositRequestJson,
+    this.depositLink,
+    this.signedDepositRequestJson,
   }) : super(
           id: id,
           proxyUniverse: proxyUniverse,
@@ -40,6 +43,7 @@ class DepositEventEntity extends EventEntity {
           lastUpdatedTime: lastUpdatedTime,
           eventType: EventType.Deposit,
           eventId: eventId,
+          completed: completed,
         );
 
   @override
@@ -52,6 +56,7 @@ class DepositEventEntity extends EventEntity {
     row[EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID] = accountId.bankId;
     row[EventEntity.PAYER_PROXY_ID] = ownerId.id;
     row[EventEntity.PAYER_PROXY_SHA] = ownerId.sha256Thumbprint;
+    row[EventEntity.DEPOSIT_LINK] = depositLink;
     row[EventEntity.SIGNED_REQUEST] = signedDepositRequestJson;
     return row;
   }
@@ -59,27 +64,30 @@ class DepositEventEntity extends EventEntity {
   SignedMessage<DepositRequest> get signedDepositRequest {
     if (_signedDepositRequest == null) {
       print("Constructing from $signedDepositRequestJson");
-      _signedDepositRequest = MessageBuilder.instance().buildSignedMessage(
-          signedDepositRequestJson, DepositRequest.fromJson);
+      _signedDepositRequest =
+          MessageBuilder.instance().buildSignedMessage(signedDepositRequestJson, DepositRequest.fromJson);
     }
     return _signedDepositRequest;
   }
 
   DepositEventEntity.fromRow(Map<dynamic, dynamic> row)
       : status = _stringToEventStatus(row[EventEntity.STATUS]),
-        amount = Amount(row[EventEntity.PRIMARY_AMOUNT_CURRENCY],
-            row[EventEntity.PRIMARY_AMOUNT]),
+        amount = Amount(row[EventEntity.PRIMARY_AMOUNT_CURRENCY], row[EventEntity.PRIMARY_AMOUNT]),
         accountId = ProxyAccountId(
             accountId: row[EventEntity.PAYER_PROXY_ACCOUNT_ID],
             bankId: row[EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID],
             proxyUniverse: row[EventEntity.PROXY_UNIVERSE]),
-        ownerId = ProxyId(
-            row[EventEntity.PAYER_PROXY_ID], row[EventEntity.PAYER_PROXY_SHA]),
+        ownerId = ProxyId(row[EventEntity.PAYER_PROXY_ID], row[EventEntity.PAYER_PROXY_SHA]),
         signedDepositRequestJson = row[EventEntity.SIGNED_REQUEST],
+        depositLink = row[EventEntity.DEPOSIT_LINK],
         super.fromRow(row);
 
-  DepositEventEntity copy(
-      {DepositEventStatus status, DateTime lastUpdatedTime}) {
+  DepositEventEntity copy({
+    String depositLink,
+    String signedDepositRequestJson,
+    DepositEventStatus status,
+    DateTime lastUpdatedTime,
+  }) {
     DepositEventStatus effectiveStatus = status ?? this.status;
     return DepositEventEntity(
       id: this.id,
@@ -91,29 +99,24 @@ class DepositEventEntity extends EventEntity {
       amount: this.amount,
       accountId: this.accountId,
       ownerId: this.ownerId,
-      signedDepositRequestJson: this.signedDepositRequestJson,
+      signedDepositRequestJson: signedDepositRequestJson ?? this.signedDepositRequestJson,
+      depositLink: depositLink ?? this.depositLink,
       status: effectiveStatus,
     );
   }
 
   static bool isCompleteStatus(DepositEventStatus status) {
-    return status == DepositEventStatus.Completed ||
-        status == DepositEventStatus.Cancelled;
+    return status == DepositEventStatus.Completed || status == DepositEventStatus.Cancelled;
   }
 
   static DepositEventStatus _stringToEventStatus(String value,
       {DepositEventStatus orElse = DepositEventStatus.InProcess}) {
-    return DepositEventStatus.values.firstWhere(
-        (e) => ConversionUtils.isEnumEqual(e, value,
-            enumName: "DepositEventStatus"),
-        orElse: () => orElse);
+    return DepositEventStatus.values
+        .firstWhere((e) => ConversionUtils.isEnumEqual(e, value, enumName: "DepositEventStatus"), orElse: () => orElse);
   }
 
   static String _eventStatusToString(DepositEventStatus eventType) {
-    return eventType
-        ?.toString()
-        ?.replaceFirst("DepositEventStatus.", "")
-        ?.toLowerCase();
+    return eventType?.toString()?.replaceFirst("DepositEventStatus.", "")?.toLowerCase();
   }
 
   static DepositEventStatus toLocalStatus(DepositStatusEnum backendStatus) {
@@ -142,7 +145,45 @@ class DepositEventEntity extends EventEntity {
     return localizations.depositEventSubTitle(accountId.accountId);
   }
 
-  String getSuffix(ProxyLocalizations localizations) {
+  String getAmountText(ProxyLocalizations localizations) {
     return '${amount.value} ${Currency.currencySymbol(amount.currency)}';
+  }
+
+  String getStatus(ProxyLocalizations localizations) {
+    switch (status) {
+      case DepositEventStatus.Created:
+        return localizations.waitingForFunds;
+      case DepositEventStatus.Rejected:
+        return localizations.rejected;
+      case DepositEventStatus.InProcess:
+        return localizations.inProcess;
+      case DepositEventStatus.Completed:
+        return localizations.completed;
+      case DepositEventStatus.Cancelled:
+        return localizations.cancelled;
+      default:
+        print("Unhandled Event state: $status");
+        return localizations.inProcess;
+    }
+  }
+
+  IconData icon() {
+    return Icons.file_download;
+  }
+
+  bool isCancellable() {
+    if (status == DepositEventStatus.Created || status == DepositEventStatus.InProcess) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool isDepositPossible() {
+    if (status == DepositEventStatus.Created || status == DepositEventStatus.InProcess) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

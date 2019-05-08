@@ -106,7 +106,7 @@ class DB {
   static Future<Database> _openDatabase() async {
     var databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'proxy.db');
-    return openDatabase(path, version: 2, onCreate: onCreate, onUpgrade: onUpgrade);
+    return openDatabase(path, version: 3, onCreate: onCreate, onUpgrade: onUpgrade);
   }
 
   static Future<Database> database() async {

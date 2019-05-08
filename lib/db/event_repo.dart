@@ -90,6 +90,7 @@ class EventRepo {
     EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID,
     EventEntity.PAYEE_ACCOUNT_NUMBER,
     EventEntity.PAYEE_ACCOUNT_BANK,
+    EventEntity.DEPOSIT_LINK,
     EventEntity.SIGNED_REQUEST,
   ];
 
@@ -111,6 +112,7 @@ class EventRepo {
         '${EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID} TEXT,'
         '${EventEntity.PAYEE_ACCOUNT_NUMBER} TEXT,'
         '${EventEntity.PAYEE_ACCOUNT_BANK} TEXT,'
+        '${EventEntity.DEPOSIT_LINK} TEXT,'
         '${EventEntity.SIGNED_REQUEST} TEXT'
         ')');
     await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS UK_EVENTID_EVENTTYPE ON '
@@ -122,6 +124,9 @@ class EventRepo {
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) async {
-    _createTable(db);
+    switch (oldVersion) {
+      case 2:
+        await db.addColumn(table: TABLE, column: EventEntity.DEPOSIT_LINK, type: 'TEXT');
+    }
   }
 }

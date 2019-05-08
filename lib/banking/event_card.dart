@@ -29,10 +29,14 @@ class EventCard extends StatelessWidget {
   Widget makeListTile(BuildContext context) {
     ThemeData themeData = Theme.of(context);
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    String title = event.getTitle(localizations);
+    if (event.completed) {
+      title += ' \u{2714}';
+    }
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       title: Text(
-        event.getTitle(localizations),
+        title,
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Padding(
@@ -42,7 +46,7 @@ class EventCard extends StatelessWidget {
         ),
       ),
       trailing: Text(
-        event.getSuffix(localizations),
+        event.getAmountText(localizations),
         style: themeData.textTheme.title,
       ),
     );

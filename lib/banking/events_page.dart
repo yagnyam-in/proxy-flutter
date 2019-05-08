@@ -6,7 +6,9 @@ import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/event_entity.dart';
 import 'package:proxy_flutter/services/event_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:uuid/uuid.dart';
+import 'package:proxy_flutter/banking/event_page.dart';
 
 import 'event_card.dart';
 
@@ -26,7 +28,7 @@ class EventsPage extends StatefulWidget {
   }
 }
 
-class _EventsPageState extends State<EventsPage> {
+class _EventsPageState extends LoadingSupportState<EventsPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final EventBloc eventBloc = ServiceFactory.eventBloc();
 
@@ -103,14 +105,14 @@ class _EventsPageState extends State<EventsPage> {
       actionExtentRatio: 0.25,
       child: GestureDetector(
         child: EventCard(event: event),
-        onTap: () {},
+        onTap: () => _launchEvent(context, event),
       ),
       secondaryActions: <Widget>[
         new IconSlideAction(
           caption: localizations.refreshButtonHint,
           color: Colors.orange,
           icon: Icons.refresh,
-          onTap: () => _refreshEvent(context, event),
+          onTap: () => invoke(() => _refreshEvent(context, event)),
         ),
         new IconSlideAction(
           caption: localizations.archive,
@@ -119,6 +121,15 @@ class _EventsPageState extends State<EventsPage> {
           onTap: () => _archiveEvent(context, event),
         ),
       ],
+    );
+  }
+
+  void _launchEvent(BuildContext context, EventEntity event) {
+    Navigator.push(
+      context,
+      new MaterialPageRoute(
+        builder: (context) => EventPage(event: event),
+      ),
     );
   }
 
@@ -131,13 +142,13 @@ class _EventsPageState extends State<EventsPage> {
   }
 
 
-  void _refreshEvent(BuildContext context, EventEntity event) async {
+  Future<void> _refreshEvent(BuildContext context, EventEntity event) async {
     switch (event.eventType) {
       case EventType.Deposit:
-        BankingServiceFactory.depositService().refreshDepositStatus(event);
+        await BankingServiceFactory.depositService().refreshDepositStatus(event);
         break;
       case EventType.Withdraw:
-        BankingServiceFactory.withdrawalService().refreshWithdrawalStatus(event);
+        await BankingServiceFactory.withdrawalService().refreshWithdrawalStatus(event);
         break;
       default:
         print("Not yet handled");

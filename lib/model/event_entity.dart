@@ -1,9 +1,20 @@
+import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_flutter/utils/conversion_utils.dart';
+import 'package:proxy_flutter/widgets/basic_types.dart';
 
 import '../localizations.dart';
 
 enum EventType { Unknown, Deposit, Withdraw, Payment, Fx }
+
+class EventAction {
+  final String title;
+  final IconData icon;
+  final FutureCallback action;
+
+  EventAction(
+      {@required this.title, @required this.icon, @required this.action});
+}
 
 abstract class EventEntity {
   static const String PROXY_UNIVERSE = "proxyUniverse";
@@ -28,6 +39,7 @@ abstract class EventEntity {
   static const String PAYEE_ACCOUNT_BANK = "payeeAccountBank";
 
   static const String SIGNED_REQUEST = "signedRequest";
+  static const String DEPOSIT_LINK = "depositLink";
 
   final int id;
   final String proxyUniverse;
@@ -69,25 +81,37 @@ abstract class EventEntity {
         eventType = stringToEventType(row[EVENT_TYPE]),
         eventId = row[EVENT_ID],
         completed = (row[COMPLETED] as int) != 0,
-        creationTime = DateTime.fromMillisecondsSinceEpoch(row[CREATION_TIME] as int, isUtc: true).toLocal(),
-        lastUpdatedTime = DateTime.fromMillisecondsSinceEpoch(row[LAST_UPDATED_TIME] as int, isUtc: true).toLocal() {
+        creationTime = DateTime.fromMillisecondsSinceEpoch(
+                row[CREATION_TIME] as int,
+                isUtc: true)
+            .toLocal(),
+        lastUpdatedTime = DateTime.fromMillisecondsSinceEpoch(
+                row[LAST_UPDATED_TIME] as int,
+                isUtc: true)
+            .toLocal() {
     print("Completed: $completed");
   }
 
-  static EventType stringToEventType(String value, {EventType orElse = EventType.Unknown}) {
-    return EventType.values
-        .firstWhere((e) => ConversionUtils.isEnumEqual(e, value, enumName: "EventType"), orElse: () => orElse);
+  static EventType stringToEventType(String value,
+      {EventType orElse = EventType.Unknown}) {
+    return EventType.values.firstWhere(
+        (e) => ConversionUtils.isEnumEqual(e, value, enumName: "EventType"),
+        orElse: () => orElse);
   }
 
   static String eventTypeToString(EventType eventType) {
     return eventType?.toString()?.replaceFirst("EventType.", "")?.toLowerCase();
   }
 
-
   String getTitle(ProxyLocalizations localizations);
 
   String getSubTitle(ProxyLocalizations localizations);
 
-  String getSuffix(ProxyLocalizations localizations);
+  String getStatus(ProxyLocalizations localizations);
 
+  String getAmountText(ProxyLocalizations localizations);
+
+  IconData icon();
+
+  bool isCancellable();
 }

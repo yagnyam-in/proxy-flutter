@@ -53,7 +53,6 @@ class ProxyLocalizations {
     );
   }
 
-
   String get masterProxyDescription {
     return Intl.message(
       'Master Key is never used directly for any transaction, it is used to authorize temporary keys.',
@@ -62,7 +61,6 @@ class ProxyLocalizations {
     );
   }
 
-
   String get revocationPassPhraseDescription {
     return Intl.message(
       'Revocation Pass Phrase is useful in case you want to de-activate a Key(s).',
@@ -70,7 +68,6 @@ class ProxyLocalizations {
       desc: 'Description of Revocation Pass Phrase',
     );
   }
-
 
   String get proxyId {
     return Intl.message(
@@ -112,7 +109,6 @@ class ProxyLocalizations {
     );
   }
 
-
   String get invalidRevocationPassPhrase {
     return Intl.message(
       'Should be of length 8-64',
@@ -121,7 +117,6 @@ class ProxyLocalizations {
     );
   }
 
-
   String get termsAndConditionsPageTitle {
     return Intl.message(
       'Terms & Conditions',
@@ -129,7 +124,6 @@ class ProxyLocalizations {
       desc: 'Page title for accepting terms & conditions',
     );
   }
-
 
   String get readTermsAndConditions {
     return Intl.message(
@@ -172,15 +166,13 @@ class ProxyLocalizations {
   }
 
   String fieldIsMandatory(String fieldName) {
-    return Intl.message(
-      '$fieldName is mandatory',
-      name: 'fieldIsMandatory',
-      args: [fieldName],
-      desc: 'Pass Phrase to use for revoking the Proxy Id',
-      examples: {
-        'fieldName': 'Proxy Id',
-      }
-    );
+    return Intl.message('$fieldName is mandatory',
+        name: 'fieldIsMandatory',
+        args: [fieldName],
+        desc: 'Pass Phrase to use for revoking the Proxy Id',
+        examples: {
+          'fieldName': 'Proxy Id',
+        });
   }
 
   String get failedProxyCreation {
@@ -231,7 +223,6 @@ class ProxyLocalizations {
     );
   }
 
-
   String get startBankingTitle {
     return Intl.message(
       'Start Banking',
@@ -260,7 +251,8 @@ class ProxyLocalizations {
     return Intl.message(
       'By Adding your Bunq account, you can directly start using it anonymously',
       name: 'setupBunqAccountDescription',
-      desc: 'By Adding your Bunq account, you can directly start using it anonymously',
+      desc:
+          'By Adding your Bunq account, you can directly start using it anonymously',
     );
   }
 
@@ -352,7 +344,6 @@ class ProxyLocalizations {
     );
   }
 
-
   String get okButtonLabel {
     return Intl.message(
       'OK',
@@ -360,7 +351,6 @@ class ProxyLocalizations {
       desc: 'OK',
     );
   }
-
 
   String get refreshButtonHint {
     return Intl.message(
@@ -393,7 +383,6 @@ class ProxyLocalizations {
       desc: 'Receiving Accounts Page Hint',
     );
   }
-
 
   String get newReceivingAccountsButtonHint {
     return Intl.message(
@@ -467,7 +456,7 @@ class ProxyLocalizations {
     );
   }
 
-  String get chooseReceivingAccount{
+  String get chooseReceivingAccount {
     return Intl.message(
       'Choose Account',
       name: 'chooseReceivingAccount',
@@ -539,7 +528,6 @@ class ProxyLocalizations {
     );
   }
 
-
   String get eventsPageTitle {
     return Intl.message(
       'Events',
@@ -548,25 +536,46 @@ class ProxyLocalizations {
     );
   }
 
-  String get withdrawalEventTitle {
+  String get paymentEventTitle {
     return Intl.message(
-        'Withdrawal',
-        name: 'withdrawalEventTitle',
-        desc: 'withdrawal event title',
+      'Payment',
+      name: 'paymentEventTitle',
+      desc: 'Payment event title',
     );
   }
 
+  String get fxEventTitle {
+    return Intl.message(
+      'Forex',
+      name: 'fxEventTitle',
+      desc: 'Forex event title',
+    );
+  }
+
+  String get unknownEventTitle {
+    return Intl.message(
+      'Event',
+      name: 'unknownEventTitle',
+      desc: 'Unknown event title',
+    );
+  }
+
+  String get withdrawalEventTitle {
+    return Intl.message(
+      'Withdrawal',
+      name: 'withdrawalEventTitle',
+      desc: 'withdrawal event title',
+    );
+  }
 
   String withdrawalEventSubTitle(String destinationAccount) {
-    return Intl.message(
-        'To Account $destinationAccount',
+    return Intl.message('Account: $destinationAccount',
         name: 'withdrawalEventSubTitle',
         args: [destinationAccount],
         desc: 'Withdrawing to Account',
         examples: {
           'destinationAccount': 'NL11INGB040037899',
-        }
-    );
+        });
   }
 
   String get depositEventTitle {
@@ -577,18 +586,81 @@ class ProxyLocalizations {
     );
   }
 
-
   String depositEventSubTitle(String destinationAccount) {
-    return Intl.message(
-        'To Account $destinationAccount',
+    return Intl.message('Account: $destinationAccount',
         name: 'depositEventSubTitle',
         args: [destinationAccount],
         desc: 'Depositing to Account',
         examples: {
           'destinationAccount': 'abcd-defghij',
-        }
-    );
+        });
   }
+
+  String get registered => Intl.message(
+        'Registered',
+        name: 'registered',
+        desc: 'Registered',
+      );
+
+  String get rejected => Intl.message(
+        'Rejected',
+        name: 'rejected',
+        desc: 'Rejected',
+      );
+
+  String get inTransit => Intl.message(
+        'In Transit',
+        name: 'inTransit',
+        desc: 'In Transit',
+      );
+
+  String get completed => Intl.message(
+        'Completed',
+        name: 'completed',
+        desc: 'Completed',
+      );
+
+  String get failedInTransit => Intl.message(
+        'Failed',
+        name: 'failedInTransit',
+        desc: 'Failed',
+      );
+
+  String get failedCompleted => Intl.message(
+        'Failed',
+        name: 'failedCompleted',
+        desc: 'Failed',
+      );
+
+  String get waitingForFunds => Intl.message(
+        'Waiting for Funds',
+        name: 'waitingForFunds',
+        desc: 'Waiting for Funds',
+      );
+
+  String get inProcess => Intl.message(
+        'In Process',
+        name: 'inProcess',
+        desc: 'In Process',
+      );
+
+  String get cancelled => Intl.message(
+        'Cancelled',
+        name: 'cancelled',
+        desc: 'Cancelled',
+      );
+
+  String get cancel => Intl.message(
+    'Cancel',
+    name: 'cancel',
+    desc: 'Cancel',
+  );
+
+  String get status => Intl.message(
+    'Status',
+    name: 'status',
+    desc: 'Status',
+  );
 
 }
 

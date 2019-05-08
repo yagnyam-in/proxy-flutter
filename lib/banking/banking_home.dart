@@ -19,6 +19,8 @@ import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:proxy_flutter/widgets/async_helper.dart';
+import 'package:proxy_flutter/widgets/basic_types.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:tuple/tuple.dart';
@@ -28,8 +30,6 @@ import 'package:uuid/uuid.dart';
 import 'events_page.dart';
 
 final Uuid uuidFactory = Uuid();
-
-typedef FutureCallback<T> = Future<T> Function();
 
 class BankingHome extends StatefulWidget {
   final AppConfiguration appConfiguration;
@@ -44,7 +44,7 @@ class BankingHome extends StatefulWidget {
   }
 }
 
-class _BankingHomeState extends State<BankingHome> {
+class _BankingHomeState extends LoadingSupportState<BankingHome> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final CustomerRepo _customerRepo = ServiceFactory.customerRepo();
   final ProxyAccountsBloc _proxyAccountsBloc =
@@ -54,8 +54,6 @@ class _BankingHomeState extends State<BankingHome> {
       BankingServiceFactory.withdrawalService();
   final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
   final DepositService _depositService = BankingServiceFactory.depositService();
-
-  bool loading = false;
 
   @override
   void initState() {
@@ -281,7 +279,7 @@ class _BankingHomeState extends State<BankingHome> {
     DepositRequestInput input =
         await _acceptDepositRequestInput(context, proxyAccount);
     if (input != null) {
-      String depositLink = await _invoke(() => _depositService.depositLink(
+      String depositLink = await invoke(() => _depositService.depositLink(
             proxyAccount,
             input,
           ));
@@ -300,7 +298,8 @@ class _BankingHomeState extends State<BankingHome> {
         await _chooseReceivingAccountDialog(context, proxyAccount);
     if (receivingAccountEntity != null) {
       print("Actual Withdraw");
-      await _invoke(() =>_withdrawalService.withdraw(proxyAccount, receivingAccountEntity));
+      await invoke(() =>
+          _withdrawalService.withdraw(proxyAccount, receivingAccountEntity));
     } else {
       print("Ignoring withdraw");
     }
@@ -379,8 +378,7 @@ class _BankingHomeState extends State<BankingHome> {
       context,
       new MaterialPageRoute(
         builder: (context) => ReceivingAccountsPage.manage(
-              appConfiguration: widget.appConfiguration,
-            ),
+            appConfiguration: widget.appConfiguration),
       ),
     );
   }
@@ -389,9 +387,8 @@ class _BankingHomeState extends State<BankingHome> {
     Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => EventsPage(
-              appConfiguration: widget.appConfiguration,
-            ),
+        builder: (context) =>
+            EventsPage(appConfiguration: widget.appConfiguration),
       ),
     );
   }
@@ -439,16 +436,4 @@ class _BankingHomeState extends State<BankingHome> {
     return result;
   }
 
-  Future<T> _invoke<T>(FutureCallback<T> callback) async {
-    setState(() {
-      loading = true;
-    });
-    try {
-      return await callback();
-    } finally {
-      setState(() {
-        loading = false;
-      });
-    }
-  }
 }

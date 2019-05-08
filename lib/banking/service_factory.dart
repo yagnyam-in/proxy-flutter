@@ -8,6 +8,8 @@ import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/receiving_account_repo.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 
+import 'event_actions.dart';
+
 class BankingServiceFactory {
   static ProxyAccountRepo proxyAccountRepo() {
     return ProxyAccountRepo.instance(DB.instance());
@@ -59,6 +61,13 @@ class BankingServiceFactory {
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
       eventBloc: ServiceFactory.eventBloc(),
       eventRepo: ServiceFactory.eventRepo(),
+    );
+  }
+
+  static EventActions eventActions() {
+    return EventActions(
+      withdrawalService: withdrawalService(),
+      depositService: depositService(),
     );
   }
 }

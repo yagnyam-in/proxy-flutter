@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/model/app_state.dart';
@@ -16,7 +14,9 @@ class AppStateContainer extends StatefulWidget {
   });
 
   static _AppStateContainerState of(BuildContext context) {
-    return (context.inheritFromWidgetOfExactType(_InheritedStateContainer) as _InheritedStateContainer).data;
+    return (context.inheritFromWidgetOfExactType(_InheritedStateContainer)
+            as _InheritedStateContainer)
+        .data;
   }
 
   @override
@@ -35,8 +35,6 @@ class _AppStateContainerState extends State<AppStateContainer> {
       state = AppState(isLoading: false);
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +55,6 @@ class _AppStateContainerState extends State<AppStateContainer> {
       ),
     );
   }
-
 }
 
 class _InheritedStateContainer extends InheritedWidget {
