@@ -7,6 +7,7 @@ import 'package:proxy_flutter/utils/conversion_utils.dart';
 import 'package:proxy_messages/banking.dart';
 
 enum DepositEventStatus {
+  Registered,
   Created,
   Rejected,
   InProcess,
@@ -14,7 +15,15 @@ enum DepositEventStatus {
   Completed,
 }
 
-class DepositEventEntity extends EventEntity {
+class DepositEventEntity extends EventEntity with ProxyUtils {
+  static final Set<DepositEventStatus> cancellableStatuses = Set.of([
+    DepositEventStatus.Created,
+    DepositEventStatus.Registered,
+  ]);
+  static final Set<DepositEventStatus> depositPossibleStatuses = Set.of([
+    DepositEventStatus.Registered,
+  ]);
+
   final DepositEventStatus status;
   final Amount amount;
   final ProxyAccountId accountId;
@@ -122,7 +131,7 @@ class DepositEventEntity extends EventEntity {
   static DepositEventStatus toLocalStatus(DepositStatusEnum backendStatus) {
     switch (backendStatus) {
       case DepositStatusEnum.Registered:
-        return DepositEventStatus.InProcess;
+        return DepositEventStatus.Registered;
       case DepositStatusEnum.Rejected:
         return DepositEventStatus.Rejected;
       case DepositStatusEnum.InProcess:
@@ -151,6 +160,8 @@ class DepositEventEntity extends EventEntity {
 
   String getStatus(ProxyLocalizations localizations) {
     switch (status) {
+      case DepositEventStatus.Registered:
+        return localizations.waitingForFunds;
       case DepositEventStatus.Created:
         return localizations.waitingForFunds;
       case DepositEventStatus.Rejected:
@@ -172,18 +183,10 @@ class DepositEventEntity extends EventEntity {
   }
 
   bool isCancellable() {
-    if (status == DepositEventStatus.Created || status == DepositEventStatus.InProcess) {
-      return true;
-    } else {
-      return false;
-    }
+    return cancellableStatuses.contains(status);
   }
 
   bool isDepositPossible() {
-    if (status == DepositEventStatus.Created || status == DepositEventStatus.InProcess) {
-      return true;
-    } else {
-      return false;
-    }
+    return depositPossibleStatuses.contains(status) && isNotEmpty(depositLink);
   }
 }

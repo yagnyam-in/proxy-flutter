@@ -11,6 +11,7 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
       loading = true;
     });
     try {
+
       return await callback();
     } catch (e) {
       print("Error invoking: $e");

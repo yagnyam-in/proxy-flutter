@@ -18,6 +18,12 @@ enum WithdrawalEventStatus {
 }
 
 class WithdrawalEventEntity extends EventEntity {
+  static final Set<WithdrawalEventStatus> cancellableStatuses = Set.of([
+    WithdrawalEventStatus.Created,
+    WithdrawalEventStatus.Registered,
+    WithdrawalEventStatus.FailedInTransit,
+  ]);
+
   final WithdrawalEventStatus status;
   final Amount amount;
   final ProxyAccountId accountId;
@@ -70,29 +76,26 @@ class WithdrawalEventEntity extends EventEntity {
   SignedMessage<Withdrawal> get signedWithdrawal {
     if (_signedWithdrawal == null) {
       print("Constructing from $signedWithdrawalRequestJson");
-      _signedWithdrawal = MessageBuilder.instance()
-          .buildSignedMessage(signedWithdrawalRequestJson, Withdrawal.fromJson);
+      _signedWithdrawal =
+          MessageBuilder.instance().buildSignedMessage(signedWithdrawalRequestJson, Withdrawal.fromJson);
     }
     return _signedWithdrawal;
   }
 
   WithdrawalEventEntity.fromRow(Map<dynamic, dynamic> row)
       : status = _stringToEventStatus(row[EventEntity.STATUS]),
-        amount = Amount(row[EventEntity.PRIMARY_AMOUNT_CURRENCY],
-            row[EventEntity.PRIMARY_AMOUNT]),
+        amount = Amount(row[EventEntity.PRIMARY_AMOUNT_CURRENCY], row[EventEntity.PRIMARY_AMOUNT]),
         accountId = ProxyAccountId(
             accountId: row[EventEntity.PAYER_PROXY_ACCOUNT_ID],
             bankId: row[EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID],
             proxyUniverse: row[EventEntity.PROXY_UNIVERSE]),
-        ownerId = ProxyId(
-            row[EventEntity.PAYER_PROXY_ID], row[EventEntity.PAYER_PROXY_SHA]),
+        ownerId = ProxyId(row[EventEntity.PAYER_PROXY_ID], row[EventEntity.PAYER_PROXY_SHA]),
         signedWithdrawalRequestJson = row[EventEntity.SIGNED_REQUEST],
         destinationAccountNumber = row[EventEntity.PAYEE_ACCOUNT_NUMBER],
         destinationAccountBank = row[EventEntity.PAYEE_ACCOUNT_BANK],
         super.fromRow(row);
 
-  WithdrawalEventEntity copy(
-      {WithdrawalEventStatus status, DateTime lastUpdatedTime}) {
+  WithdrawalEventEntity copy({WithdrawalEventStatus status, DateTime lastUpdatedTime}) {
     WithdrawalEventStatus effectiveStatus = status ?? this.status;
     return WithdrawalEventEntity(
       id: this.id,
@@ -112,27 +115,21 @@ class WithdrawalEventEntity extends EventEntity {
   }
 
   static bool isCompleteStatus(WithdrawalEventStatus status) {
-    return status == WithdrawalEventStatus.Completed ||
-        status == WithdrawalEventStatus.FailedCompleted;
+    return status == WithdrawalEventStatus.Completed || status == WithdrawalEventStatus.FailedCompleted;
   }
 
   static WithdrawalEventStatus _stringToEventStatus(String value,
       {WithdrawalEventStatus orElse = WithdrawalEventStatus.InProcess}) {
     return WithdrawalEventStatus.values.firstWhere(
-        (e) => ConversionUtils.isEnumEqual(e, value,
-            enumName: "WithdrawalEventStatus"),
+        (e) => ConversionUtils.isEnumEqual(e, value, enumName: "WithdrawalEventStatus"),
         orElse: () => orElse);
   }
 
   static String _eventStatusToString(WithdrawalEventStatus eventType) {
-    return eventType
-        ?.toString()
-        ?.replaceFirst("WithdrawalEventStatus.", "")
-        ?.toLowerCase();
+    return eventType?.toString()?.replaceFirst("WithdrawalEventStatus.", "")?.toLowerCase();
   }
 
-  static WithdrawalEventStatus toLocalStatus(
-      WithdrawalStatusEnum backendStatus) {
+  static WithdrawalEventStatus toLocalStatus(WithdrawalStatusEnum backendStatus) {
     switch (backendStatus) {
       case WithdrawalStatusEnum.Registered:
         return WithdrawalEventStatus.Registered;
@@ -189,10 +186,6 @@ class WithdrawalEventEntity extends EventEntity {
   }
 
   bool isCancellable() {
-    if (status == WithdrawalEventStatus.Registered) {
-      return true;
-    } else {
-      return false;
-    }
+    return cancellableStatuses.contains(status);
   }
 }

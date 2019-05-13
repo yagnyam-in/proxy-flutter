@@ -94,6 +94,9 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     } else if (type == WithdrawalUpdatedAlert.ALERT_TYPE) {
       WithdrawalUpdatedAlert alert = WithdrawalUpdatedAlert.fromJson(data);
       BankingServiceFactory.withdrawalService().processWithdrawalUpdate(alert);
+    } else if (type == DepositUpdatedAlert.ALERT_TYPE) {
+      DepositUpdatedAlert alert = DepositUpdatedAlert.fromJson(data);
+      BankingServiceFactory.depositService().processDepositUpdate(alert);
     }
     return null;
   }
