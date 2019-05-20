@@ -102,7 +102,27 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   }
 
   Future<void> cancelDeposit(DepositEventEntity event) async {
-    print('Cancelling $event. Not yet implemented');
+    print('Cancelling $event');
+
+    ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(event.ownerId);
+    DepositRequestCancelRequest request = DepositRequestCancelRequest(
+      requestId: uuidFactory.v4(),
+      depositRequest: event.signedDepositRequest,
+    );
+    SignedMessage<DepositRequestCancelRequest> signedRequest =
+    await messageSigningService.signMessage(request, proxyKey);
+    String signedRequestJson = jsonEncode(signedRequest.toJson());
+
+    print("Sending $signedRequestJson to $proxyBankingUrl");
+    String jsonResponse = await post(
+      httpClientFactory(),
+      proxyBankingUrl,
+      signedRequestJson,
+    );
+    print("Received $jsonResponse from $proxyBankingUrl");
+    SignedMessage<DepositRequestCancelResponse> signedResponse =
+    await messageFactory.buildAndVerifySignedMessage(jsonResponse, DepositRequestCancelResponse.fromJson);
+    await _updateDeposit(event, status: signedResponse.message.status);
   }
 
   Future<DepositEventEntity> _createEvent(

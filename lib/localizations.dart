@@ -201,7 +201,7 @@ class ProxyLocalizations {
 
   String get payment {
     return Intl.message(
-      'Payment',
+      'Pay',
       name: 'payment',
       desc: 'Make Payment',
     );
@@ -280,11 +280,15 @@ class ProxyLocalizations {
     );
   }
 
-  String get creatingAnonymousAccount {
+  String creatingAnonymousAccount(String currency) {
     return Intl.message(
-      'Creating Anonymous Account',
+      'Creating Anonymous $currency Account',
       name: 'creatingAccount',
-      desc: 'Creating Anonymous Account',
+      args: [currency],
+      desc: 'Creating Anonymous Account for given Currency',
+        examples: {
+          'currency': 'EUR',
+        },
     );
   }
 
@@ -298,7 +302,7 @@ class ProxyLocalizations {
 
   String get enterAmountTitle {
     return Intl.message(
-      'Enter Account',
+      'Enter Amount',
       name: 'enterAmountTitle',
       desc: 'Dialog title to accept amount',
     );

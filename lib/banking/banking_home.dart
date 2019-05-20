@@ -20,7 +20,6 @@ import 'package:proxy_flutter/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
-import 'package:proxy_flutter/widgets/basic_types.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:tuple/tuple.dart';
@@ -159,7 +158,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> {
           label: Text(localizations.deposit),
         ),
         RaisedButton.icon(
-          onPressed: () => _payment(context),
+          onPressed: () => _createAccountAndPay(context),
           icon: Icon(Icons.file_upload),
           label: Text(localizations.payment),
         ),
@@ -170,7 +169,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> {
   void _createAccountAndDeposit(BuildContext context) async {
     DepositRequestInput result = await _acceptDepositRequestInput(context);
     if (result != null) {
-      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
+      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount(result.currency));
       ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
         proxyUniverse: result.proxyUniverse,
@@ -186,20 +185,16 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> {
     }
   }
 
-  void _payment(BuildContext context) async {}
-
-  void createNewAccount() async {
-    Tuple2<String, String> result = await showDialog(
-      context: context,
-      builder: (context) => proxyUniverseAndCurrencyDialog(context),
-    );
-    if (result != null && Currency.isValidCurrency(result.item2)) {
-      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount);
-      await _bankingService.createProxyWallet(
+  void _createAccountAndPay(BuildContext context) async {
+    DepositRequestInput result = await _acceptDepositRequestInput(context);
+    if (result != null) {
+      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount(result.currency));
+      ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
-        proxyUniverse: result.item1,
-        currency: result.item2,
+        proxyUniverse: result.proxyUniverse,
+        currency: result.currency,
       );
+      // TODO Create Payment
     }
   }
 
@@ -334,42 +329,6 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> {
               _enticementBloc.dismissEnticement(enticement.enticementId);
             }),
       ],
-    );
-  }
-
-  Future<String> _acceptAmount(BuildContext context) async {
-    ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    String amount = '';
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      // dialog is dismissible with a tap on the barrier
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(localizations.enterAmountTitle),
-          content: new Row(
-            children: <Widget>[
-              new Expanded(
-                  child: new TextField(
-                autofocus: true,
-                decoration:
-                    new InputDecoration(labelText: localizations.amount),
-                onChanged: (value) {
-                  amount = value;
-                },
-              ))
-            ],
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text(localizations.okButtonLabel),
-              onPressed: () {
-                Navigator.of(context).pop(amount);
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 

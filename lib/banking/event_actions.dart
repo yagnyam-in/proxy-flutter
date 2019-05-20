@@ -32,7 +32,7 @@ class EventActions {
     }
   }
 
-  Future<void> _launch(String url) async {
+  Future<void> _launchUrl(String url) async {
     if (isNotEmpty(url) && await canLaunch(url)) {
       await launch(url);
     }
@@ -46,7 +46,7 @@ class EventActions {
         EventAction(
             title: localizations.deposit,
             icon: Icons.file_download,
-            action: () => _launch(deposit.depositLink)),
+            action: () => _launchUrl(deposit.depositLink)),
       );
     }
     if (deposit.isCancellable()) {
@@ -54,7 +54,7 @@ class EventActions {
         EventAction(
           title: localizations.cancel,
           icon: Icons.close,
-          action: () {},
+          action: () => depositService.cancelDeposit(deposit),
         ),
       );
     }
