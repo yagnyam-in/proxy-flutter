@@ -83,6 +83,7 @@ class ProxyRepo {
       case 1:
         await db.addColumn(
             table: TABLE, column: LAST_ACCESSED, type: 'INTEGER');
+        break;
     }
   }
 }

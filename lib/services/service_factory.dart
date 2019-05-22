@@ -1,6 +1,7 @@
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/db/contacts_repo.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
@@ -9,6 +10,7 @@ import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
+import 'package:proxy_flutter/services/contacts_bloc.dart';
 import 'package:proxy_flutter/services/cryptography_service_impl.dart';
 import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/local_proxy_resolver.dart';
@@ -80,4 +82,10 @@ class ServiceFactory {
   static final EventBloc _eventBlocInstance = EventBloc(eventRepo: eventRepo());
 
   static EventBloc eventBloc() => _eventBlocInstance;
+
+  static ContactsRepo contactsRepo() => ContactsRepo.instance(DB.instance());
+
+  static final ContactsBloc _contactsBlocInstance = ContactsBloc(contactsRepo: contactsRepo());
+
+  static ContactsBloc contactsBloc() => _contactsBlocInstance;
 }

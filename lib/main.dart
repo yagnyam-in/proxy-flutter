@@ -1,3 +1,4 @@
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:proxy_flutter/app_state_container.dart';
@@ -15,16 +16,38 @@ class ProxyApp extends StatefulWidget {
   }
 }
 
+Future<Uri> _retrieveDynamicLink() async {
+  final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
+  return data?.link;
+}
+
 enum _ProxyAppStatus { loading, error, ready }
 
-class ProxyAppState extends State<ProxyApp> {
+class ProxyAppState extends State<ProxyApp> with WidgetsBindingObserver {
   AppConfiguration configuration;
   _ProxyAppStatus _appStatus = _ProxyAppStatus.loading;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     fetchAppConfiguration();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print("didChangeAppLifecycleState");
+    if (state == AppLifecycleState.resumed) {
+      _retrieveDynamicLink().then((u) {
+        print("deeplink:$u");
+      });
+    }
   }
 
   void updateConfiguration(AppConfiguration value) {

@@ -166,13 +166,15 @@ class ProxyLocalizations {
   }
 
   String fieldIsMandatory(String fieldName) {
-    return Intl.message('$fieldName is mandatory',
-        name: 'fieldIsMandatory',
-        args: [fieldName],
-        desc: 'Pass Phrase to use for revoking the Proxy Id',
-        examples: {
-          'fieldName': 'Proxy Id',
-        });
+    return Intl.message(
+      '$fieldName is mandatory',
+      name: 'fieldIsMandatory',
+      args: [fieldName],
+      desc: 'Pass Phrase to use for revoking the Proxy Id',
+      examples: {
+        'fieldName': 'Proxy Id',
+      },
+    );
   }
 
   String get failedProxyCreation {
@@ -286,9 +288,9 @@ class ProxyLocalizations {
       name: 'creatingAccount',
       args: [currency],
       desc: 'Creating Anonymous Account for given Currency',
-        examples: {
-          'currency': 'EUR',
-        },
+      examples: {
+        'currency': 'EUR',
+      },
     );
   }
 
@@ -393,6 +395,22 @@ class ProxyLocalizations {
       'New Account',
       name: 'newReceivingAccountsButtonHint',
       desc: 'New Receiving Account Button Hint',
+    );
+  }
+
+  String get manageContactsPageTitle {
+    return Intl.message(
+      'Contacts',
+      name: 'manageContactsPageTitle',
+      desc: 'Contacts Page Title',
+    );
+  }
+
+  String get chooseContactsPageTitle {
+    return Intl.message(
+      'Choose Contact',
+      name: 'chooseContactsPageTitle',
+      desc: 'Choose Contact Page Title',
     );
   }
 
@@ -573,13 +591,15 @@ class ProxyLocalizations {
   }
 
   String withdrawalEventSubTitle(String destinationAccount) {
-    return Intl.message('Account: $destinationAccount',
-        name: 'withdrawalEventSubTitle',
-        args: [destinationAccount],
-        desc: 'Withdrawing to Account',
-        examples: {
-          'destinationAccount': 'NL11INGB040037899',
-        });
+    return Intl.message(
+      'Account: $destinationAccount',
+      name: 'withdrawalEventSubTitle',
+      args: [destinationAccount],
+      desc: 'Withdrawing to Account',
+      examples: {
+        'destinationAccount': 'NL11INGB040037899',
+      },
+    );
   }
 
   String get depositEventTitle {
@@ -591,13 +611,15 @@ class ProxyLocalizations {
   }
 
   String depositEventSubTitle(String destinationAccount) {
-    return Intl.message('Account: $destinationAccount',
-        name: 'depositEventSubTitle',
-        args: [destinationAccount],
-        desc: 'Depositing to Account',
-        examples: {
-          'destinationAccount': 'abcd-defghij',
-        });
+    return Intl.message(
+      'Account: $destinationAccount',
+      name: 'depositEventSubTitle',
+      args: [destinationAccount],
+      desc: 'Depositing to Account',
+      examples: {
+        'destinationAccount': 'abcd-defghij',
+      },
+    );
   }
 
   String get registered => Intl.message(
@@ -655,17 +677,46 @@ class ProxyLocalizations {
       );
 
   String get cancel => Intl.message(
-    'Cancel',
-    name: 'cancel',
-    desc: 'Cancel',
-  );
+        'Cancel',
+        name: 'cancel',
+        desc: 'Cancel',
+      );
 
   String get status => Intl.message(
-    'Status',
-    name: 'status',
-    desc: 'Status',
+        'Status',
+        name: 'status',
+        desc: 'Status',
+      );
+
+  String get contactNameDialogTitle => Intl.message(
+        'Contact Name',
+        name: 'contactNameDialogTitle',
+        desc: 'Contact Name Alert Dialog Title',
+      );
+
+  String get changeNameTitle => Intl.message(
+    'Change Name',
+    name: 'changeNameTitle',
+    desc: 'Change Name Alert Dialog Title',
   );
 
+  String get contactName => Intl.message(
+        'Name',
+        name: 'contactName',
+        desc: 'Contact Name',
+      );
+
+  String get profilePageTitle => Intl.message(
+        'Profile',
+        name: 'profilePageTitle',
+        desc: 'Profile Page Title',
+      );
+
+  String get shareProfile => Intl.message(
+    'Share',
+    name: 'shareProfile',
+    desc: 'Share Profile',
+  );
 }
 
 class ProxyLocalizationsDelegate

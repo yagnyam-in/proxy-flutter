@@ -4,8 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
-  static const String TermsAndConditionsAccepted = "termsAndConditionsAcceptedV0";
+  static const String TermsAndConditionsAccepted =
+      "termsAndConditionsAcceptedV0";
   static const String MasterProxyId = "masterProxyId";
+  static const String CustomerName = "customerName";
 
   final SharedPreferences preferences;
 
@@ -42,5 +44,13 @@ class AppConfiguration {
 
   set masterProxyId(ProxyId proxyId) {
     preferences.setString(MasterProxyId, proxyId.uniqueId);
+  }
+
+  String get customerName {
+    return preferences.getString(CustomerName);
+  }
+
+  set customerName(String value) {
+    preferences.setString(CustomerName, value);
   }
 }
