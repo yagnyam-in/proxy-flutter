@@ -38,7 +38,19 @@ abstract class EventEntity {
   static const String PAYEE_ACCOUNT_NUMBER = "payeeAccountNumber";
   static const String PAYEE_ACCOUNT_BANK = "payeeAccountBank";
 
-  static const String SIGNED_REQUEST = "signedRequest";
+  static const String PAYEE_PROXY_ID = "payeeProxyId";
+  static const String PAYEE_PROXY_SHA = "payeeProxySha";
+
+  static const String PAYEE_PROXY_ACCOUNT_ID = "payeeProxyAccountId";
+  static const String PAYEE_PROXY_ACCOUNT_BANK_ID = "payeeProxyAccountBankId";
+
+  static const String SIGNED_DEPOSIT_REQUEST = "signedDepositRequest";
+  static const String SIGNED_WITHDRAWAL_REQUEST = "signedWithdrawalRequest";
+  static const String SIGNED_PAYMENT_AUTHORIZATION_REQUEST = "signedPaymentAuthorizationRequest";
+  static const String SIGNED_PAYMENT_ENCASHMENT_REQUEST = "signedPaymentEncashmentRequest";
+
+  static const String INWARD = "inward";
+
   static const String DEPOSIT_LINK = "depositLink";
 
   final int id;

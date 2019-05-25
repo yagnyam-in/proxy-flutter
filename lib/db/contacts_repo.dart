@@ -58,6 +58,8 @@ class ContactsRepo {
       NAME: entity.name,
       PROXY_ID: entity.proxyId.id,
       PROXY_SHA_256: entity.proxyId.sha256Thumbprint,
+      PHONE: entity.phone,
+      EMAIL: entity.email,
     };
   }
 
@@ -67,6 +69,8 @@ class ContactsRepo {
       proxyUniverse: map[PROXY_UNIVERSE],
       name: map[NAME],
       proxyId: ProxyId(map[PROXY_ID], map[PROXY_SHA_256]),
+      phone: map[PHONE],
+      email: map[EMAIL],
     );
   }
 
@@ -76,6 +80,8 @@ class ContactsRepo {
   static const String PROXY_ID = "proxyId";
   static const String PROXY_SHA_256 = "sha256";
   static const String NAME = "name";
+  static const String PHONE = "phone";
+  static const String EMAIL = "email";
 
   static const ALL_COLUMNS = [
     ID,
@@ -83,6 +89,8 @@ class ContactsRepo {
     PROXY_ID,
     PROXY_SHA_256,
     NAME,
+    PHONE,
+    EMAIL,
   ];
 
   static Future<void> onCreate(DB db, int version) async {
@@ -92,6 +100,8 @@ class ContactsRepo {
         '$PROXY_UNIVERSE TEXT, '
         '$PROXY_ID TEXT, '
         '$PROXY_SHA_256 TEXT, '
+        '$PHONE TEXT, '
+        '$EMAIL TEXT, '
         '$NAME TEXT)');
   }
 

@@ -129,7 +129,7 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.enterAmountTitle),
+        title: Text(localizations.depositRequestInputTitle),
         actions: [
           new FlatButton(
               onPressed: () => _submit(localizations),
@@ -265,7 +265,9 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
   }
 
   void _submit(ProxyLocalizations localizations) {
-    if (_currency == null) {
+    if (_proxyUniverse == null) {
+      showError(localizations.fieldIsMandatory(localizations.proxyUniverse));
+    } else if (_currency == null) {
       showError(localizations.fieldIsMandatory(localizations.currency));
     } else if (_formKey.currentState.validate()) {
       DepositRequestInput result = DepositRequestInput._internal(

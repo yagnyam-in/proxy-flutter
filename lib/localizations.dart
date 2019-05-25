@@ -7,8 +7,7 @@ import 'l10n/messages_all.dart';
 
 class ProxyLocalizations {
   static Future<ProxyLocalizations> load(Locale locale) {
-    final String name =
-        locale.countryCode.isEmpty ? locale.languageCode : locale.toString();
+    final String name = locale.countryCode.isEmpty ? locale.languageCode : locale.toString();
     final String localeName = Intl.canonicalizedLocale(name);
 
     return initializeMessages(localeName).then((_) {
@@ -253,8 +252,7 @@ class ProxyLocalizations {
     return Intl.message(
       'By Adding your Bunq account, you can directly start using it anonymously',
       name: 'setupBunqAccountDescription',
-      desc:
-          'By Adding your Bunq account, you can directly start using it anonymously',
+      desc: 'By Adding your Bunq account, you can directly start using it anonymously',
     );
   }
 
@@ -302,11 +300,19 @@ class ProxyLocalizations {
     );
   }
 
-  String get enterAmountTitle {
+  String get depositRequestInputTitle {
     return Intl.message(
-      'Enter Amount',
-      name: 'enterAmountTitle',
-      desc: 'Dialog title to accept amount',
+      'Deposit Details',
+      name: 'depositRequestInputTitle',
+      desc: 'Dialog title to deposit',
+    );
+  }
+
+  String get paymentAuthorizationInputTitle {
+    return Intl.message(
+      'Payment Details',
+      name: 'paymentAuthorizationInputTitle',
+      desc: 'Dialog title for payment',
     );
   }
 
@@ -695,10 +701,10 @@ class ProxyLocalizations {
       );
 
   String get changeNameTitle => Intl.message(
-    'Change Name',
-    name: 'changeNameTitle',
-    desc: 'Change Name Alert Dialog Title',
-  );
+        'Change Name',
+        name: 'changeNameTitle',
+        desc: 'Change Name Alert Dialog Title',
+      );
 
   String get contactName => Intl.message(
         'Name',
@@ -713,23 +719,110 @@ class ProxyLocalizations {
       );
 
   String get shareProfile => Intl.message(
-    'Share',
-    name: 'shareProfile',
-    desc: 'Share Profile',
-  );
+        'Share',
+        name: 'shareProfile',
+        desc: 'Share Profile',
+      );
+
+  String get saveContactTitle => Intl.message(
+        'Save Proxy',
+        name: 'saveContactTitle',
+        desc: 'Save Proxy Page Title',
+      );
+
+  String get insufficientFundsStatus => Intl.message(
+        'No Funds',
+        name: 'insufficientFundsStatus',
+        desc: 'No Funds',
+      );
+
+  String get cancelledStatus => Intl.message(
+        'Cancelled',
+        name: 'cancelledStatus',
+        desc: 'Cancelled',
+      );
+
+  String get cancelledByPayerStatus => Intl.message(
+        'No Funds',
+        name: 'cancelledByPayerStatus',
+        desc: 'No Funds',
+      );
+
+  String get cancelledByPayeeStatus => Intl.message(
+        'No Funds',
+        name: 'cancelledByPayeeStatus',
+        desc: 'No Funds',
+      );
+
+  String get processedStatus => Intl.message(
+        'No Funds',
+        name: 'processedStatus',
+        desc: 'No Funds',
+      );
+
+  String get expiredStatus => Intl.message(
+        'Expired',
+        name: 'expiredStatus',
+        desc: 'Status for Expired',
+      );
+
+  String get errorStatus => Intl.message(
+        'Error',
+        name: 'errorStatus',
+        desc: 'Status for Error',
+      );
+
+  String get outwardPaymentToUnknownEventSubTitle => Intl.message(
+        'Waiting for Payee to Accept',
+        name: 'outwardPaymentToUnknownEventSubTitle',
+        desc: 'Waiting for Payee to Accept payment',
+      );
+
+  String inwardPaymentEventSubTitle(String payer) {
+    return Intl.message(
+      'From: $payer',
+      name: 'inwardPaymentEventSubTitle',
+      args: [payer],
+      desc: 'Payment from payer',
+      examples: {
+        'payer': 'abcd-defghij',
+      },
+    );
+  }
+
+  String outwardPaymentEventSubTitle(String payee) {
+    return Intl.message(
+      'To: $payee',
+      name: 'outwardPaymentEventSubTitle',
+      args: [payee],
+      desc: 'Payment to Payee',
+      examples: {
+        'payee': 'abcd-defghij',
+      },
+    );
+  }
+
+  String get message => Intl.message(
+        'Message',
+        name: 'message',
+        desc: 'Message',
+      );
+
+  String get secret => Intl.message(
+        'Secret',
+        name: 'secret',
+        desc: 'Secret',
+      );
 }
 
-class ProxyLocalizationsDelegate
-    extends LocalizationsDelegate<ProxyLocalizations> {
+class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {
   const ProxyLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) =>
-      ['en', 'nl', 'te'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => ['en', 'nl', 'te'].contains(locale.languageCode);
 
   @override
-  Future<ProxyLocalizations> load(Locale locale) =>
-      ProxyLocalizations.load(locale);
+  Future<ProxyLocalizations> load(Locale locale) => ProxyLocalizations.load(locale);
 
   @override
   bool shouldReload(ProxyLocalizationsDelegate old) => false;

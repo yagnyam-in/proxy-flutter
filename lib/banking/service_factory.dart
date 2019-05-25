@@ -1,5 +1,6 @@
 import 'package:proxy_flutter/banking/banking_service.dart';
 import 'package:proxy_flutter/banking/deposit_service.dart';
+import 'package:proxy_flutter/banking/payment_service.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_account_bloc.dart';
 import 'package:proxy_flutter/banking/withdrawal_service.dart';
@@ -56,6 +57,16 @@ class BankingServiceFactory {
 
   static DepositService depositService() {
     return DepositService(
+      messageFactory: ServiceFactory.messageFactory(),
+      messageSigningService: ServiceFactory.messageSigningService(),
+      proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
+      eventBloc: ServiceFactory.eventBloc(),
+      eventRepo: ServiceFactory.eventRepo(),
+    );
+  }
+
+  static PaymentService paymentService() {
+    return PaymentService(
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:proxy_messages/payments.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
@@ -17,8 +18,8 @@ class PaymentAuthorizationInput with ProxyUtils {
   final ProxyId payeeProxyId;
 
   PaymentAuthorizationInput({
-    @required this.proxyUniverse,
-    @required this.currency,
+    this.proxyUniverse,
+    this.currency,
     this.amount,
     this.message,
     this.customerPhone,
@@ -33,8 +34,18 @@ class PaymentAuthorizationInput with ProxyUtils {
     assert(Currency.isValidCurrency(currency));
     assert(isNotEmpty(message));
   }
-}
 
+  PayeeTypeEnum get payeeType {
+    if (payeeProxyId != null) {
+      return PayeeTypeEnum.ProxyId;
+    } else if (customerEmail != null) {
+      return PayeeTypeEnum.Email;
+    } else if (customerPhone != null) {
+      return PayeeTypeEnum.Phone;
+    }
+    return PayeeTypeEnum.AnyoneWithSecret;
+  }
+}
 
 class PaymentAuthorizationInputDialog extends StatefulWidget {
   final PaymentAuthorizationInput paymentAuthorizationInput;
@@ -44,39 +55,42 @@ class PaymentAuthorizationInputDialog extends StatefulWidget {
   }
 
   @override
-  _PaymentAuthorizationInputDialogState createState() => _PaymentAuthorizationInputDialogState(paymentAuthorizationInput);
+  _PaymentAuthorizationInputDialogState createState() =>
+      _PaymentAuthorizationInputDialogState(paymentAuthorizationInput);
 }
 
-class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationInputDialog> {
+class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationInputDialog> with ProxyUtils {
   final PaymentAuthorizationInput paymentAuthorizationInput;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final List<String> validCurrencies;
-  final List<String> validProxyUniverses;
-
   final TextEditingController messageController;
   final TextEditingController amountController;
   final TextEditingController secretController;
-  final TextEditingController phoneController;
-  final TextEditingController emailController;
 
   String _proxyUniverse;
   String _currency;
+
+  List<String> get validProxyUniverses {
+    if (isNotEmpty(paymentAuthorizationInput?.proxyUniverse)) {
+      return [paymentAuthorizationInput.proxyUniverse];
+    }
+    return [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
+  }
+
+  List<String> get validCurrencies {
+    if (isNotEmpty(paymentAuthorizationInput?.currency)) {
+      return [paymentAuthorizationInput.currency];
+    }
+    return [Currency.INR, Currency.EUR];
+  }
 
   _PaymentAuthorizationInputDialogState(this.paymentAuthorizationInput)
       : amountController = TextEditingController(),
         messageController = TextEditingController(text: paymentAuthorizationInput?.message),
         secretController = TextEditingController(text: paymentAuthorizationInput?.secret),
-        phoneController = TextEditingController(text: paymentAuthorizationInput?.customerPhone),
-        emailController = TextEditingController(text: paymentAuthorizationInput?.customerEmail),
         _currency = paymentAuthorizationInput?.currency,
-        _proxyUniverse = paymentAuthorizationInput?.proxyUniverse,
-        validCurrencies =
-            paymentAuthorizationInput?.currency != null ? [paymentAuthorizationInput.currency] : [Currency.INR, Currency.EUR],
-        validProxyUniverses = paymentAuthorizationInput?.proxyUniverse != null
-            ? [paymentAuthorizationInput?.proxyUniverse]
-            : [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
+        _proxyUniverse = paymentAuthorizationInput?.proxyUniverse;
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -88,14 +102,11 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    if (messageController.text.isEmpty) {
-      messageController.text = localizations.depositEventSubTitle(paymentAuthorizationInput.message);
-    }
 
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.enterAmountTitle),
+        title: Text(localizations.paymentAuthorizationInputTitle),
         actions: [
           new FlatButton(
               onPressed: () => _submit(localizations),
@@ -190,37 +201,31 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       ),
     ]);
 
-    if (_currency == Currency.INR) {
-      children.addAll([
-        const SizedBox(height: 16.0),
-        TextFormField(
+
+    children.addAll([
+      const SizedBox(height: 16.0),
+      TextFormField(
+        controller: messageController,
+        decoration: InputDecoration(
+          labelText: localizations.message,
+        ),
+        keyboardType: TextInputType.text,
+      ),
+    ]);
+
+    children.addAll([
+      const SizedBox(height: 16.0),
+      AbsorbPointer(
+        absorbing: true,
+        child: TextFormField(
           controller: secretController,
           decoration: InputDecoration(
-            labelText: localizations.customerName,
+            labelText: localizations.secret,
           ),
           keyboardType: TextInputType.text,
-          validator: (value) => _fieldValidator(localizations, value),
         ),
-        const SizedBox(height: 16.0),
-        TextFormField(
-          controller: phoneController,
-          decoration: InputDecoration(
-            labelText: localizations.customerPhone,
-          ),
-          keyboardType: TextInputType.phone,
-          validator: (value) => _fieldValidator(localizations, value),
-        ),
-        const SizedBox(height: 16.0),
-        TextFormField(
-          controller: emailController,
-          decoration: InputDecoration(
-            labelText: localizations.customerEmail,
-          ),
-          keyboardType: TextInputType.emailAddress,
-          validator: (value) => _fieldValidator(localizations, value),
-        ),
-      ]);
-    }
+      ),
+    ]);
 
     return Form(
       key: _formKey,
@@ -231,7 +236,9 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   }
 
   void _submit(ProxyLocalizations localizations) {
-    if (_currency == null) {
+    if (_proxyUniverse == null) {
+      showError(localizations.fieldIsMandatory(localizations.proxyUniverse));
+    } else if (_currency == null) {
       showError(localizations.fieldIsMandatory(localizations.currency));
     } else if (_formKey.currentState.validate()) {
       PaymentAuthorizationInput result = PaymentAuthorizationInput(
@@ -240,8 +247,6 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
         amount: double.parse(amountController.text),
         message: messageController.text,
         secret: secretController.text,
-        customerEmail: emailController.text,
-        customerPhone: phoneController.text,
       );
       print("Accepting $result");
       Navigator.of(context).pop(result);
@@ -259,7 +264,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     return null;
   }
 
-  String _fieldValidator(ProxyLocalizations localizations, String value) {
+  String _mandatoryFieldValidator(ProxyLocalizations localizations, String value) {
     if (value == null || value.isEmpty) {
       return localizations.fieldIsMandatory(localizations.thisField);
     }

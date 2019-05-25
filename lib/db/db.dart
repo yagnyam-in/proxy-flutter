@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
+import 'package:proxy_flutter/db/contacts_repo.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
 import 'package:proxy_flutter/db/event_repo.dart';
@@ -126,6 +127,7 @@ class DB {
     await CustomerRepo.onCreate(db, version);
     await ProxyUniverseRepo.onCreate(db, version);
     await EventRepo.onCreate(db, version);
+    await ContactsRepo.onCreate(db, version);
   }
 
   static Future<void> onUpgrade(Database database, int oldVersion, int newVersion) async {
@@ -138,6 +140,7 @@ class DB {
     await CustomerRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyUniverseRepo.onUpgrade(db, oldVersion, newVersion);
     await EventRepo.onUpgrade(db, oldVersion, newVersion);
+    await ContactsRepo.onUpgrade(db, oldVersion, newVersion);
   }
 
   Future<void> addColumn({

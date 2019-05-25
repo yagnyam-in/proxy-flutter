@@ -67,7 +67,7 @@ class WithdrawalEventEntity extends EventEntity {
     row[EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID] = accountId.bankId;
     row[EventEntity.PAYER_PROXY_ID] = ownerId.id;
     row[EventEntity.PAYER_PROXY_SHA] = ownerId.sha256Thumbprint;
-    row[EventEntity.SIGNED_REQUEST] = signedWithdrawalRequestJson;
+    row[EventEntity.SIGNED_WITHDRAWAL_REQUEST] = signedWithdrawalRequestJson;
     row[EventEntity.PAYEE_ACCOUNT_NUMBER] = destinationAccountNumber;
     row[EventEntity.PAYEE_ACCOUNT_BANK] = destinationAccountBank;
     return row;
@@ -90,7 +90,7 @@ class WithdrawalEventEntity extends EventEntity {
             bankId: row[EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID],
             proxyUniverse: row[EventEntity.PROXY_UNIVERSE]),
         ownerId = ProxyId(row[EventEntity.PAYER_PROXY_ID], row[EventEntity.PAYER_PROXY_SHA]),
-        signedWithdrawalRequestJson = row[EventEntity.SIGNED_REQUEST],
+        signedWithdrawalRequestJson = row[EventEntity.SIGNED_WITHDRAWAL_REQUEST],
         destinationAccountNumber = row[EventEntity.PAYEE_ACCOUNT_NUMBER],
         destinationAccountBank = row[EventEntity.PAYEE_ACCOUNT_BANK],
         super.fromRow(row);

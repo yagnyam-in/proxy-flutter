@@ -9,7 +9,34 @@ class ContactEntity {
 
   final ProxyId proxyId;
 
-  String name;
+  final String phone;
 
-  ContactEntity({this.id, @required this.proxyUniverse, @required this.proxyId, @required this.name});
+  final String email;
+
+  final String name;
+
+  ContactEntity({
+    this.id,
+    @required this.proxyId,
+    this.proxyUniverse,
+    this.name,
+    this.phone,
+    this.email,
+  });
+
+  ContactEntity copy({
+    String proxyUniverse,
+    String phone,
+    String email,
+    String name,
+  }) {
+    return ContactEntity(
+      id: this.id,
+      proxyId: this.proxyId,
+      proxyUniverse: proxyUniverse ?? this.proxyUniverse,
+      name: name ?? this.name,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+    );
+  }
 }

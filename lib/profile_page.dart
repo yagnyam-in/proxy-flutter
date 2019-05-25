@@ -10,7 +10,7 @@ import 'widgets/widget_helper.dart';
 import 'package:share/share.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 
-class ProfilePage extends StatefulWidget with WidgetHelper {
+class ProfilePage extends StatefulWidget {
   final AppConfiguration appConfiguration;
 
   const ProfilePage({Key key, @required this.appConfiguration}) : super(key: key);
@@ -106,7 +106,7 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
     ProxyId proxyId = appConfiguration.masterProxyId;
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://dl.yagnyam.in',
-      link: Uri.parse('https://app.yagnyam.in/actions/add-proxy/${proxyId.id}?sha256Thumbprint=${proxyId.sha256Thumbprint}'),
+      link: Uri.parse('https://api.yagnyam.in/actions/add-proxy?id=${proxyId.id}&sha256Thumbprint=${proxyId.sha256Thumbprint}'),
       androidParameters: AndroidParameters(
         packageName: 'in.yagnyam.proxy',
       ),

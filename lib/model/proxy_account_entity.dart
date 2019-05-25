@@ -24,6 +24,8 @@ class ProxyAccountEntity with ProxyUtils {
     return _signedProxyAccount;
   }
 
+  String get currency => balance?.currency;
+
   ProxyAccountEntity({
     @required this.proxyUniverse,
     @required this.accountId,

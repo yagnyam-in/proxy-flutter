@@ -1,4 +1,3 @@
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:proxy_flutter/app_state_container.dart';
@@ -16,38 +15,21 @@ class ProxyApp extends StatefulWidget {
   }
 }
 
-Future<Uri> _retrieveDynamicLink() async {
-  final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
-  return data?.link;
-}
-
 enum _ProxyAppStatus { loading, error, ready }
 
-class ProxyAppState extends State<ProxyApp> with WidgetsBindingObserver {
+class ProxyAppState extends State<ProxyApp> {
   AppConfiguration configuration;
   _ProxyAppStatus _appStatus = _ProxyAppStatus.loading;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     fetchAppConfiguration();
   }
 
   @override
   void dispose() {
     super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("didChangeAppLifecycleState");
-    if (state == AppLifecycleState.resumed) {
-      _retrieveDynamicLink().then((u) {
-        print("deeplink:$u");
-      });
-    }
   }
 
   void updateConfiguration(AppConfiguration value) {
@@ -66,21 +48,22 @@ class ProxyAppState extends State<ProxyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        // locale: const Locale('nl', 'NL'),
-        onGenerateTitle: (BuildContext context) => ProxyLocalizations.of(context).title,
-        localizationsDelegates: [
-          const ProxyLocalizationsDelegate(),
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: [
-          const Locale('en', 'US'),
-          const Locale('nl', 'NL'),
-          const Locale('te', 'IN'),
-        ],
-        home: new AppStateContainer(
-          child: homePage(context),
-        ));
+      // locale: const Locale('nl', 'NL'),
+      onGenerateTitle: (BuildContext context) => ProxyLocalizations.of(context).title,
+      localizationsDelegates: [
+        const ProxyLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('en', 'US'),
+        const Locale('nl', 'NL'),
+        const Locale('te', 'IN'),
+      ],
+      home: new AppStateContainer(
+        child: homePage(context),
+      ),
+    );
   }
 
   Widget homePage(BuildContext context) {

@@ -3,6 +3,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
+import 'package:proxy_flutter/modify_proxy_page.dart';
 import 'package:proxy_flutter/services/contacts_bloc.dart';
 import 'package:uuid/uuid.dart';
 
@@ -102,16 +103,14 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
         child: StreamBuilder<List<ContactEntity>>(
             stream: contactsBloc.contacts,
             initialData: [],
-            builder: (BuildContext context,
-                AsyncSnapshot<List<ContactEntity>> snapshot) {
+            builder: (BuildContext context, AsyncSnapshot<List<ContactEntity>> snapshot) {
               return accountsWidget(context, snapshot);
             }),
       ),
     );
   }
 
-  Widget accountsWidget(
-      BuildContext context, AsyncSnapshot<List<ContactEntity>> accounts) {
+  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ContactEntity>> accounts) {
     List<Widget> rows = [];
     if (!accounts.hasData) {
       rows.add(
@@ -166,56 +165,15 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
   }
 
   void _edit(BuildContext context, ContactEntity contact) async {
-    ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    String newName = await acceptStringDialog(
-      context,
-      pageTitle: localizations.contactNameDialogTitle,
-      fieldName: localizations.contactName,
-      fieldInitialValue: contact.name,
+    await Navigator.of(context).push(
+      new MaterialPageRoute<ContactEntity>(
+        builder: (context) => ModifyProxyPage(contact),
+        fullscreenDialog: true,
+      ),
     );
-    if (newName != null) {
-      contact.name = newName;
-      contactsBloc.saveContact(contact);
-    }
   }
 
   void _archiveContact(BuildContext context, ContactEntity contact) async {
     await contactsBloc.deleteContact(contact);
-  }
-
-  Future<String> _asyncNameDialog(
-      BuildContext context, String initialValue) async {
-    ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    String name = initialValue;
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(localizations.contactNameDialogTitle),
-          content: new Row(
-            children: <Widget>[
-              new Expanded(
-                  child: new TextField(
-                autofocus: true,
-                decoration:
-                    new InputDecoration(labelText: localizations.contactName),
-                onChanged: (value) {
-                  name = value;
-                },
-              ))
-            ],
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text(localizations.okButtonLabel),
-              onPressed: () {
-                Navigator.of(context).pop(name);
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 }

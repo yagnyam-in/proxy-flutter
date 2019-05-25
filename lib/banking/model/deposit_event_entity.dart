@@ -66,7 +66,7 @@ class DepositEventEntity extends EventEntity with ProxyUtils {
     row[EventEntity.PAYER_PROXY_ID] = ownerId.id;
     row[EventEntity.PAYER_PROXY_SHA] = ownerId.sha256Thumbprint;
     row[EventEntity.DEPOSIT_LINK] = depositLink;
-    row[EventEntity.SIGNED_REQUEST] = signedDepositRequestJson;
+    row[EventEntity.SIGNED_DEPOSIT_REQUEST] = signedDepositRequestJson;
     return row;
   }
 
@@ -87,7 +87,7 @@ class DepositEventEntity extends EventEntity with ProxyUtils {
             bankId: row[EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID],
             proxyUniverse: row[EventEntity.PROXY_UNIVERSE]),
         ownerId = ProxyId(row[EventEntity.PAYER_PROXY_ID], row[EventEntity.PAYER_PROXY_SHA]),
-        signedDepositRequestJson = row[EventEntity.SIGNED_REQUEST],
+        signedDepositRequestJson = row[EventEntity.SIGNED_DEPOSIT_REQUEST],
         depositLink = row[EventEntity.DEPOSIT_LINK],
         super.fromRow(row);
 
