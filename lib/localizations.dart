@@ -134,7 +134,7 @@ class ProxyLocalizations {
 
   String get termsAndConditionsURL {
     return Intl.message(
-      'https://proxy.yagnyam.in/',
+      'https://www.yagnyam.in/tc.html',
       name: 'termsAndConditionsURL',
       desc: 'Terms & Conditions URL',
     );
