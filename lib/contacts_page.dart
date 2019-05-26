@@ -141,7 +141,7 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
   Widget contactCard(BuildContext context, ContactEntity contact) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Slidable(
-      delegate: new SlidableDrawerDelegate(),
+      actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: GestureDetector(
         child: ContactCard(contact: contact),

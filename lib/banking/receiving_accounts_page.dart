@@ -172,7 +172,7 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
   Widget accountCard(BuildContext context, ReceivingAccountEntity account) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Slidable(
-      delegate: new SlidableDrawerDelegate(),
+      actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: GestureDetector(
         child: ReceivingAccountCard(account: account),

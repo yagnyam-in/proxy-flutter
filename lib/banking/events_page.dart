@@ -101,7 +101,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
   Widget eventCard(BuildContext context, EventEntity event) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Slidable(
-      delegate: new SlidableDrawerDelegate(),
+      actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: GestureDetector(
         child: EventCard(event: event),

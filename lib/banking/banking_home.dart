@@ -250,7 +250,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> {
   Widget accountCard(BuildContext context, ProxyAccountEntity account) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Slidable(
-      delegate: new SlidableDrawerDelegate(),
+      actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: AccountCard(account: account),
       actions: <Widget>[
@@ -326,7 +326,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> {
 
   Widget enticementCard(BuildContext context, EnticementEntity enticement) {
     return Slidable(
-      delegate: new SlidableDrawerDelegate(),
+      actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: EnticementCard(enticement: enticement),
       secondaryActions: <Widget>[
