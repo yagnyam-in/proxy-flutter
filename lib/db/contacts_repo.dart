@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
+import 'package:quiver/strings.dart';
 
 class ContactsRepo {
   final DB db;
@@ -18,6 +19,19 @@ class ContactsRepo {
       columns: ALL_COLUMNS,
     );
     return rows.map(_mapToEntity).toList();
+  }
+
+  Future<ContactEntity> fetchContact(ProxyId proxyId) async {
+    List<Map> rows = await db.query(
+      TABLE,
+      columns: ALL_COLUMNS,
+      where: isNotEmpty(proxyId.sha256Thumbprint) ? '$PROXY_ID = ? AND $PROXY_SHA_256 = ?' : '$PROXY_ID = ?',
+      whereArgs: isNotEmpty(proxyId.sha256Thumbprint) ? [proxyId.id, proxyId.sha256Thumbprint] : [proxyId.id],
+    );
+    if (rows.isEmpty) {
+      return null;
+    }
+    return _mapToEntity(rows.first);
   }
 
   Future<int> _insert(ContactEntity entity) {

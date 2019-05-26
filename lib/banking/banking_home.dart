@@ -205,6 +205,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> {
         proxyUniverse: paymentInput.proxyUniverse,
         currency: paymentInput.currency,
       );
+      showToast('Payments are still in Progress!');
       PaymentAuthorization paymentAuthorization = PaymentAuthorization(
         payee: extractPayee(paymentInput),
         proxyAccount: proxyAccount.signedProxyAccount,

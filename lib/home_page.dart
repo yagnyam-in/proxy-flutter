@@ -71,9 +71,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (proxyId == null) {
       return null;
     }
+    ContactEntity existingContact = await ServiceFactory.contactsRepo().fetchContact(proxyId);
     await Navigator.push(context,
       new MaterialPageRoute(
-        builder: (context) => ModifyProxyPage(ContactEntity(proxyId: proxyId)),
+        builder: (context) => ModifyProxyPage(existingContact ?? ContactEntity(proxyId: proxyId)),
         fullscreenDialog: true,
       ),
     );
