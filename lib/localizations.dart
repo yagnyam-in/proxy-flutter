@@ -813,6 +813,18 @@ class ProxyLocalizations {
         name: 'secret',
         desc: 'Secret',
       );
+
+  String addMeToYourContacts(String link) {
+    return Intl.message(
+      'Add me to your contacts $link',
+      name: 'addMeToYourContacts',
+      args: [link],
+      desc: 'Add to contacts using given link',
+      examples: {
+        'link': 'abcd-defghij',
+      },
+    );
+  }
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

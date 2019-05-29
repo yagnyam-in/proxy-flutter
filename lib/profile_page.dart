@@ -116,7 +116,7 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
       ),
     );
     var link = await parameters.buildShortLink();
-    var message = 'Add me to your contacts ${link.shortUrl}' +
+    var message = localizations.addMeToYourContacts(link.shortUrl.toString()) +
         (isNotEmpty(appConfiguration.customerName) ? ' - ${appConfiguration.customerName}' : '');
 
     await Share.share(message);

@@ -62,6 +62,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     print('link.path = ${link.path}');
     if (link.path == '/actions/add-proxy') {
       _addProxy(link.queryParameters);
+    } else if (link.path == '/actions/deposit-success') {
+      _depositSuccess(link.queryParameters);
     }
   }
 
@@ -78,6 +80,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         fullscreenDialog: true,
       ),
     );
+  }
+
+
+  Future<void> _depositSuccess(Map<String, String> query) async {
+    print("Launching dialog to show deposit success $query");
+    // TODO: Handle this
   }
 
   @override
