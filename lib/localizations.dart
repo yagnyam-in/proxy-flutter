@@ -814,6 +814,12 @@ class ProxyLocalizations {
         desc: 'Secret',
       );
 
+  String get eventDeleted => Intl.message(
+        'Deleted',
+        name: 'eventDeleted',
+        desc: 'Event Deleted',
+      );
+
   String addMeToYourContacts(String link) {
     return Intl.message(
       'Add me to your contacts $link',

@@ -61,11 +61,12 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
         child: StreamBuilder<List<EventEntity>>(
-            stream: eventBloc.events,
-            initialData: [],
-            builder: (BuildContext context, AsyncSnapshot<List<EventEntity>> snapshot) {
-              return eventsWidget(context, snapshot);
-            }),
+          stream: eventBloc.events,
+          initialData: [],
+          builder: (BuildContext context, AsyncSnapshot<List<EventEntity>> snapshot) {
+            return eventsWidget(context, snapshot);
+          },
+        ),
       ),
     );
   }
@@ -128,7 +129,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
     Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => EventPage(event: event),
+        builder: (context) => EventPage.forEvent(event),
       ),
     );
   }
@@ -140,7 +141,6 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
     }
     await eventBloc.deleteEvent(event);
   }
-
 
   Future<void> _refreshEvent(BuildContext context, EventEntity event) async {
     switch (event.eventType) {

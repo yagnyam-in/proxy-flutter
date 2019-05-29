@@ -69,7 +69,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   }
 
   Future<void> processDepositUpdate(DepositUpdatedAlert alert) async {
-    DepositEventEntity event = await eventRepo.fetchEvent(EventType.Deposit, alert.depositId);
+    DepositEventEntity event = await eventRepo.fetchEvent(alert.proxyUniverse, EventType.Deposit, alert.depositId);
     if (event == null) {
       print("No Deposit Event found with id ${alert.proxyUniverse}:${alert.depositId}");
       return null;

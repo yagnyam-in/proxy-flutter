@@ -81,7 +81,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
   Future<void> processWithdrawalUpdate(WithdrawalUpdatedAlert alert) async {
     String withdrawalId = alert.withdrawalId;
     print('Refreshing $alert');
-    WithdrawalEventEntity event = await eventRepo.fetchEvent(EventType.Withdraw, withdrawalId);
+    WithdrawalEventEntity event = await eventRepo.fetchEvent(alert.proxyUniverse, EventType.Withdraw, withdrawalId);
     if (event == null) {
       print("No Withdrawal Event found with id $withdrawalId");
       return null;

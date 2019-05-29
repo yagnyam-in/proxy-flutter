@@ -2,8 +2,10 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/banking_home.dart';
+import 'package:proxy_flutter/banking/event_page.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
+import 'package:proxy_flutter/model/event_entity.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/setup_master_proxy_page.dart';
 import 'package:proxy_flutter/terms_and_conditions.dart';
@@ -62,8 +64,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     print('link.path = ${link.path}');
     if (link.path == '/actions/add-proxy') {
       _addProxy(link.queryParameters);
-    } else if (link.path == '/actions/deposit-success') {
-      _depositSuccess(link.queryParameters);
+    } else if (link.path == '/actions/deposit-status') {
+      _depositStatus(link.queryParameters);
     }
   }
 
@@ -83,9 +85,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
 
-  Future<void> _depositSuccess(Map<String, String> query) async {
-    print("Launching dialog to show deposit success $query");
-    // TODO: Handle this
+  Future<void> _depositStatus(Map<String, String> query) async {
+    print("Launching dialog to show deposit status $query");
+    String proxyUniverse = query['proxyUniverse'];
+    String depositId = query['depositId'];
+    EventEntity deposit = await ServiceFactory.eventRepo().fetchEvent(proxyUniverse, EventType.Deposit, depositId);
+    if (deposit == null) {
+      print("Couldn't find deposit for $query");
+      return null;
+    }
+    await Navigator.push(context,
+      new MaterialPageRoute(
+        builder: (context) => EventPage.forEvent(deposit),
+        fullscreenDialog: true,
+      ),
+    );
   }
 
   @override

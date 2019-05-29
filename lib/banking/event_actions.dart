@@ -19,7 +19,7 @@ class EventActions {
 
   List<EventAction> getPossibleActions(
       EventEntity event, ProxyLocalizations localizations) {
-    switch (event.eventType) {
+    switch (event?.eventType) {
       case EventType.Deposit:
         return possibleActionsForDeposit(
             event as DepositEventEntity, localizations);

@@ -13,12 +13,12 @@ class EventRepo {
 
   factory EventRepo.instance(DB database) => EventRepo._instance(database);
 
-  Future<EventEntity> fetchEvent(EventType eventType, String eventId) async {
+  Future<EventEntity> fetchEvent(String proxyUniverse, EventType eventType, String eventId) async {
     List<Map> rows = await db.query(
       TABLE,
       columns: ALL_COLUMNS,
-      where: '${EventEntity.EVENT_ID} = ? AND ${EventEntity.EVENT_TYPE} = ?',
-      whereArgs: [eventId, EventEntity.eventTypeToString(eventType)],
+      where: '${EventEntity.EVENT_ID} = ? AND ${EventEntity.EVENT_TYPE} = ? AND ${EventEntity.PROXY_UNIVERSE} = ?',
+      whereArgs: [eventId, EventEntity.eventTypeToString(eventType), proxyUniverse],
     );
     if (rows.isEmpty) {
       return null;
