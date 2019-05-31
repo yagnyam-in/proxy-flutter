@@ -1,34 +1,34 @@
 {
   "project_info": {
-    "project_number": "128004560964",
-    "firebase_url": "https://proxy-cs.firebaseio.com",
-    "project_id": "proxy-cs",
-    "storage_bucket": "proxy-cs.appspot.com"
+    "project_number": "178733108341",
+    "firebase_url": "https://yagnyam-proxy-app.firebaseio.com",
+    "project_id": "yagnyam-proxy-app",
+    "storage_bucket": "yagnyam-proxy-app.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:128004560964:android:8625e1fc30c88f79",
+        "mobilesdk_app_id": "1:178733108341:android:8625e1fc30c88f79",
         "android_client_info": {
           "package_name": "in.yagnyam.proxy"
         }
       },
       "oauth_client": [
         {
-          "client_id": "128004560964-sok3aq4gd5f7hh5gtsht3dks2u5d9umk.apps.googleusercontent.com",
+          "client_id": "178733108341-8udd7nq7nlmt5851mu5sa7ksbbgig9ga.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCtlWPGtuyFlVaiUJTdsVRfN_pYvxprqOA"
+          "current_key": "AIzaSyCbUFo6F6T88kOvOdRhykq8ZC9IeliG8xQ"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "128004560964-sok3aq4gd5f7hh5gtsht3dks2u5d9umk.apps.googleusercontent.com",
+              "client_id": "178733108341-8udd7nq7nlmt5851mu5sa7ksbbgig9ga.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
