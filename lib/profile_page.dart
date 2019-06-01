@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:quiver/strings.dart';
@@ -104,9 +105,10 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
     ProxyLocalizations localizations,
   ) async {
     ProxyId proxyId = appConfiguration.masterProxyId;
+    Uri link = Uri.parse('${UrlConfig.PROXY_CENTRAL}/actions/add-proxy?id=${proxyId.id}&sha256Thumbprint=${proxyId.sha256Thumbprint}');
     final DynamicLinkParameters parameters = DynamicLinkParameters(
-      uriPrefix: 'https://dl.yagnyam.in',
-      link: Uri.parse('https://cs.pxy.yagnyam.in/actions/add-proxy?id=${proxyId.id}&sha256Thumbprint=${proxyId.sha256Thumbprint}'),
+      uriPrefix: UrlConfig.DYNAMIC_LINK_PREFIX,
+      link: link,
       androidParameters: AndroidParameters(
         packageName: 'in.yagnyam.proxy',
       ),
@@ -115,8 +117,8 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
         description: 'Add Proxy Id to contacts',
       ),
     );
-    var link = await parameters.buildShortLink();
-    var message = localizations.addMeToYourContacts(link.shortUrl.toString()) +
+    var shortLink = await parameters.buildShortLink();
+    var message = localizations.addMeToYourContacts(shortLink.shortUrl.toString()) +
         (isNotEmpty(appConfiguration.customerName) ? ' - ${appConfiguration.customerName}' : '');
 
     await Share.share(message);
