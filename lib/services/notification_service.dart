@@ -7,12 +7,13 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/service_factory.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
 class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
   final Uuid uuidFactory = Uuid();
-  final String proxyCentralUrl;
+  final String appBackendUrl;
   final HttpClientFactory httpClientFactory;
   final MessageSigningService messageSigningService;
 
@@ -20,12 +21,12 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
   bool _started = false;
 
   NotificationService({
-    String proxyCentralUrl,
+    String appBackendUrl,
     HttpClientFactory httpClientFactory,
     @required this.messageSigningService,
-  })  : proxyCentralUrl = proxyCentralUrl ?? "https://proxy-cs.appspot.com/api",
+  })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
-    assert(isNotEmpty(this.proxyCentralUrl));
+    assert(isNotEmpty(this.appBackendUrl));
   }
 
   void start() {
@@ -68,13 +69,13 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     SignedMessage<ProxyCustomerUpdateRequest> signedRequest =
         await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
-    print("Sending $signedRequestJson to $proxyCentralUrl");
+    print("Sending $signedRequestJson to $appBackendUrl");
     String jsonResponse = await post(
       httpClientFactory(),
-      proxyCentralUrl,
+      appBackendUrl,
       signedRequestJson,
     );
-    print("Received $jsonResponse from $proxyCentralUrl");
+    print("Received $jsonResponse from $appBackendUrl");
     ServiceFactory.proxyKeyRepo().updateFcmToken(proxyKey.id, newToken);
   }
 

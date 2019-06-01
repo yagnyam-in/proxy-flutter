@@ -106,7 +106,7 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
     ProxyId proxyId = appConfiguration.masterProxyId;
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://dl.yagnyam.in',
-      link: Uri.parse('https://api.yagnyam.in/actions/add-proxy?id=${proxyId.id}&sha256Thumbprint=${proxyId.sha256Thumbprint}'),
+      link: Uri.parse('https://cs.pxy.yagnyam.in/actions/add-proxy?id=${proxyId.id}&sha256Thumbprint=${proxyId.sha256Thumbprint}'),
       androidParameters: AndroidParameters(
         packageName: 'in.yagnyam.proxy',
       ),

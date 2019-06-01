@@ -10,6 +10,7 @@ import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/model/event_entity.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/services/event_bloc.dart';
+import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
@@ -33,7 +34,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.proxyKeyRepo,
     @required this.eventBloc,
     @required this.eventRepo,
-  })  : proxyBankingUrl = proxyBankingUrl ?? "https://proxy-banking.appspot.com/api",
+  })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
