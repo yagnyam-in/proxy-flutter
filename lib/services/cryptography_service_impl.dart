@@ -14,7 +14,7 @@ class CryptographyServiceImpl extends CryptographyService {
     String encryptionAlgorithm,
     String cipherText,
   }) async {
-    return await platform.invokeMethod('decrypt', {
+    return platform.invokeMethod('decrypt', {
       'proxyKey': jsonEncode(proxyKey.toJson()),
       'algorithm': encryptionAlgorithm,
       'input': cipherText,
@@ -27,7 +27,7 @@ class CryptographyServiceImpl extends CryptographyService {
     String encryptionAlgorithm,
     String input,
   }) async {
-    return await platform.invokeMethod('encrypt', {
+    return platform.invokeMethod('encrypt', {
       'proxy': jsonEncode(proxy.toJson()),
       'algorithm': encryptionAlgorithm,
       'input': input,
@@ -40,15 +40,15 @@ class CryptographyServiceImpl extends CryptographyService {
     String input,
     Set<String> signatureAlgorithms,
   }) async {
-     Map<dynamic, dynamic> result = await platform.invokeMethod('getSignatures', {
+    Map<dynamic, dynamic> result = await platform.invokeMethod('getSignatures', {
       'proxyKey': jsonEncode(proxyKey.toJson()),
       'input': input,
       'algorithms': signatureAlgorithms.toList(),
     });
-     print(result);
-     Map<String, String> signatures = Map();
-     result.forEach((k, v) => signatures[k] = v.toString());
-     return signatures;
+    print(result);
+    Map<String, String> signatures = Map();
+    result.forEach((k, v) => signatures[k] = v.toString());
+    return signatures;
   }
 
   @override
@@ -63,5 +63,16 @@ class CryptographyServiceImpl extends CryptographyService {
       'signatures': signatures,
     });
     return valid;
+  }
+
+  @override
+  Future<String> getHash({
+    String hashAlgorithm,
+    String input,
+  }) async {
+    return platform.invokeMethod('hash', {
+      'input': input,
+      'hashAlgorithm': hashAlgorithm,
+    });
   }
 }

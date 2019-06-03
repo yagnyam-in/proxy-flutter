@@ -52,6 +52,7 @@ abstract class EventEntity {
   static const String INWARD = "inward";
 
   static const String DEPOSIT_LINK = "depositLink";
+  static const String PAYMENT_LINK = "paymentLink";
 
   final int id;
   final String proxyUniverse;

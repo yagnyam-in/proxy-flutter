@@ -19,6 +19,7 @@ class PaymentEventEntity extends EventEntity {
   final ProxyId payerProxyId;
   final ProxyId payeeProxyId;
   final String signedPaymentAuthorizationRequestJson;
+  final String paymentLink;
   SignedMessage<PaymentAuthorization> _signedPaymentAuthorizationRequest;
 
   PaymentEventEntity({
@@ -32,10 +33,11 @@ class PaymentEventEntity extends EventEntity {
     @required this.amount,
     @required this.inward,
     @required this.payerAccountId,
-    @required this.payeeAccountId,
+    this.payeeAccountId,
     @required this.payerProxyId,
-    @required this.payeeProxyId,
+    this.payeeProxyId,
     @required this.signedPaymentAuthorizationRequestJson,
+    @required this.paymentLink,
   }) : super(
           id: id,
           proxyUniverse: proxyUniverse,
@@ -65,6 +67,7 @@ class PaymentEventEntity extends EventEntity {
     row[EventEntity.PAYEE_PROXY_SHA] = payeeProxyId.sha256Thumbprint;
 
     row[EventEntity.SIGNED_PAYMENT_AUTHORIZATION_REQUEST] = signedPaymentAuthorizationRequestJson;
+    row[EventEntity.PAYMENT_LINK] = paymentLink;
     return row;
   }
 
@@ -103,6 +106,7 @@ class PaymentEventEntity extends EventEntity {
           row[EventEntity.PAYEE_PROXY_SHA],
         ),
         signedPaymentAuthorizationRequestJson = row[EventEntity.SIGNED_PAYMENT_AUTHORIZATION_REQUEST],
+        paymentLink = row[EventEntity.PAYMENT_LINK],
         super.fromRow(row);
 
   PaymentEventEntity copy({
@@ -127,6 +131,7 @@ class PaymentEventEntity extends EventEntity {
       status: effectiveStatus,
       payeeAccountId: payeeAccountId ?? this.payeeAccountId,
       payeeProxyId: payeeProxyId ?? this.payeeProxyId,
+      paymentLink: this.paymentLink,
     );
   }
 

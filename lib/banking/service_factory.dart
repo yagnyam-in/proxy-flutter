@@ -72,6 +72,7 @@ class BankingServiceFactory {
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
       eventBloc: ServiceFactory.eventBloc(),
       eventRepo: ServiceFactory.eventRepo(),
+      cryptographyService: ServiceFactory.cryptographyService(),
     );
   }
 

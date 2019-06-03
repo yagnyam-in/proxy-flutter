@@ -52,6 +52,10 @@ public class CryptographyServiceImpl implements MethodChannel.MethodCallHandler,
                     result.success(verifySignatures(methodCall));
                     break;
                 }
+                case "hash": {
+                    result.success(hash(methodCall));
+                    break;
+                }
                 default:
                     result.notImplemented();
                     break;
@@ -109,5 +113,19 @@ public class CryptographyServiceImpl implements MethodChannel.MethodCallHandler,
             throw new CryptoException("failed to sign message", e);
         }
     }
+
+    private String hash(MethodCall methodCall) throws CryptoException {
+        try {
+            String input = stringArgument(methodCall, "input");
+            String hashAlgorithm = stringArgument(methodCall, "hashAlgorithm");
+            String result = cryptographyService.getHash(hashAlgorithm, input);
+            Log.i(TAG, "hash(" + hashAlgorithm + ", " + input + ") => " + result);
+            return result;
+        } catch (GeneralSecurityException e) {
+            Log.e(TAG, "failed to get hash", e);
+            throw new CryptoException("failed to get hash", e);
+        }
+    }
+
 
 }

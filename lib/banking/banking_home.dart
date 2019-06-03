@@ -26,6 +26,7 @@ import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
+import 'package:share/share.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -48,7 +49,7 @@ class BankingHome extends StatefulWidget {
   }
 }
 
-class _BankingHomeState extends LoadingSupportState<BankingHome> {
+class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final CustomerRepo _customerRepo = ServiceFactory.customerRepo();
   final ProxyAccountsBloc _proxyAccountsBloc = BankingServiceFactory.proxyAccountsBloc();
@@ -197,22 +198,22 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> {
   }
 
   void _createAccountAndPay(BuildContext context) async {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
     PaymentAuthorizationInput paymentInput = await _acceptPaymentInput(context);
     if (paymentInput != null) {
-      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount(paymentInput.currency));
+      showToast(localizations.creatingAnonymousAccount(paymentInput.currency));
       ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
         proxyUniverse: paymentInput.proxyUniverse,
         currency: paymentInput.currency,
       );
-      showToast('Payments are still in Progress!');
-      PaymentAuthorization paymentAuthorization = PaymentAuthorization(
-        payee: extractPayee(paymentInput),
-        proxyAccount: proxyAccount.signedProxyAccount,
-        amount: Amount(paymentInput.currency, paymentInput.amount),
-        paymentId: uuidFactory.v4(),
-      );
-      // TODO Create Payment
+      String customerName = widget.appConfiguration.customerName;
+      Uri paymentLink = await _paymentService.createPaymentAuthorization(localizations, proxyAccount, paymentInput,);
+      if (paymentLink != null) {
+        var message = localizations.acceptPayment(paymentLink.toString()) +
+            (isNotEmpty(customerName) ? ' - $customerName' : '');
+        await Share.share(message);
+      }
     }
   }
 

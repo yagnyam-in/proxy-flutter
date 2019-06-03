@@ -16,6 +16,7 @@ import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/local_proxy_resolver.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
 
+import 'deep_link_service.dart';
 import 'event_bloc.dart';
 
 class ServiceFactory {
@@ -69,6 +70,10 @@ class ServiceFactory {
 
   static CustomerRepo customerRepo() {
     return CustomerRepo.instance(DB.instance());
+  }
+
+  static DeepLinkService deepLinkService() {
+    return DeepLinkService();
   }
 
   static EnticementBloc enticementBloc() => EnticementBloc(enticementRepo: enticementRepo());

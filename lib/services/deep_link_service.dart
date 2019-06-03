@@ -1,0 +1,32 @@
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:proxy_core/core.dart';
+import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/url_config.dart';
+
+class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
+  final HttpClientFactory httpClientFactory;
+
+  DeepLinkService({
+    HttpClientFactory httpClientFactory,
+  }) : httpClientFactory = httpClientFactory ?? ProxyHttpClient.client;
+
+  Future<Uri> createDeepLink(
+    Uri link, {
+    String title,
+    String description,
+  }) async {
+    final DynamicLinkParameters parameters = DynamicLinkParameters(
+      uriPrefix: UrlConfig.DYNAMIC_LINK_PREFIX,
+      link: link,
+      androidParameters: AndroidParameters(
+        packageName: 'in.yagnyam.proxy',
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+        title: title,
+        description: description,
+      ),
+    );
+    var shortLink = await parameters.buildShortLink();
+    return shortLink.shortUrl;
+  }
+}

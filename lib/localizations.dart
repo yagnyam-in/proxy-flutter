@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'l10n/messages_all.dart';
 
 class ProxyLocalizations {
+
   static Future<ProxyLocalizations> load(Locale locale) {
     final String name = locale.countryCode.isEmpty ? locale.languageCode : locale.toString();
     final String localeName = Intl.canonicalizedLocale(name);
@@ -831,6 +832,45 @@ class ProxyLocalizations {
       },
     );
   }
+
+  String acceptPayment(String link) {
+    return Intl.message(
+      'Accept Payment $link',
+      name: 'acceptPayment',
+      args: [link],
+      desc: 'Accept Payment through the link',
+      examples: {
+        'link': 'abcd-defghij',
+      },
+    );
+  }
+
+
+  String get shareProfileDescription => Intl.message(
+    'Add Proxy Id to Contacts',
+    name: 'shareProfileDescription',
+    desc: 'Description for Share Profile Action',
+  );
+
+  String get shareProfileTitle => Intl.message(
+    'Proxy Id',
+    name: 'shareProfileTitle',
+    desc: 'Title for Share Profile Action',
+  );
+
+  String get sharePaymentDescription => Intl.message(
+    'Accept Payment',
+    name: 'sharePaymentDescription',
+    desc: 'Description for Share Payment Action',
+  );
+
+  String get sharePaymentTitle => Intl.message(
+    'Payment',
+    name: 'sharePaymentTitle',
+    desc: 'Title for Share Payment Action',
+  );
+
+
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

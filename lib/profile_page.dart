@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:quiver/strings.dart';
+import 'package:share/share.dart';
 
 import 'config/app_configuration.dart';
 import 'widgets/widget_helper.dart';
-import 'package:share/share.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 
 class ProfilePage extends StatefulWidget {
   final AppConfiguration appConfiguration;
@@ -105,20 +105,14 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
     ProxyLocalizations localizations,
   ) async {
     ProxyId proxyId = appConfiguration.masterProxyId;
-    Uri link = Uri.parse('${UrlConfig.PROXY_CENTRAL}/actions/add-proxy?id=${proxyId.id}&sha256Thumbprint=${proxyId.sha256Thumbprint}');
-    final DynamicLinkParameters parameters = DynamicLinkParameters(
-      uriPrefix: UrlConfig.DYNAMIC_LINK_PREFIX,
-      link: link,
-      androidParameters: AndroidParameters(
-        packageName: 'in.yagnyam.proxy',
-      ),
-      socialMetaTagParameters: SocialMetaTagParameters(
-        title: 'Proxy Id',
-        description: 'Add Proxy Id to contacts',
-      ),
+    Uri link = Uri.parse(
+        '${UrlConfig.PROXY_CENTRAL}/actions/add-proxy?id=${proxyId.id}&sha256Thumbprint=${proxyId.sha256Thumbprint}');
+    var shortLink = await ServiceFactory.deepLinkService().createDeepLink(
+      link,
+      title: localizations.shareProfileTitle,
+      description: localizations.shareProfileDescription,
     );
-    var shortLink = await parameters.buildShortLink();
-    var message = localizations.addMeToYourContacts(shortLink.shortUrl.toString()) +
+    var message = localizations.addMeToYourContacts(shortLink.toString()) +
         (isNotEmpty(appConfiguration.customerName) ? ' - ${appConfiguration.customerName}' : '');
 
     await Share.share(message);
