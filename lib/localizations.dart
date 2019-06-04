@@ -6,9 +6,9 @@ import 'package:intl/intl.dart';
 import 'l10n/messages_all.dart';
 
 class ProxyLocalizations {
-
   static Future<ProxyLocalizations> load(Locale locale) {
-    final String name = locale.countryCode.isEmpty ? locale.languageCode : locale.toString();
+    final String name =
+        locale.countryCode.isEmpty ? locale.languageCode : locale.toString();
     final String localeName = Intl.canonicalizedLocale(name);
 
     return initializeMessages(localeName).then((_) {
@@ -253,7 +253,8 @@ class ProxyLocalizations {
     return Intl.message(
       'By Adding your Bunq account, you can directly start using it anonymously',
       name: 'setupBunqAccountDescription',
-      desc: 'By Adding your Bunq account, you can directly start using it anonymously',
+      desc:
+          'By Adding your Bunq account, you can directly start using it anonymously',
     );
   }
 
@@ -845,42 +846,87 @@ class ProxyLocalizations {
     );
   }
 
-
   String get shareProfileDescription => Intl.message(
-    'Add Proxy Id to Contacts',
-    name: 'shareProfileDescription',
-    desc: 'Description for Share Profile Action',
-  );
+        'Add Proxy Id to Contacts',
+        name: 'shareProfileDescription',
+        desc: 'Description for Share Profile Action',
+      );
 
   String get shareProfileTitle => Intl.message(
-    'Proxy Id',
-    name: 'shareProfileTitle',
-    desc: 'Title for Share Profile Action',
-  );
+        'Proxy Id',
+        name: 'shareProfileTitle',
+        desc: 'Title for Share Profile Action',
+      );
 
   String get sharePaymentDescription => Intl.message(
-    'Accept Payment',
-    name: 'sharePaymentDescription',
-    desc: 'Description for Share Payment Action',
-  );
+        'Accept Payment',
+        name: 'sharePaymentDescription',
+        desc: 'Description for Share Payment Action',
+      );
 
   String get sharePaymentTitle => Intl.message(
-    'Payment',
-    name: 'sharePaymentTitle',
-    desc: 'Title for Share Payment Action',
+        'Payment',
+        name: 'sharePaymentTitle',
+        desc: 'Title for Share Payment Action',
+      );
+
+  String get acceptPaymentPageTitle => Intl.message(
+        'Accept Payment',
+        name: 'acceptPaymentPageTitle',
+        desc: 'Page title to accept payment',
+      );
+
+  String get invalidPayment => Intl.message(
+        'Invalid Payment',
+        name: 'invalidPayment',
+        desc: 'Invalid Payment',
+      );
+
+  String get enterSecretCode => Intl.message(
+        'Enter Secret',
+        name: 'enterSecretCode',
+        desc: 'Enter Secret',
+      );
+
+  String get acceptPaymentButtonLabel => Intl.message(
+        'Accept',
+        name: 'acceptPaymentButtonLabel',
+        desc: 'Accept Payment Button Label',
+      );
+
+  String get closeButtonLabel => Intl.message(
+    'Close',
+    name: 'closeButtonLabel',
+    desc: 'Close Button Label',
+  );
+
+  String get paymentCanNotBeAccepted =>Intl.message(
+    'Payment can not be Accepted',
+    name: 'paymentCanNotBeAccepted',
+    desc: 'Payment can not be Accepted',
+  );
+
+
+  String get invalidSecret =>Intl.message(
+    'Invalid Secret',
+    name: 'invalidSecret',
+    desc: 'Invalid Secret',
   );
 
 
 }
 
-class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {
+class ProxyLocalizationsDelegate
+    extends LocalizationsDelegate<ProxyLocalizations> {
   const ProxyLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'nl', 'te'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      ['en', 'nl', 'te'].contains(locale.languageCode);
 
   @override
-  Future<ProxyLocalizations> load(Locale locale) => ProxyLocalizations.load(locale);
+  Future<ProxyLocalizations> load(Locale locale) =>
+      ProxyLocalizations.load(locale);
 
   @override
   bool shouldReload(ProxyLocalizationsDelegate old) => false;

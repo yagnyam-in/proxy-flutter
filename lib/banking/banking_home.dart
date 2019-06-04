@@ -6,10 +6,10 @@ import 'package:proxy_flutter/banking/banking_service.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/deposit_service.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
-import 'package:proxy_flutter/banking/payment_service.dart';
+import 'package:proxy_flutter/banking/payment_authorization_service.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
-import 'package:proxy_flutter/banking/service_factory.dart';
+import 'package:proxy_flutter/banking/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/withdrawal_service.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/contacts_page.dart';
@@ -25,7 +25,6 @@ import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
-import 'package:proxy_messages/payments.dart';
 import 'package:share/share.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -60,7 +59,8 @@ class _BankingHomeState extends LoadingSupportState<BankingHome>
       BankingServiceFactory.withdrawalService();
   final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
   final DepositService _depositService = BankingServiceFactory.depositService();
-  final PaymentService _paymentService = BankingServiceFactory.paymentService();
+  final PaymentAuthorizationService _paymentAuthorizationService =
+      BankingServiceFactory.paymentAuthorizationService();
 
   @override
   void initState() {
@@ -216,7 +216,8 @@ class _BankingHomeState extends LoadingSupportState<BankingHome>
         currency: paymentInput.currency,
       );
       String customerName = widget.appConfiguration.customerName;
-      Uri paymentLink = await _paymentService.createPaymentAuthorization(
+      Uri paymentLink =
+          await _paymentAuthorizationService.createPaymentAuthorization(
         localizations,
         proxyAccount,
         paymentInput,
@@ -432,14 +433,16 @@ class _BankingHomeState extends LoadingSupportState<BankingHome>
     if (result != null) {
       if (customer != null) {
         customer = customer.copy(
-            name: result.customerName,
-            phone: result.customerPhone,
-            email: result.customerEmail);
+          name: result.customerName,
+          phone: result.customerPhone,
+          email: result.customerEmail,
+        );
       } else {
         customer = CustomerEntity(
-            name: result.customerName,
-            phone: result.customerPhone,
-            email: result.customerEmail);
+          name: result.customerName,
+          phone: result.customerPhone,
+          email: result.customerEmail,
+        );
       }
       await _customerRepo.saveCustomer(customer);
     }
@@ -452,7 +455,11 @@ class _BankingHomeState extends LoadingSupportState<BankingHome>
         PaymentAuthorizationInput(
       proxyUniverse: proxyAccount?.proxyUniverse,
       currency: proxyAccount?.currency,
-      secret: _paymentService.randomSecret(),
+      payees: [
+        PaymentAuthorizationPayeeInput(
+          secret: _paymentAuthorizationService.randomSecret(),
+        ),
+      ],
     );
     PaymentAuthorizationInput result = await Navigator.of(context)
         .push(MaterialPageRoute<PaymentAuthorizationInput>(
@@ -461,15 +468,5 @@ class _BankingHomeState extends LoadingSupportState<BankingHome>
       fullscreenDialog: true,
     ));
     return result;
-  }
-
-  Payee extractPayee(PaymentAuthorizationInput input) {
-    return Payee(
-      payeeType: input.payeeType,
-      proxyId: input.payeeProxyId,
-      phone: input.customerPhone,
-      email: input.customerEmail,
-      ivPrefixedSecretHash: input.secret,
-    );
   }
 }

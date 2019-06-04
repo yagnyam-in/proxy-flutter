@@ -3,7 +3,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_flutter/banking/receiving_account_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_account_card.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
-import 'package:proxy_flutter/banking/service_factory.dart';
+import 'package:proxy_flutter/banking/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';

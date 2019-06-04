@@ -5,13 +5,14 @@ import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/event_entity.dart';
 import 'package:proxy_flutter/utils/conversion_utils.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:proxy_messages/payments.dart';
 
-class PaymentEventEntity extends EventEntity {
-  static final Set<PaymentStatusEnum> cancellableStatuses = Set.of([
-    PaymentStatusEnum.Registered,
-  ]);
+class PaymentEncashmentEventEntity extends EventEntity {
+  static final Set<PaymentEncashmentStatusEnum> cancellableStatuses = {
+    PaymentEncashmentStatusEnum.Registered,
+  };
 
-  final PaymentStatusEnum status;
+  final PaymentEncashmentStatusEnum status;
   final Amount amount;
   final bool inward;
   final ProxyAccountId payerAccountId;
@@ -27,7 +28,7 @@ class PaymentEventEntity extends EventEntity {
   final String paymentLink;
   SignedMessage<PaymentAuthorization> _signedPaymentAuthorizationRequest;
 
-  PaymentEventEntity({
+  PaymentEncashmentEventEntity({
     int id,
     @required String proxyUniverse,
     @required DateTime creationTime,
@@ -75,7 +76,6 @@ class PaymentEventEntity extends EventEntity {
     row[EventEntity.PAYEE_PROXY_SHA] = payeeProxyId?.sha256Thumbprint;
     row[EventEntity.PAYEE_EMAIL] = payeeEmail;
     row[EventEntity.PAYEE_PHONE] = payeePhone;
-
     row[EventEntity.SECRET] = secret;
 
     row[EventEntity.SIGNED_PAYMENT_AUTHORIZATION_REQUEST] =
@@ -94,7 +94,7 @@ class PaymentEventEntity extends EventEntity {
     return _signedPaymentAuthorizationRequest;
   }
 
-  PaymentEventEntity.fromRow(Map<dynamic, dynamic> row)
+  PaymentEncashmentEventEntity.fromRow(Map<dynamic, dynamic> row)
       : status = _stringToEventStatus(row[EventEntity.STATUS]),
         inward = (row[EventEntity.INWARD] as int) != 0,
         amount = Amount(
@@ -142,14 +142,14 @@ class PaymentEventEntity extends EventEntity {
     return null;
   }
 
-  PaymentEventEntity copy({
-    PaymentStatusEnum status,
+  PaymentEncashmentEventEntity copy({
+    PaymentEncashmentStatusEnum status,
     DateTime lastUpdatedTime,
     ProxyId payeeProxyId,
     ProxyAccountId payeeAccountId,
   }) {
-    PaymentStatusEnum effectiveStatus = status ?? this.status;
-    return PaymentEventEntity(
+    PaymentEncashmentStatusEnum effectiveStatus = status ?? this.status;
+    return PaymentEncashmentEventEntity(
       id: this.id,
       proxyUniverse: this.proxyUniverse,
       eventId: this.eventId,
@@ -169,22 +169,22 @@ class PaymentEventEntity extends EventEntity {
     );
   }
 
-  static bool isCompleteStatus(PaymentStatusEnum status) {
-    return status == PaymentStatusEnum.Processed;
+  static bool isCompleteStatus(PaymentEncashmentStatusEnum status) {
+    return status == PaymentEncashmentStatusEnum.Processed;
   }
 
-  static PaymentStatusEnum _stringToEventStatus(String value,
-      {PaymentStatusEnum orElse = PaymentStatusEnum.InProcess}) {
-    return PaymentStatusEnum.values.firstWhere(
+  static PaymentEncashmentStatusEnum _stringToEventStatus(String value,
+      {PaymentEncashmentStatusEnum orElse = PaymentEncashmentStatusEnum.InProcess}) {
+    return PaymentEncashmentStatusEnum.values.firstWhere(
         (e) => ConversionUtils.isEnumEqual(e, value,
-            enumName: "PaymentStatusEnum"),
+            enumName: "PaymentEncashmentStatusEnum"),
         orElse: () => orElse);
   }
 
-  static String _eventStatusToString(PaymentStatusEnum eventType) {
+  static String _eventStatusToString(PaymentEncashmentStatusEnum eventType) {
     return eventType
         ?.toString()
-        ?.replaceFirst("PaymentStatusEnum.", "")
+        ?.replaceFirst("PaymentEncashmentStatusEnum.", "")
         ?.toLowerCase();
   }
 
@@ -208,27 +208,27 @@ class PaymentEventEntity extends EventEntity {
 
   String getStatus(ProxyLocalizations localizations) {
     switch (status) {
-      case PaymentStatusEnum.Registered:
+      case PaymentEncashmentStatusEnum.Registered:
         return localizations.registered;
-      case PaymentStatusEnum.Rejected:
+      case PaymentEncashmentStatusEnum.Rejected:
         return localizations.rejected;
-      case PaymentStatusEnum.CancelledByPayer:
+      case PaymentEncashmentStatusEnum.CancelledByPayer:
         return inward
             ? localizations.cancelledByPayerStatus
             : localizations.cancelledStatus;
-      case PaymentStatusEnum.CancelledByPayee:
+      case PaymentEncashmentStatusEnum.CancelledByPayee:
         return inward
             ? localizations.cancelledByPayeeStatus
             : localizations.cancelledStatus;
-      case PaymentStatusEnum.InProcess:
+      case PaymentEncashmentStatusEnum.InProcess:
         return localizations.inProcess;
-      case PaymentStatusEnum.Processed:
+      case PaymentEncashmentStatusEnum.Processed:
         return localizations.processedStatus;
-      case PaymentStatusEnum.InsufficientFunds:
+      case PaymentEncashmentStatusEnum.InsufficientFunds:
         return localizations.insufficientFundsStatus;
-      case PaymentStatusEnum.Expired:
+      case PaymentEncashmentStatusEnum.Expired:
         return localizations.expiredStatus;
-      case PaymentStatusEnum.Error:
+      case PaymentEncashmentStatusEnum.Error:
         return localizations.errorStatus;
       default:
         print("Unhandled Event state: $status");

@@ -48,7 +48,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       {@required ProxyId ownerProxyId,
       @required String proxyUniverse,
       @required String currency}) async {
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxy(ownerProxyId);
+    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyUniverse: proxyUniverse,
@@ -101,7 +101,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       return null;
     }
     ProxyKey proxyKey =
-        await proxyKeyRepo.fetchProxy(proxyAccount.ownerProxyId);
+        await proxyKeyRepo.fetchProxyKey(proxyAccount.ownerProxyId);
     AccountBalanceRequest request = AccountBalanceRequest(
       requestId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,

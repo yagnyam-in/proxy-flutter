@@ -1,6 +1,7 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/banking_home.dart';
 import 'package:proxy_flutter/banking/event_page.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
@@ -58,7 +59,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Future<void> _handleDynamicLinks() async {
-    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
+    final PendingDynamicLinkData data =
+        await FirebaseDynamicLinks.instance.retrieveDynamicLink();
     Uri link = data?.link;
     if (link == null) return;
     print('link.path = ${link.path}');
@@ -66,40 +68,76 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _addProxy(link.queryParameters);
     } else if (link.path == '/actions/deposit-status') {
       _depositStatus(link.queryParameters);
+    } else if (link.path == '/actions/accept-payment') {
+      _acceptPayment(link.queryParameters);
     }
   }
 
   Future<void> _addProxy(Map<String, String> query) async {
     print("Launching dialog to add proxy with $query");
-    ProxyId proxyId = nullIfError(() => ProxyId(query['id'], query['sha256Thumbprint']));
+    ProxyId proxyId =
+        nullIfError(() => ProxyId(query['id'], query['sha256Thumbprint']));
     if (proxyId == null) {
       return null;
     }
-    ContactEntity existingContact = await ServiceFactory.contactsRepo().fetchContact(proxyId);
-    await Navigator.push(context,
+    ContactEntity existingContact =
+        await ServiceFactory.contactsRepo().fetchContact(proxyId);
+    await Navigator.push(
+      context,
       new MaterialPageRoute(
-        builder: (context) => ModifyProxyPage(existingContact ?? ContactEntity(proxyId: proxyId)),
+        builder: (context) =>
+            ModifyProxyPage(existingContact ?? ContactEntity(proxyId: proxyId)),
         fullscreenDialog: true,
       ),
     );
   }
 
-
   Future<void> _depositStatus(Map<String, String> query) async {
     print("Launching dialog to show deposit status $query");
     String proxyUniverse = query['proxyUniverse'];
     String depositId = query['depositId'];
-    EventEntity deposit = await ServiceFactory.eventRepo().fetchEvent(proxyUniverse, EventType.Deposit, depositId);
+    EventEntity deposit = await ServiceFactory.eventRepo()
+        .fetchEvent(proxyUniverse, EventType.Deposit, depositId);
     if (deposit == null) {
       print("Couldn't find deposit for $query");
       return null;
     }
-    await Navigator.push(context,
+    await Navigator.push(
+      context,
       new MaterialPageRoute(
         builder: (context) => EventPage.forEvent(deposit),
         fullscreenDialog: true,
       ),
     );
+  }
+
+  Future<void> _acceptPayment(Map<String, String> query) async {
+    print("Launching dialog to accept payment $query");
+    String proxyUniverse = query['proxyUniverse'];
+    String paymentAuthorizationId = query['paymentAuthorizationId'];
+    EventEntity payment = await ServiceFactory.eventRepo()
+        .fetchEvent(proxyUniverse, EventType.Payment, paymentAuthorizationId);
+    if (payment == null) {
+      print("Couldn't find payment for $query");
+      await Navigator.push(
+        context,
+        new MaterialPageRoute(
+          builder: (context) => AcceptPaymentPage(
+                proxyUniverse: proxyUniverse,
+            paymentAuthorizationId: paymentAuthorizationId,
+              ),
+          fullscreenDialog: true,
+        ),
+      );
+    } else {
+      await Navigator.push(
+        context,
+        new MaterialPageRoute(
+          builder: (context) => EventPage.forEvent(payment),
+          fullscreenDialog: true,
+        ),
+      );
+    }
   }
 
   @override
@@ -131,7 +169,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void termsAndConditionsAcceptedCallback() {
     setState(() {
       _termsAndConditionsAccepted = true;
-      widget.appConfiguration.termsAndConditionsAccepted = _termsAndConditionsAccepted;
+      widget.appConfiguration.termsAndConditionsAccepted =
+          _termsAndConditionsAccepted;
     });
   }
 

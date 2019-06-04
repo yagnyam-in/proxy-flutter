@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:proxy_flutter/banking/model/deposit_event_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_event_entity.dart';
-import 'package:proxy_flutter/banking/model/withdrawal_event_entity.dart';
+import 'package:proxy_flutter/banking/model/deposit_event.dart';
+import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/model/event_entity.dart';
 
@@ -14,7 +13,10 @@ class EventRepo {
   factory EventRepo.instance(DB database) => EventRepo._instance(database);
 
   Future<EventEntity> fetchEvent(
-      String proxyUniverse, EventType eventType, String eventId) async {
+    String proxyUniverse,
+    EventType eventType,
+    String eventId,
+  ) async {
     List<Map> rows = await db.query(
       TABLE,
       columns: allColumns,
@@ -78,11 +80,9 @@ class EventRepo {
         EventEntity.stringToEventType(row[EventEntity.EVENT_TYPE]);
     switch (eventType) {
       case EventType.Withdraw:
-        return WithdrawalEventEntity.fromRow(row);
+        return WithdrawalEvent.fromRow(row);
       case EventType.Deposit:
-        return DepositEventEntity.fromRow(row);
-      case EventType.Payment:
-        return PaymentEventEntity.fromRow(row);
+        return DepositEvent.fromRow(row);
       default:
         throw "Unknown Event Type $eventType";
     }
@@ -95,26 +95,15 @@ class EventRepo {
     EventEntity.EVENT_TYPE,
     EventEntity.EVENT_ID,
     EventEntity.STATUS,
-    EventEntity.PRIMARY_AMOUNT_CURRENCY,
-    EventEntity.PAYER_PROXY_ID,
-    EventEntity.PAYER_PROXY_SHA,
-    EventEntity.PAYER_PROXY_ACCOUNT_ID,
-    EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID,
-    EventEntity.PAYEE_PROXY_ID,
-    EventEntity.PAYEE_PROXY_SHA,
-    EventEntity.PAYEE_PROXY_ACCOUNT_ID,
-    EventEntity.PAYEE_PROXY_ACCOUNT_BANK_ID,
-    EventEntity.PAYEE_ACCOUNT_NUMBER,
-    EventEntity.PAYEE_ACCOUNT_BANK,
+    EventEntity.DEPOSIT_AMOUNT_CURRENCY,
+    EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_BANK_ID,
+    EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_ID,
     EventEntity.DEPOSIT_LINK,
-    EventEntity.SIGNED_DEPOSIT_REQUEST,
-    EventEntity.SIGNED_WITHDRAWAL_REQUEST,
-    EventEntity.SIGNED_PAYMENT_AUTHORIZATION_REQUEST,
-    EventEntity.SIGNED_PAYMENT_ENCASHMENT_REQUEST,
-    EventEntity.PAYEE_EMAIL,
-    EventEntity.PAYEE_PHONE,
-    EventEntity.SECRET,
-    EventEntity.PAYMENT_LINK,
+    EventEntity.DEPOSIT_STATUS,
+    EventEntity.WITHDRAWAL_AMOUNT_CURRENCY,
+    EventEntity.WITHDRAWAL_DESTINATION_ACCOUNT_BANK,
+    EventEntity.WITHDRAWAL_DESTINATION_ACCOUNT_NUMBER,
+    EventEntity.WITHDRAWAL_STATUS,
   };
 
   static const Set<String> INTEGER_COLUMNS = {
@@ -122,11 +111,11 @@ class EventRepo {
     EventEntity.COMPLETED,
     EventEntity.CREATION_TIME,
     EventEntity.LAST_UPDATED_TIME,
-    EventEntity.INWARD,
   };
 
   static const Set<String> REAL_COLUMNS = {
-    EventEntity.PRIMARY_AMOUNT,
+    EventEntity.DEPOSIT_AMOUNT_VALUE,
+    EventEntity.WITHDRAWAL_AMOUNT_VALUE,
   };
 
   static List<String> allColumns = [
@@ -154,17 +143,8 @@ class EventRepo {
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) async {
     switch (oldVersion) {
       case 3:
-        await db.addColumns(
-          table: TABLE,
-          columns: {
-            EventEntity.PAYEE_PHONE,
-            EventEntity.PAYEE_EMAIL,
-            EventEntity.SECRET,
-            EventEntity.SIGNED_PAYMENT_ENCASHMENT_REQUEST,
-            EventEntity.PAYMENT_LINK,
-          },
-          type: DB.TEXT_TYPE,
-        );
+        await db.dropTable(table: TABLE);
+        onCreate(db, newVersion);
     }
   }
 }

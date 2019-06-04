@@ -1,10 +1,13 @@
 import 'package:proxy_flutter/banking/banking_service.dart';
+import 'package:proxy_flutter/banking/db/deposit_repo.dart';
+import 'package:proxy_flutter/banking/db/withdrawal_repo.dart';
 import 'package:proxy_flutter/banking/deposit_service.dart';
-import 'package:proxy_flutter/banking/payment_service.dart';
+import 'package:proxy_flutter/banking/payment_authorization_service.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_account_bloc.dart';
 import 'package:proxy_flutter/banking/withdrawal_service.dart';
 import 'package:proxy_flutter/db/db.dart';
+import 'package:proxy_flutter/banking/db/payment_authorization_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/receiving_account_repo.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
@@ -18,6 +21,18 @@ class BankingServiceFactory {
 
   static ReceivingAccountRepo receivingAccountRepo() {
     return ReceivingAccountRepo.instance(DB.instance());
+  }
+
+  static PaymentAuthorizationRepo paymentAuthorizationRepo() {
+    return PaymentAuthorizationRepo.instance(DB.instance());
+  }
+
+  static WithdrawalRepo withdrawalRepo() {
+    return WithdrawalRepo.instance(DB.instance());
+  }
+
+  static DepositRepo depositRepo() {
+    return DepositRepo.instance(DB.instance());
   }
 
   static BankingService bankingService() {
@@ -50,8 +65,7 @@ class BankingServiceFactory {
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyAccountsBloc: proxyAccountsBloc(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
-      eventBloc: ServiceFactory.eventBloc(),
-      eventRepo: ServiceFactory.eventRepo(),
+      withdrawalRepo: withdrawalRepo(),
     );
   }
 
@@ -60,18 +74,16 @@ class BankingServiceFactory {
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
-      eventBloc: ServiceFactory.eventBloc(),
-      eventRepo: ServiceFactory.eventRepo(),
+      depositRepo: depositRepo(),
     );
   }
 
-  static PaymentService paymentService() {
-    return PaymentService(
+  static PaymentAuthorizationService paymentAuthorizationService() {
+    return PaymentAuthorizationService(
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
-      eventBloc: ServiceFactory.eventBloc(),
-      eventRepo: ServiceFactory.eventRepo(),
+      paymentAuthorizationRepo: paymentAuthorizationRepo(),
       cryptographyService: ServiceFactory.cryptographyService(),
     );
   }
@@ -80,6 +92,7 @@ class BankingServiceFactory {
     return EventActions(
       withdrawalService: withdrawalService(),
       depositService: depositService(),
+      paymentService: paymentAuthorizationService(),
     );
   }
 }

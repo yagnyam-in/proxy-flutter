@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:proxy_flutter/banking/service_factory.dart';
+import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/model/deposit_event.dart';
+import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/event_entity.dart';
@@ -18,7 +20,8 @@ class EventsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
 
-  EventsPage({Key key, @required this.appConfiguration, this.proxyUniverse}) : super(key: key) {
+  EventsPage({Key key, @required this.appConfiguration, this.proxyUniverse})
+      : super(key: key) {
     print("Constructing EventsPage");
   }
 
@@ -47,7 +50,8 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
   }
 
   bool _showEvent(EventEntity event) {
-    return widget.proxyUniverse == null || event.proxyUniverse == widget.proxyUniverse;
+    return widget.proxyUniverse == null ||
+        event.proxyUniverse == widget.proxyUniverse;
   }
 
   @override
@@ -63,7 +67,8 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
         child: StreamBuilder<List<EventEntity>>(
           stream: eventBloc.events,
           initialData: [],
-          builder: (BuildContext context, AsyncSnapshot<List<EventEntity>> snapshot) {
+          builder: (BuildContext context,
+              AsyncSnapshot<List<EventEntity>> snapshot) {
             return eventsWidget(context, snapshot);
           },
         ),
@@ -71,7 +76,8 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
     );
   }
 
-  Widget eventsWidget(BuildContext context, AsyncSnapshot<List<EventEntity>> events) {
+  Widget eventsWidget(
+      BuildContext context, AsyncSnapshot<List<EventEntity>> events) {
     List<Widget> rows = [];
     if (!events.hasData) {
       rows.add(
@@ -145,13 +151,17 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
   Future<void> _refreshEvent(BuildContext context, EventEntity event) async {
     switch (event.eventType) {
       case EventType.Deposit:
-        await BankingServiceFactory.depositService().refreshDepositStatus(event);
+        await BankingServiceFactory.depositService().refreshDepositStatus(
+          proxyUniverse: event.proxyUniverse,
+          depositId: (event as DepositEvent).depositId,
+        );
         break;
       case EventType.Withdraw:
-        await BankingServiceFactory.withdrawalService().refreshWithdrawalStatus(event);
+        await BankingServiceFactory.withdrawalService().refreshWithdrawalStatus(
+          proxyUniverse: event.proxyUniverse,
+          withdrawalId: (event as WithdrawalEvent).withdrawalId,
+        );
         break;
-      case EventType.Payment:
-        await BankingServiceFactory.paymentService().refreshPaymentAuthorizationStatus(event);
         break;
       default:
         print("Not yet handled");

@@ -7,25 +7,63 @@ import 'package:proxy_messages/payments.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
+class PaymentAuthorizationPayeeInput with ProxyUtils {
+  final String customerPhone;
+  final String customerEmail;
+  final String secret;
+  final ProxyId payeeProxyId;
+
+  PaymentAuthorizationPayeeInput({
+    this.customerPhone,
+    this.customerEmail,
+    this.secret,
+    this.payeeProxyId,
+  });
+
+  PayeeTypeEnum get payeeType {
+    if (payeeProxyId != null) {
+      return PayeeTypeEnum.ProxyId;
+    } else if (isNotEmpty(customerEmail)) {
+      return PayeeTypeEnum.Email;
+    } else if (isNotEmpty(customerPhone)) {
+      return PayeeTypeEnum.Phone;
+    }
+    return PayeeTypeEnum.AnyoneWithSecret;
+  }
+
+  void assertValid() {
+    switch (payeeType) {
+      case PayeeTypeEnum.ProxyId:
+        payeeProxyId.assertValid();
+        break;
+      case PayeeTypeEnum.Email:
+        assert(isNotEmpty(customerEmail));
+        assert(isNotEmpty(secret));
+        break;
+      case PayeeTypeEnum.Phone:
+        assert(isNotEmpty(customerPhone));
+        assert(isNotEmpty(secret));
+        break;
+      case PayeeTypeEnum.AnyoneWithSecret:
+        assert(isNotEmpty(secret));
+        break;
+    }
+  }
+}
+
 class PaymentAuthorizationInput with ProxyUtils {
   final String proxyUniverse;
   final String currency;
   final double amount;
   final String message;
-  final String customerPhone;
-  final String customerEmail;
-  final String secret;
-  final ProxyId payeeProxyId;
+  final List<PaymentAuthorizationPayeeInput> payees;
 
   PaymentAuthorizationInput({
     this.proxyUniverse,
     this.currency,
     this.amount,
     this.message,
-    this.customerPhone,
-    this.customerEmail,
-    this.secret,
-    this.payeeProxyId,
+    this.payees,
   });
 
   void assertValid() {
@@ -33,18 +71,11 @@ class PaymentAuthorizationInput with ProxyUtils {
     assert(currency != null);
     assert(Currency.isValidCurrency(currency));
     assert(isNotEmpty(message));
+    assert(payees != null);
+    assert(payees.isNotEmpty);
+    payees.forEach((p) => p.assertValid());
   }
 
-  PayeeTypeEnum get payeeType {
-    if (payeeProxyId != null) {
-      return PayeeTypeEnum.ProxyId;
-    } else if (customerEmail != null) {
-      return PayeeTypeEnum.Email;
-    } else if (customerPhone != null) {
-      return PayeeTypeEnum.Phone;
-    }
-    return PayeeTypeEnum.AnyoneWithSecret;
-  }
 }
 
 class PaymentAuthorizationInputDialog extends StatefulWidget {
@@ -88,7 +119,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   _PaymentAuthorizationInputDialogState(this.paymentAuthorizationInput)
       : amountController = TextEditingController(),
         messageController = TextEditingController(text: paymentAuthorizationInput?.message),
-        secretController = TextEditingController(text: paymentAuthorizationInput?.secret),
+        secretController = TextEditingController(text: paymentAuthorizationInput?.payees?.first?.secret),
         _currency = paymentAuthorizationInput?.currency,
         _proxyUniverse = paymentAuthorizationInput?.proxyUniverse;
 
@@ -246,7 +277,11 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
         currency: _currency,
         amount: double.parse(amountController.text),
         message: messageController.text,
-        secret: secretController.text,
+        payees: [
+          PaymentAuthorizationPayeeInput(
+            secret: secretController.text,
+          ),
+        ],
       );
       print("Accepting $result");
       Navigator.of(context).pop(result);

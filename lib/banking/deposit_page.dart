@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/db/deposit_repo.dart';
+import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/event_entity.dart';
 import 'package:proxy_flutter/services/event_bloc.dart';
@@ -9,27 +11,38 @@ import 'package:proxy_flutter/widgets/loading.dart';
 
 import 'event_actions.dart';
 
-class EventPage extends StatefulWidget {
-  final EventEntity event;
+class DepositPage extends StatefulWidget {
+  final DepositEntity depositEntity;
 
-  const EventPage._internal(this.event, {Key key}) : super(key: key);
-
-  factory EventPage.forEvent(EventEntity event, {Key key}) {
-    return EventPage._internal(event, key: key);
-  }
+  const DepositPage({
+    Key key,
+    @required this.depositEntity,
+  }) : super(key: key);
 
   @override
-  EventPageState createState() {
-    return EventPageState(event);
+  DepositPageState createState() {
+    return DepositPageState(
+      depositEntity: depositEntity,
+    );
   }
 }
 
-class EventPageState extends LoadingSupportState<EventPage> {
-  final EventEntity event;
+class DepositPageState extends LoadingSupportState<DepositPage> {
+  final DepositEntity depositEntity;
+
   final EventBloc eventBloc = ServiceFactory.eventBloc();
   final EventActions eventActions = BankingServiceFactory.eventActions();
 
-  EventPageState(this.event);
+  DepositPageState({
+    @required this.depositEntity,
+  });
+
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +50,16 @@ class EventPageState extends LoadingSupportState<EventPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(event.getTitle(localizations)),
+        title: Text(localizations.depositEventTitle),
         actions: [
           new FlatButton(
             onPressed: () => Navigator.of(context).pop(),
             child: new Text(
               localizations.okButtonLabel,
-              style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white),
+              style: Theme.of(context)
+                  .textTheme
+                  .subhead
+                  .copyWith(color: Colors.white),
             ),
           ),
         ],
@@ -52,10 +68,11 @@ class EventPageState extends LoadingSupportState<EventPage> {
         loading: loading,
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: StreamBuilder<List<EventEntity>>(
+          child: StreamBuilder<DepositEntity>(
             stream: eventBloc.events,
             initialData: [],
-            builder: (BuildContext context, AsyncSnapshot<List<EventEntity>> snapshot) {
+            builder: (BuildContext context,
+                AsyncSnapshot<DepositEntity> snapshot) {
               return body(context, localizations, snapshot);
             },
           ),
@@ -64,16 +81,17 @@ class EventPageState extends LoadingSupportState<EventPage> {
     );
   }
 
-  Widget body(BuildContext context, ProxyLocalizations localizations, AsyncSnapshot<List<EventEntity>> snapshot) {
+  Widget body(BuildContext context, ProxyLocalizations localizations,
+      AsyncSnapshot<DepositEntity> snapshot) {
     ThemeData themeData = Theme.of(context);
-    EventEntity latestEvent;
+    DepositEntity latestEvent;
     if (snapshot.hasData) {
-      latestEvent = snapshot.data.firstWhere((e) => e.id == this.event.id, orElse: () => null);
+      latestEvent = snapshot.data;
     }
 
     List<Widget> rows = [
       const SizedBox(height: 16.0),
-      Icon(event.icon(), size: 64.0),
+      Icon(Icons.file_download, size: 64.0),
       const SizedBox(height: 24.0),
       Center(
         child: Text(
@@ -101,7 +119,8 @@ class EventPageState extends LoadingSupportState<EventPage> {
         ),
       ),
     ];
-    List<EventAction> actions = eventActions.getPossibleActions(latestEvent, localizations);
+    List<EventAction> actions =
+        eventActions.getPossibleActions(latestEvent, localizations);
     if (actions.isNotEmpty) {
       rows.add(const SizedBox(height: 24.0));
       rows.add(ButtonBar(

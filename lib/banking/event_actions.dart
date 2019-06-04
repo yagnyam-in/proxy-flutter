@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/banking/deposit_service.dart';
-import 'package:proxy_flutter/banking/model/deposit_event_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_event_entity.dart';
-import 'package:proxy_flutter/banking/model/withdrawal_event_entity.dart';
-import 'package:proxy_flutter/banking/payment_service.dart';
+import 'package:proxy_flutter/banking/model/deposit_event.dart';
+import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
+import 'package:proxy_flutter/banking/payment_authorization_service.dart';
 import 'package:proxy_flutter/banking/withdrawal_service.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/event_entity.dart';
@@ -13,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 class EventActions {
   final DepositService depositService;
   final WithdrawalService withdrawalService;
-  final PaymentService paymentService;
+  final PaymentAuthorizationService paymentService;
 
   EventActions({
     @required this.depositService,
@@ -25,14 +24,10 @@ class EventActions {
       EventEntity event, ProxyLocalizations localizations) {
     switch (event?.eventType) {
       case EventType.Deposit:
-        return possibleActionsForDeposit(
-            event as DepositEventEntity, localizations);
+        return possibleActionsForDeposit(event as DepositEvent, localizations);
       case EventType.Withdraw:
         return possibleActionsForWithdrawal(
-            event as WithdrawalEventEntity, localizations);
-      case EventType.Payment:
-        return possibleActionsForPayment(
-            event as PaymentEventEntity, localizations);
+            event as WithdrawalEvent, localizations);
       default:
         print("Not handled event $event");
         return [];
@@ -46,7 +41,7 @@ class EventActions {
   }
 
   List<EventAction> possibleActionsForDeposit(
-    DepositEventEntity deposit,
+    DepositEvent deposit,
     ProxyLocalizations localizations,
   ) {
     List<EventAction> actions = [];
@@ -63,7 +58,10 @@ class EventActions {
         EventAction(
           title: localizations.cancel,
           icon: Icons.close,
-          action: () => depositService.cancelDeposit(deposit),
+          action: () => depositService.cancelDeposit(
+                depositId: deposit.depositId,
+                proxyUniverse: deposit.proxyUniverse,
+              ),
         ),
       );
     }
@@ -71,28 +69,11 @@ class EventActions {
   }
 
   List<EventAction> possibleActionsForWithdrawal(
-    WithdrawalEventEntity withdrawal,
+    WithdrawalEvent withdrawal,
     ProxyLocalizations localizations,
   ) {
     List<EventAction> actions = [];
     if (withdrawal.isCancellable()) {
-      actions.add(
-        EventAction(
-          title: localizations.cancel,
-          icon: Icons.close,
-          action: () {},
-        ),
-      );
-    }
-    return actions;
-  }
-
-  List<EventAction> possibleActionsForPayment(
-    PaymentEventEntity payment,
-    ProxyLocalizations localizations,
-  ) {
-    List<EventAction> actions = [];
-    if (payment.isCancellable()) {
       actions.add(
         EventAction(
           title: localizations.cancel,

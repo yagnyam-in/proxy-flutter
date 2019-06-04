@@ -26,46 +26,27 @@ abstract class EventEntity {
   static const String CREATION_TIME = "creationTime";
   static const String LAST_UPDATED_TIME = "lastUpdatedTime";
 
-  static const String PRIMARY_AMOUNT = "primaryAmount";
-  static const String PRIMARY_AMOUNT_CURRENCY = "primaryCurrency";
+  static const String DEPOSIT_STATUS = "depositStatus";
+  static const String DEPOSIT_AMOUNT_CURRENCY = "depositAmountCurrency";
+  static const String DEPOSIT_AMOUNT_VALUE = "depositAmountValue";
+  static const String DEPOSIT_DESTINATION_PROXY_ACCOUNT_ID = "depositDestProxyAccountId";
+  static const String DEPOSIT_DESTINATION_PROXY_ACCOUNT_BANK_ID = "depositDestProxyAccountBankId";
+  static const String DEPOSIT_LINK= "depositLink";
 
-  static const String PAYER_PROXY_ID = "payerProxyId";
-  static const String PAYER_PROXY_SHA = "payerProxySha";
+  static const String WITHDRAWAL_STATUS = "withdrawalStatus";
+  static const String WITHDRAWAL_AMOUNT_CURRENCY = "withdrawalAmountCurrency";
+  static const String WITHDRAWAL_AMOUNT_VALUE = "withdrawalAmountValue";
+  static const String WITHDRAWAL_DESTINATION_ACCOUNT_NUMBER = "withdrawalDestAccountNumber";
+  static const String WITHDRAWAL_DESTINATION_ACCOUNT_BANK = "withdrawalDestAccountBank";
 
-  static const String PAYER_PROXY_ACCOUNT_ID = "payerProxyAccountId";
-  static const String PAYER_PROXY_ACCOUNT_BANK_ID = "payerProxyAccountBankId";
-
-  static const String PAYEE_ACCOUNT_NUMBER = "payeeAccountNumber";
-  static const String PAYEE_ACCOUNT_BANK = "payeeAccountBank";
-
-  static const String PAYEE_PROXY_ID = "payeeProxyId";
-  static const String PAYEE_PROXY_SHA = "payeeProxySha";
-
-  static const String PAYEE_PROXY_ACCOUNT_ID = "payeeProxyAccountId";
-  static const String PAYEE_PROXY_ACCOUNT_BANK_ID = "payeeProxyAccountBankId";
-
-  static const String PAYEE_EMAIL = "payeeEmail";
-  static const String PAYEE_PHONE = "payeePhone";
-
-  static const String SECRET = "secret";
-
-  static const String SIGNED_DEPOSIT_REQUEST = "signedDepositRequest";
-  static const String SIGNED_WITHDRAWAL_REQUEST = "signedWithdrawalRequest";
-  static const String SIGNED_PAYMENT_AUTHORIZATION_REQUEST = "signedPaymentAuthorizationRequest";
-  static const String SIGNED_PAYMENT_ENCASHMENT_REQUEST = "signedPaymentEncashmentRequest";
-
-  static const String INWARD = "inward";
-
-  static const String DEPOSIT_LINK = "depositLink";
-  static const String PAYMENT_LINK = "paymentLink";
 
   final int id;
   final String proxyUniverse;
   final EventType eventType;
   final String eventId;
   final DateTime creationTime;
-  DateTime lastUpdatedTime;
-  bool completed;
+  final DateTime lastUpdatedTime;
+  final bool completed;
 
   EventEntity({
     this.id,
@@ -74,7 +55,7 @@ abstract class EventEntity {
     @required this.lastUpdatedTime,
     @required this.eventType,
     @required this.eventId,
-    bool completed,
+    @required bool completed,
   }) : completed = completed ?? false;
 
   @mustCallSuper
@@ -84,8 +65,8 @@ abstract class EventEntity {
       EVENT_TYPE: eventTypeToString(eventType),
       EVENT_ID: eventId,
       COMPLETED: completed ? 1 : 0,
-      CREATION_TIME: creationTime.toUtc().millisecondsSinceEpoch,
-      LAST_UPDATED_TIME: lastUpdatedTime.toUtc().millisecondsSinceEpoch,
+      CREATION_TIME: ConversionUtils.dateTimeToInt(creationTime),
+      LAST_UPDATED_TIME: ConversionUtils.dateTimeToInt(lastUpdatedTime),
     };
     if (id != null) {
       row[ID] = id;
@@ -99,26 +80,27 @@ abstract class EventEntity {
         eventType = stringToEventType(row[EVENT_TYPE]),
         eventId = row[EVENT_ID],
         completed = (row[COMPLETED] as int) != 0,
-        creationTime = DateTime.fromMillisecondsSinceEpoch(
-                row[CREATION_TIME] as int,
-                isUtc: true)
-            .toLocal(),
-        lastUpdatedTime = DateTime.fromMillisecondsSinceEpoch(
-                row[LAST_UPDATED_TIME] as int,
-                isUtc: true)
-            .toLocal() {
+        creationTime = ConversionUtils.intToDateTime(row[CREATION_TIME]),
+        lastUpdatedTime =
+            ConversionUtils.intToDateTime(row[LAST_UPDATED_TIME]) {
     print("Completed: $completed");
   }
 
   static EventType stringToEventType(String value,
       {EventType orElse = EventType.Unknown}) {
-    return EventType.values.firstWhere(
-        (e) => ConversionUtils.isEnumEqual(e, value, enumName: "EventType"),
-        orElse: () => orElse);
+    return ConversionUtils.stringToEnum(
+      value,
+      orElse: EventType.Unknown,
+      values: EventType.values,
+      enumName: "EventType",
+    );
   }
 
   static String eventTypeToString(EventType eventType) {
-    return eventType?.toString()?.replaceFirst("EventType.", "")?.toLowerCase();
+    return ConversionUtils.enumToString(
+      eventType,
+      enumName: "EventType",
+    );
   }
 
   String getTitle(ProxyLocalizations localizations);

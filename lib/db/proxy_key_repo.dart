@@ -13,7 +13,7 @@ class ProxyKeyRepo {
   factory ProxyKeyRepo.instance(DB database) =>
       ProxyKeyRepo._internal(database);
 
-  Future<ProxyKey> fetchProxy(ProxyId proxyId) async {
+  Future<ProxyKey> fetchProxyKey(ProxyId proxyId) async {
     List<Map> rows = await db.query(
       TABLE,
       columns: [ID, SHA_256, KEY],
@@ -24,6 +24,16 @@ class ProxyKeyRepo {
       return ProxyKey.fromJson(jsonDecode(rows.first[KEY]));
     }
     return Future.value(null);
+  }
+
+  Future<bool> hashProxyKey(ProxyId proxyId) async {
+    List<Map> rows = await db.query(
+      TABLE,
+      columns: [ID, SHA_256, KEY],
+      where: '$ID = ? AND $SHA_256 = ?',
+      whereArgs: [proxyId.id, proxyId.sha256Thumbprint],
+    );
+    return rows.isNotEmpty;
   }
 
   Future<List<ProxyKey>> fetchProxiesWithoutFcmToken(String fcmToken) async {
