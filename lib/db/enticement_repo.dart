@@ -9,7 +9,8 @@ class EnticementRepo {
 
   EnticementRepo._internal(this.db);
 
-  factory EnticementRepo.instance(DB database) => EnticementRepo._internal(database);
+  factory EnticementRepo.instance(DB database) =>
+      EnticementRepo._internal(database);
 
   static const START = "start";
   static const LOAD_MONEY = "loadMoney";
@@ -33,7 +34,8 @@ class EnticementRepo {
     );
   }
 
-  static Future<int> _dismissEnticementInTransaction(Transaction transaction, String enticementId) {
+  static Future<int> _dismissEnticementInTransaction(
+      Transaction transaction, String enticementId) {
     Map<String, dynamic> map = {
       ID: enticementId,
       ACTIVE: 0,
@@ -47,7 +49,8 @@ class EnticementRepo {
   }
 
   Future<int> dismissEnticement(String enticementId) {
-    return db.transaction((transaction) => _dismissEnticementInTransaction(transaction, enticementId));
+    return db.transaction((transaction) =>
+        _dismissEnticementInTransaction(transaction, enticementId));
   }
 
   static const String TABLE = "ENTICEMENT";
@@ -56,7 +59,12 @@ class EnticementRepo {
   static const String ACTIVE = "active";
 
   static Future<void> onCreate(DB db, int version) async {
-    await db.execute('CREATE TABLE $TABLE ($ID TEXT PRIMARY KEY, $PRIORITY INTEGER, $ACTIVE INTEGER)');
+    await db.createTable(
+      table: TABLE,
+      primaryKey: ID,
+      textColumns: {ID},
+      integerColumns: {PRIORITY, ACTIVE},
+    );
     await db.insert(TABLE, {ID: START, PRIORITY: 100, ACTIVE: 1});
     await db.insert(TABLE, {ID: LOAD_MONEY, PRIORITY: 200, ACTIVE: 1});
     await db.insert(TABLE, {ID: SETUP_BUNQ_ACCOUNT, PRIORITY: 300, ACTIVE: 1});

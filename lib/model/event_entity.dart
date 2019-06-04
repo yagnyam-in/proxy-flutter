@@ -44,6 +44,11 @@ abstract class EventEntity {
   static const String PAYEE_PROXY_ACCOUNT_ID = "payeeProxyAccountId";
   static const String PAYEE_PROXY_ACCOUNT_BANK_ID = "payeeProxyAccountBankId";
 
+  static const String PAYEE_EMAIL = "payeeEmail";
+  static const String PAYEE_PHONE = "payeePhone";
+
+  static const String SECRET = "secret";
+
   static const String SIGNED_DEPOSIT_REQUEST = "signedDepositRequest";
   static const String SIGNED_WITHDRAWAL_REQUEST = "signedWithdrawalRequest";
   static const String SIGNED_PAYMENT_AUTHORIZATION_REQUEST = "signedPaymentAuthorizationRequest";

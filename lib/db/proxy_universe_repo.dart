@@ -9,7 +9,8 @@ class ProxyUniverseRepo {
 
   ProxyUniverseRepo._instance(this.db);
 
-  factory ProxyUniverseRepo.instance(DB database) => ProxyUniverseRepo._instance(database);
+  factory ProxyUniverseRepo.instance(DB database) =>
+      ProxyUniverseRepo._instance(database);
 
   Future<List<ProxyUniverseEntity>> fetchProxyUniverses() async {
     List<Map> rows = await db.query(
@@ -48,12 +49,19 @@ class ProxyUniverseRepo {
   static const ALL_COLUMNS = [NAME, ACTIVE];
 
   static Future<void> _createTable(DB db) async {
-    await db.execute('CREATE TABLE IF NOT EXISTS $TABLE ($NAME TEXT PRIMARY KEY, $ACTIVE INTEGER)');
+    await db.createTable(
+      table: TABLE,
+      primaryKey: NAME,
+      textColumns: {NAME},
+      integerColumns: {ACTIVE},
+    );
   }
 
   static Future<void> _insertAllUniverses(DB db) async {
-    await db.execute("INSERT OR IGNORE INTO $TABLE ($NAME, $ACTIVE) VALUES ('${ProxyUniverse.PRODUCTION}', 1)");
-    await db.execute("INSERT OR IGNORE INTO $TABLE ($NAME, $ACTIVE) VALUES ('${ProxyUniverse.TEST}', 1)");
+    await db.execute(
+        "INSERT OR IGNORE INTO $TABLE ($NAME, $ACTIVE) VALUES ('${ProxyUniverse.PRODUCTION}', 1)");
+    await db.execute(
+        "INSERT OR IGNORE INTO $TABLE ($NAME, $ACTIVE) VALUES ('${ProxyUniverse.TEST}', 1)");
   }
 
   static Future<void> onCreate(DB db, int version) async {
@@ -62,7 +70,5 @@ class ProxyUniverseRepo {
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) async {
-    _createTable(db);
-    _insertAllUniverses(db);
   }
 }

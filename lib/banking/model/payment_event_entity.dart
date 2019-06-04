@@ -15,9 +15,14 @@ class PaymentEventEntity extends EventEntity {
   final Amount amount;
   final bool inward;
   final ProxyAccountId payerAccountId;
-  final ProxyAccountId payeeAccountId;
   final ProxyId payerProxyId;
+
+  final ProxyAccountId payeeAccountId;
   final ProxyId payeeProxyId;
+  final String payeeEmail;
+  final String payeePhone;
+  final String secret;
+
   final String signedPaymentAuthorizationRequestJson;
   final String paymentLink;
   SignedMessage<PaymentAuthorization> _signedPaymentAuthorizationRequest;
@@ -33,9 +38,12 @@ class PaymentEventEntity extends EventEntity {
     @required this.amount,
     @required this.inward,
     @required this.payerAccountId,
-    this.payeeAccountId,
     @required this.payerProxyId,
+    this.payeeAccountId,
     this.payeeProxyId,
+    this.payeeEmail,
+    this.payeePhone,
+    this.secret,
     @required this.signedPaymentAuthorizationRequestJson,
     @required this.paymentLink,
   }) : super(
@@ -43,7 +51,7 @@ class PaymentEventEntity extends EventEntity {
           proxyUniverse: proxyUniverse,
           creationTime: creationTime,
           lastUpdatedTime: lastUpdatedTime,
-          eventType: EventType.Withdraw,
+          eventType: EventType.Payment,
           eventId: eventId,
           completed: isCompleteStatus(status),
         );
@@ -61,12 +69,17 @@ class PaymentEventEntity extends EventEntity {
     row[EventEntity.PAYER_PROXY_ID] = payerProxyId.id;
     row[EventEntity.PAYER_PROXY_SHA] = payerProxyId.sha256Thumbprint;
 
-    row[EventEntity.PAYEE_PROXY_ACCOUNT_ID] = payeeAccountId.accountId;
-    row[EventEntity.PAYEE_PROXY_ACCOUNT_BANK_ID] = payeeAccountId.bankId;
-    row[EventEntity.PAYEE_PROXY_ID] = payeeProxyId.id;
-    row[EventEntity.PAYEE_PROXY_SHA] = payeeProxyId.sha256Thumbprint;
+    row[EventEntity.PAYEE_PROXY_ACCOUNT_ID] = payeeAccountId?.accountId;
+    row[EventEntity.PAYEE_PROXY_ACCOUNT_BANK_ID] = payeeAccountId?.bankId;
+    row[EventEntity.PAYEE_PROXY_ID] = payeeProxyId?.id;
+    row[EventEntity.PAYEE_PROXY_SHA] = payeeProxyId?.sha256Thumbprint;
+    row[EventEntity.PAYEE_EMAIL] = payeeEmail;
+    row[EventEntity.PAYEE_PHONE] = payeePhone;
 
-    row[EventEntity.SIGNED_PAYMENT_AUTHORIZATION_REQUEST] = signedPaymentAuthorizationRequestJson;
+    row[EventEntity.SECRET] = secret;
+
+    row[EventEntity.SIGNED_PAYMENT_AUTHORIZATION_REQUEST] =
+        signedPaymentAuthorizationRequestJson;
     row[EventEntity.PAYMENT_LINK] = paymentLink;
     return row;
   }
@@ -75,7 +88,8 @@ class PaymentEventEntity extends EventEntity {
     if (_signedPaymentAuthorizationRequest == null) {
       print("Constructing from $signedPaymentAuthorizationRequestJson");
       _signedPaymentAuthorizationRequest = MessageBuilder.instance()
-          .buildSignedMessage(signedPaymentAuthorizationRequestJson, PaymentAuthorization.fromJson);
+          .buildSignedMessage(signedPaymentAuthorizationRequestJson,
+              PaymentAuthorization.fromJson);
     }
     return _signedPaymentAuthorizationRequest;
   }
@@ -92,22 +106,41 @@ class PaymentEventEntity extends EventEntity {
           bankId: row[EventEntity.PAYER_PROXY_ACCOUNT_BANK_ID],
           proxyUniverse: row[EventEntity.PROXY_UNIVERSE],
         ),
-        payeeAccountId = ProxyAccountId(
-          accountId: row[EventEntity.PAYEE_PROXY_ACCOUNT_ID],
-          bankId: row[EventEntity.PAYEE_PROXY_ACCOUNT_BANK_ID],
-          proxyUniverse: row[EventEntity.PROXY_UNIVERSE],
-        ),
         payerProxyId = ProxyId(
           row[EventEntity.PAYER_PROXY_ID],
           row[EventEntity.PAYER_PROXY_SHA],
         ),
-        payeeProxyId = ProxyId(
-          row[EventEntity.PAYEE_PROXY_ID],
-          row[EventEntity.PAYEE_PROXY_SHA],
-        ),
-        signedPaymentAuthorizationRequestJson = row[EventEntity.SIGNED_PAYMENT_AUTHORIZATION_REQUEST],
+        payeeAccountId = _payeeAccountId(row),
+        payeeProxyId = _payeeProxyId(row),
+        payeeEmail = row[EventEntity.PAYEE_EMAIL],
+        payeePhone = row[EventEntity.PAYEE_PHONE],
+        secret = row[EventEntity.SECRET],
+        signedPaymentAuthorizationRequestJson =
+            row[EventEntity.SIGNED_PAYMENT_AUTHORIZATION_REQUEST],
         paymentLink = row[EventEntity.PAYMENT_LINK],
         super.fromRow(row);
+
+  static ProxyAccountId _payeeAccountId(Map<String, dynamic> row) {
+    if (row[EventEntity.PAYEE_PROXY_ACCOUNT_ID] != null) {
+      return ProxyAccountId(
+        accountId: row[EventEntity.PAYEE_PROXY_ACCOUNT_ID],
+        bankId: row[EventEntity.PAYEE_PROXY_ACCOUNT_BANK_ID],
+        proxyUniverse: row[EventEntity.PROXY_UNIVERSE],
+      );
+    } else {
+      return null;
+    }
+  }
+
+  static ProxyId _payeeProxyId(Map<String, dynamic> row) {
+    if (row[EventEntity.PAYEE_PROXY_ID] != null) {
+      return ProxyId(
+        row[EventEntity.PAYEE_PROXY_ID],
+        row[EventEntity.PAYEE_PROXY_SHA],
+      );
+    }
+    return null;
+  }
 
   PaymentEventEntity copy({
     PaymentStatusEnum status,
@@ -127,7 +160,8 @@ class PaymentEventEntity extends EventEntity {
       inward: this.inward,
       payerAccountId: this.payerAccountId,
       payerProxyId: this.payerProxyId,
-      signedPaymentAuthorizationRequestJson: this.signedPaymentAuthorizationRequestJson,
+      signedPaymentAuthorizationRequestJson:
+          this.signedPaymentAuthorizationRequestJson,
       status: effectiveStatus,
       payeeAccountId: payeeAccountId ?? this.payeeAccountId,
       payeeProxyId: payeeProxyId ?? this.payeeProxyId,
@@ -141,12 +175,17 @@ class PaymentEventEntity extends EventEntity {
 
   static PaymentStatusEnum _stringToEventStatus(String value,
       {PaymentStatusEnum orElse = PaymentStatusEnum.InProcess}) {
-    return PaymentStatusEnum.values
-        .firstWhere((e) => ConversionUtils.isEnumEqual(e, value, enumName: "PaymentStatusEnum"), orElse: () => orElse);
+    return PaymentStatusEnum.values.firstWhere(
+        (e) => ConversionUtils.isEnumEqual(e, value,
+            enumName: "PaymentStatusEnum"),
+        orElse: () => orElse);
   }
 
   static String _eventStatusToString(PaymentStatusEnum eventType) {
-    return eventType?.toString()?.replaceFirst("PaymentStatusEnum.", "")?.toLowerCase();
+    return eventType
+        ?.toString()
+        ?.replaceFirst("PaymentStatusEnum.", "")
+        ?.toLowerCase();
   }
 
   String getTitle(ProxyLocalizations localizations) {
@@ -158,9 +197,9 @@ class PaymentEventEntity extends EventEntity {
       return localizations.inwardPaymentEventSubTitle(payeeProxyId.id);
     }
     if (payeeProxyId == null) {
-      return  localizations.outwardPaymentToUnknownEventSubTitle;
+      return localizations.outwardPaymentToUnknownEventSubTitle;
     }
-    return  localizations.outwardPaymentEventSubTitle(payeeProxyId.id);
+    return localizations.outwardPaymentEventSubTitle(payeeProxyId.id);
   }
 
   String getAmountText(ProxyLocalizations localizations) {
@@ -174,9 +213,13 @@ class PaymentEventEntity extends EventEntity {
       case PaymentStatusEnum.Rejected:
         return localizations.rejected;
       case PaymentStatusEnum.CancelledByPayer:
-        return inward ? localizations.cancelledByPayerStatus : localizations.cancelledStatus;
+        return inward
+            ? localizations.cancelledByPayerStatus
+            : localizations.cancelledStatus;
       case PaymentStatusEnum.CancelledByPayee:
-        return inward ? localizations.cancelledByPayeeStatus : localizations.cancelledStatus;
+        return inward
+            ? localizations.cancelledByPayeeStatus
+            : localizations.cancelledStatus;
       case PaymentStatusEnum.InProcess:
         return localizations.inProcess;
       case PaymentStatusEnum.Processed:

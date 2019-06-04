@@ -10,7 +10,8 @@ class ProxyKeyRepo {
 
   ProxyKeyRepo._internal(this.db);
 
-  factory ProxyKeyRepo.instance(DB database) => ProxyKeyRepo._internal(database);
+  factory ProxyKeyRepo.instance(DB database) =>
+      ProxyKeyRepo._internal(database);
 
   Future<ProxyKey> fetchProxy(ProxyId proxyId) async {
     List<Map> rows = await db.query(
@@ -26,7 +27,6 @@ class ProxyKeyRepo {
   }
 
   Future<List<ProxyKey>> fetchProxiesWithoutFcmToken(String fcmToken) async {
-
     List<Map> rows = await db.query(
       TABLE,
       columns: [ID, SHA_256, KEY],
@@ -45,7 +45,8 @@ class ProxyKeyRepo {
     );
   }
 
-  static Future<int> insertInTransaction(Transaction transaction, ProxyKey proxyKey) {
+  static Future<int> insertInTransaction(
+      Transaction transaction, ProxyKey proxyKey) {
     return transaction.insert(TABLE, {
       ID: proxyKey.id.id,
       SHA_256: proxyKey.id.sha256Thumbprint,
@@ -60,7 +61,16 @@ class ProxyKeyRepo {
   static const String KEY = "key";
 
   static Future<void> onCreate(DB db, int version) {
-    return db.execute('CREATE TABLE $TABLE ($ID TEXT PRIMARY KEY, $SHA_256 TEXT, $FCM_TOKEN TEXT, $KEY TEXT)');
+    return db.createTable(
+      table: TABLE,
+      primaryKey: ID,
+      textColumns: {
+        ID,
+        SHA_256,
+        FCM_TOKEN,
+        KEY,
+      },
+    );
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) {

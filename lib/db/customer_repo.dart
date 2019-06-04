@@ -8,7 +8,8 @@ class CustomerRepo {
 
   CustomerRepo._instance(this.db);
 
-  factory CustomerRepo.instance(DB database) => CustomerRepo._instance(database);
+  factory CustomerRepo.instance(DB database) =>
+      CustomerRepo._instance(database);
 
   Future<CustomerEntity> fetchCustomer() async {
     List<Map> rows = await db.query(
@@ -59,9 +60,12 @@ class CustomerRepo {
 
   static const ALL_COLUMNS = [ID, NAME, PHONE, EMAIL, ADDRESS];
 
-  static Future<void> onCreate(DB db, int version) {
-    return db
-        .execute('CREATE TABLE $TABLE ($ID TEXT PRIMARY KEY, $NAME TEXT, $PHONE TEXT, $EMAIL TEXT, $ADDRESS TEXT)');
+  static Future<void> onCreate(DB db, int version) async {
+    await db.createTable(
+      table: TABLE,
+      primaryKey: ID,
+      textColumns: {ID, NAME, PHONE, EMAIL, ADDRESS},
+    );
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) {

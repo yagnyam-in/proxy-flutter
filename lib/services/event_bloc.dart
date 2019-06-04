@@ -22,7 +22,7 @@ class EventBloc {
         _eventStream.sink.add(events);
       },
       onError: (e) {
-        print("Error fetching proxy Accounts $e");
+        print("Error fetching Events $e");
       },
     );
   }

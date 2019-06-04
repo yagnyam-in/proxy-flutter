@@ -150,6 +150,9 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
       case EventType.Withdraw:
         await BankingServiceFactory.withdrawalService().refreshWithdrawalStatus(event);
         break;
+      case EventType.Payment:
+        await BankingServiceFactory.paymentService().refreshPaymentAuthorizationStatus(event);
+        break;
       default:
         print("Not yet handled");
     }

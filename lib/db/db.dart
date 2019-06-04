@@ -31,10 +31,12 @@ class DB {
   Future<int> insert(String table, Map<String, dynamic> values,
       {String nullColumnHack, ConflictAlgorithm conflictAlgorithm}) async {
     Database db = await _db;
-    return db.insert(table, values, nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
+    return db.insert(table, values,
+        nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
   }
 
-  Future<T> transaction<T>(Future<T> action(Transaction txn), {bool exclusive}) async {
+  Future<T> transaction<T>(Future<T> action(Transaction txn),
+      {bool exclusive}) async {
     Database db = await _db;
     return db.transaction(action, exclusive: exclusive);
   }
@@ -64,42 +66,26 @@ class DB {
     );
   }
 
-  /// Convenience method for updating rows in the database.
-  ///
-  /// Update [table] with [values], a map from column names to new column
-  /// values. null is a valid value that will be translated to NULL.
-  ///
-  /// [where] is the optional WHERE clause to apply when updating.
-  /// Passing null will update all rows.
-  ///
-  /// You may include ?s in the where clause, which will be replaced by the
-  /// values from [whereArgs]
-  ///
-  /// [conflictAlgorithm] (optional) specifies algorithm to use in case of a
-  /// conflict. See [ConflictResolver] docs for more details
-  Future<int> update(String table, Map<String, dynamic> values,
-      {String where, List<dynamic> whereArgs, ConflictAlgorithm conflictAlgorithm}) async {
+  Future<List<Map<String, dynamic>>> rawQuery(String sql,
+      [List<dynamic> arguments]) async {
     Database db = await _db;
-    return db.update(table, values, where: where, whereArgs: whereArgs, conflictAlgorithm: conflictAlgorithm);
+    return db.rawQuery(sql, arguments);
   }
 
-  /// Convenience method for deleting rows in the database.
-  ///
-  /// Delete from [table]
-  ///
-  /// [where] is the optional WHERE clause to apply when updating. Passing null
-  /// will update all rows.
-  ///
-  /// You may include ?s in the where clause, which will be replaced by the
-  /// values from [whereArgs]
-  ///
-  /// [conflictAlgorithm] (optional) specifies algorithm to use in case of a
-  /// conflict. See [ConflictResolver] docs for more details
-  ///
-  /// Returns the number of rows affected if a whereClause is passed in, 0
-  /// otherwise. To remove all rows and get a count pass "1" as the
-  /// whereClause.
-  Future<int> delete(String table, {String where, List<dynamic> whereArgs}) async {
+
+  Future<int> update(String table, Map<String, dynamic> values,
+      {String where,
+      List<dynamic> whereArgs,
+      ConflictAlgorithm conflictAlgorithm}) async {
+    Database db = await _db;
+    return db.update(table, values,
+        where: where,
+        whereArgs: whereArgs,
+        conflictAlgorithm: conflictAlgorithm);
+  }
+
+  Future<int> delete(String table,
+      {String where, List<dynamic> whereArgs}) async {
     Database db = await _db;
     return db.delete(table, where: where, whereArgs: whereArgs);
   }
@@ -107,7 +93,8 @@ class DB {
   static Future<Database> _openDatabase() async {
     var databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'proxy.db');
-    return openDatabase(path, version: 3, onCreate: onCreate, onUpgrade: onUpgrade);
+    return openDatabase(path,
+        version: 4, onCreate: onCreate, onUpgrade: onUpgrade);
   }
 
   static Future<Database> database() async {
@@ -130,7 +117,8 @@ class DB {
     await ContactsRepo.onCreate(db, version);
   }
 
-  static Future<void> onUpgrade(Database database, int oldVersion, int newVersion) async {
+  static Future<void> onUpgrade(
+      Database database, int oldVersion, int newVersion) async {
     DB db = DB._internal(Future.value(database));
     await ProxyRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyKeyRepo.onUpgrade(db, oldVersion, newVersion);
@@ -143,11 +131,78 @@ class DB {
     await ContactsRepo.onUpgrade(db, oldVersion, newVersion);
   }
 
-  Future<void> addColumn({
+  Future<void> addColumns({
     @required String table,
-    @required String column,
+    @required Set<String> columns,
     @required String type,
-  }) {
-      return execute('ALTER TABLE $table ADD COLUMN $column $type');
+  }) async {
+
+    // Note: If table doesn't have any rows, this would be empty.
+    Set<String> existingColumns = {};
+    try {
+      List<Map<String, dynamic>> rows = await rawQuery("SELECT * FROM $table LIMIT 1");
+      existingColumns = rows.expand((m) => m.keys).toSet();
+    } catch (e) {
+      print('Failed to query $table to get list of columns');
+    }
+
+    // Add remaining Columns
+    columns.difference(existingColumns).forEach((c) async {
+      try {
+        await execute('ALTER TABLE $table ADD COLUMN $c $type');
+      } catch (e) {
+        print('Column $c additon failed, it might already exists');
+      }
+    });
   }
+
+  Future<void> addIndex({
+    @required String table,
+    @required List<String> columns, // This must be List to preserve order
+    @required String name,
+    @required bool unique,
+  }) async {
+    try {
+      await execute("CREATE ${unique ? "UNIQUE" : ""} INDEX "
+          "IF NOT EXISTS $name "
+          "ON $table(${columns.join(',')})");
+    } catch (e) {
+      print('Index $name additon failed, it might already exists');
+    }
+  }
+
+  Future<void> createTable({
+    @required String table,
+    @required String primaryKey,
+    Set<String> textColumns = const {},
+    Set<String> integerColumns = const {},
+    Set<String> realColumns = const {},
+  }) async {
+    Set<String> columns = {
+      ..._columns(textColumns, type: TEXT_TYPE, primaryKey: primaryKey),
+      ..._columns(integerColumns, type: INTEGER_TYPE, primaryKey: primaryKey),
+      ..._columns(realColumns, type: REAL_TYPE, primaryKey: primaryKey),
+    };
+    String statement =
+        "CREATE TABLE IF NOT EXISTS $table (" + columns.join(",") + ")";
+    await execute(statement);
+  }
+
+  Set<String> _columns(
+    Set<String> columns, {
+    @required String type,
+    @required String primaryKey,
+  }) {
+    return columns.map((c) {
+      if (c == primaryKey) {
+        return "$c $type PRIMARY KEY";
+      } else {
+        return "$c $type";
+      }
+    }).toSet();
+  }
+
+  static const String TEXT_TYPE = "TEXT";
+  static const String REAL_TYPE = "REAL";
+  static const String INTEGER_TYPE = "INTEGER";
 }

@@ -18,7 +18,11 @@ class ProxyAccountRepo {
       TABLE,
       columns: ALL_COLUMNS,
       where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
-      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
+      whereArgs: [
+        accountId.accountId,
+        accountId.bankId,
+        accountId.proxyUniverse
+      ],
     );
     if (rows.isNotEmpty) {
       return _rowToProxyAccountEntity(rows.first);
@@ -36,9 +40,13 @@ class ProxyAccountRepo {
   }
 
   ProxyAccountEntity _rowToProxyAccountEntity(Map<String, dynamic> row) {
+    print("Row To Account from $row");
     return ProxyAccountEntity(
       proxyUniverse: row[PROXY_UNIVERSE],
-      accountId: ProxyAccountId(accountId: row[ACCOUNT_ID], bankId: row[BANK_ID], proxyUniverse: row[PROXY_UNIVERSE]),
+      accountId: ProxyAccountId(
+          accountId: row[ACCOUNT_ID],
+          bankId: row[BANK_ID],
+          proxyUniverse: row[PROXY_UNIVERSE]),
       accountName: row[ACCOUNT_NAME],
       bankName: row[BANK_NAME],
       balance: Amount(row[CURRENCY], row[BALANCE]),
@@ -47,7 +55,8 @@ class ProxyAccountRepo {
     );
   }
 
-  static Future<int> _saveAccountInTransaction(Transaction transaction, ProxyAccountEntity proxyAccount) async {
+  static Future<int> _saveAccountInTransaction(
+      Transaction transaction, ProxyAccountEntity proxyAccount) async {
     ProxyAccountId accountId = proxyAccount.accountId;
     Map<String, dynamic> values = {
       PROXY_UNIVERSE: proxyAccount.proxyUniverse,
@@ -65,7 +74,11 @@ class ProxyAccountRepo {
       TABLE,
       values,
       where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
-      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
+      whereArgs: [
+        accountId.accountId,
+        accountId.bankId,
+        accountId.proxyUniverse
+      ],
     );
     if (updated == 0) {
       updated = await transaction.insert(TABLE, values);
@@ -74,7 +87,8 @@ class ProxyAccountRepo {
   }
 
   Future<int> saveAccount(ProxyAccountEntity proxyAccount) {
-    return db.transaction((transaction) => _saveAccountInTransaction(transaction, proxyAccount));
+    return db.transaction(
+        (transaction) => _saveAccountInTransaction(transaction, proxyAccount));
   }
 
   Future<int> deleteAccount(ProxyAccountEntity proxyAccount) {
@@ -82,7 +96,11 @@ class ProxyAccountRepo {
     return db.delete(
       TABLE,
       where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
-      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
+      whereArgs: [
+        accountId.accountId,
+        accountId.bankId,
+        accountId.proxyUniverse
+      ],
     );
   }
 
@@ -99,17 +117,36 @@ class ProxyAccountRepo {
 
   static const String SIGNED_PROXY_ACCOUNT = "account";
 
-  static const ALL_COLUMNS = [PROXY_UNIVERSE, ACCOUNT_ID, ACCOUNT_NAME, BANK_ID, BANK_NAME, CURRENCY, BALANCE, OWNER_PROXY_ID, OWNER_PROXY_SHA256, SIGNED_PROXY_ACCOUNT];
+  static const ALL_COLUMNS = [
+    PROXY_UNIVERSE,
+    ACCOUNT_ID,
+    ACCOUNT_NAME,
+    BANK_ID,
+    BANK_NAME,
+    CURRENCY,
+    BALANCE,
+    OWNER_PROXY_ID,
+    OWNER_PROXY_SHA256,
+    SIGNED_PROXY_ACCOUNT
+  ];
 
-  static Future<void> onCreate(DB db, int version) {
-    return db.execute('CREATE TABLE $TABLE ('
-        '$PROXY_UNIVERSE TEXT, '
-        '$ACCOUNT_ID TEXT PRIMARY KEY, $ACCOUNT_NAME TEXT, '
-        '$BANK_ID TEXT, $BANK_NAME TEXT, '
-        '$CURRENCY TEXT, $BALANCE DOUBLE, '
-        '$OWNER_PROXY_ID TEXT, $OWNER_PROXY_SHA256 TEXT, '
-        '$SIGNED_PROXY_ACCOUNT TEXT'
-        ')');
+  static Future<void> onCreate(DB db, int version) async {
+    await db.createTable(
+      table: TABLE,
+      primaryKey: ACCOUNT_ID,
+      textColumns: {
+        PROXY_UNIVERSE,
+        ACCOUNT_ID,
+        ACCOUNT_NAME,
+        BANK_ID,
+        BANK_NAME,
+        CURRENCY,
+        OWNER_PROXY_ID,
+        OWNER_PROXY_SHA256,
+        SIGNED_PROXY_ACCOUNT,
+      },
+      realColumns: {BALANCE},
+    );
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) {

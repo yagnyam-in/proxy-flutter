@@ -73,16 +73,23 @@ class ProxyRepo {
 
   static Future<void> onCreate(DB db, int version) async {
     print("onCreate($version)");
-    await db.execute(
-        'CREATE TABLE IF NOT EXISTS $TABLE ($ID TEXT PRIMARY KEY, $SHA_256 TEXT, $PROXY TEXT, $LAST_ACCESSED INTEGER)');
+    await db.createTable(
+      table: TABLE,
+      primaryKey: ID,
+      textColumns: {ID, SHA_256, PROXY},
+      integerColumns: {LAST_ACCESSED},
+    );
   }
 
   static Future<void> onUpgrade(DB db, int oldVersion, int newVersion) async {
     print("onUpgrade($oldVersion to $newVersion)");
     switch (oldVersion) {
       case 1:
-        await db.addColumn(
-            table: TABLE, column: LAST_ACCESSED, type: 'INTEGER');
+        await db.addColumns(
+          table: TABLE,
+          columns: {LAST_ACCESSED},
+          type: 'INTEGER',
+        );
         break;
     }
   }
