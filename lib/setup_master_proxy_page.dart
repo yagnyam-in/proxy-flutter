@@ -11,8 +11,8 @@ import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/proxy_key_store_impl.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
-import 'package:proxy_flutter/widgets/raised_button_with_icon.dart';
 import 'package:tuple/tuple.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
@@ -140,6 +140,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
           child: SetupProxyForm(
             setupProxyCallback: (String proxyId, String revocationPassPhrase) =>
                 setupMasterProxy(context, proxyId, revocationPassPhrase),
+            appConfiguration: widget.appConfiguration,
           ),
         ),
       ),
@@ -152,16 +153,17 @@ typedef SetupProxyCallback = void Function(
 
 class SetupProxyForm extends StatefulWidget {
   final SetupProxyCallback setupProxyCallback;
+  final AppConfiguration appConfiguration;
 
-  SetupProxyForm({@required this.setupProxyCallback, Key key})
+  SetupProxyForm({@required this.setupProxyCallback, @required this.appConfiguration, Key key})
       : super(key: key);
 
   @override
   _SetupProxyFormState createState() =>
-      _SetupProxyFormState(ServiceFactory.proxyIdFactory().proxyId());
+      _SetupProxyFormState(appConfiguration.firebaseUser.uid);
 }
 
-class _SetupProxyFormState extends State<SetupProxyForm> {
+class _SetupProxyFormState extends State<SetupProxyForm>  {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final FocusNode revocationPassPhraseFocusNode = FocusNode();
@@ -172,7 +174,7 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
   _SetupProxyFormState(String suggestedProxyId)
       : this.proxyIdController = TextEditingController(text: suggestedProxyId),
         this.revocationPassPhraseController =
-            TextEditingController(text: suggestedProxyId);
+            TextEditingController(text: RandomUtils.randomSecret(16));
 
   @override
   Widget build(BuildContext context) {
@@ -180,15 +182,15 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
 
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: ListView(
         children: <Widget>[
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 8.0),
           Text(
             localizations.masterProxyDescription,
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 8.0),
           TextFormField(
+            enabled: false,
             controller: proxyIdController,
             decoration: InputDecoration(
               labelText: localizations.proxyId,
@@ -200,11 +202,11 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
             onFieldSubmitted: (s) => FocusScope.of(context)
                 .requestFocus(revocationPassPhraseFocusNode),
           ),
-          const SizedBox(height: 32.0),
+          const SizedBox(height: 8.0),
           Text(
             localizations.revocationPassPhraseDescription,
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 8.0),
           TextFormField(
             controller: revocationPassPhraseController,
             focusNode: revocationPassPhraseFocusNode,
@@ -215,15 +217,14 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
             ),
             validator: (value) => _passphraseIdValidator(localizations, value),
           ),
-          const SizedBox(height: 32.0),
+          const SizedBox(height: 8.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               // const Spacer(),
-              RaisedButtonWithIcon.withSuffixIcon(
+              RaisedButton(
                 onPressed: _submit,
-                icon: Icon(Icons.navigate_next),
-                label: Text(localizations.setupProxyButtonLabel),
+                child: Text(localizations.setupProxyButtonLabel),
               ),
             ],
           ),

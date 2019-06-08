@@ -22,6 +22,7 @@ import 'package:proxy_flutter/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/profile_page.dart';
 import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
@@ -40,16 +41,18 @@ class BankingHome extends StatefulWidget {
 
   BankingHome({Key key, @required this.appConfiguration}) : super(key: key) {
     print("Constructing BankingHome");
+    assert(appConfiguration != null);
   }
 
   @override
   _BankingHomeState createState() {
-    return _BankingHomeState();
+    return _BankingHomeState(appConfiguration);
   }
 }
 
 class _BankingHomeState extends LoadingSupportState<BankingHome>
     with ProxyUtils {
+  final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final CustomerRepo _customerRepo = ServiceFactory.customerRepo();
   final ProxyAccountsBloc _proxyAccountsBloc =
@@ -58,9 +61,11 @@ class _BankingHomeState extends LoadingSupportState<BankingHome>
   final WithdrawalService _withdrawalService =
       BankingServiceFactory.withdrawalService();
   final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
-  final DepositService _depositService = BankingServiceFactory.depositService();
+  final DepositService _depositService;
   final PaymentAuthorizationService _paymentAuthorizationService =
       BankingServiceFactory.paymentAuthorizationService();
+
+  _BankingHomeState(this.appConfiguration) : _depositService = BankingServiceFactory.depositService(appConfiguration);
 
   @override
   void initState() {
@@ -457,7 +462,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome>
       currency: proxyAccount?.currency,
       payees: [
         PaymentAuthorizationPayeeInput(
-          secret: _paymentAuthorizationService.randomSecret(),
+          secret: RandomUtils.randomSecret(),
         ),
       ],
     );

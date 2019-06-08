@@ -4,12 +4,11 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/banking_home.dart';
 import 'package:proxy_flutter/banking/event_page.dart';
+import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
-import 'package:proxy_flutter/model/event_entity.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/setup_master_proxy_page.dart';
-import 'package:proxy_flutter/terms_and_conditions.dart';
 
 import 'modify_proxy_page.dart';
 import 'widgets/basic_types.dart';
@@ -28,12 +27,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final AppConfiguration appConfiguration;
 
   bool _showWelcomePages = true;
-  bool _termsAndConditionsAccepted = false;
   bool _masterProxySetup = false;
 
   _HomePageState(this.appConfiguration) {
     _showWelcomePages = appConfiguration.showWelcomePages;
-    _termsAndConditionsAccepted = appConfiguration.termsAndConditionsAccepted;
     _masterProxySetup = appConfiguration.masterProxyId != null;
   }
 
@@ -59,8 +56,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Future<void> _handleDynamicLinks() async {
-    final PendingDynamicLinkData data =
-        await FirebaseDynamicLinks.instance.retrieveDynamicLink();
+    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
     Uri link = data?.link;
     if (link == null) return;
     print('link.path = ${link.path}');
@@ -70,23 +66,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _depositStatus(link.queryParameters);
     } else if (link.path == '/actions/accept-payment') {
       _acceptPayment(link.queryParameters);
+    } else {
+      print('ignoring $link');
     }
   }
 
   Future<void> _addProxy(Map<String, String> query) async {
     print("Launching dialog to add proxy with $query");
-    ProxyId proxyId =
-        nullIfError(() => ProxyId(query['id'], query['sha256Thumbprint']));
+    ProxyId proxyId = nullIfError(() => ProxyId(query['id'], query['sha256Thumbprint']));
     if (proxyId == null) {
       return null;
     }
-    ContactEntity existingContact =
-        await ServiceFactory.contactsRepo().fetchContact(proxyId);
+    ContactEntity existingContact = await ServiceFactory.contactsRepo().fetchContact(proxyId);
     await Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) =>
-            ModifyProxyPage(existingContact ?? ContactEntity(proxyId: proxyId)),
+        builder: (context) => ModifyProxyPage(existingContact ?? ContactEntity(proxyId: proxyId)),
         fullscreenDialog: true,
       ),
     );
@@ -96,8 +91,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     print("Launching dialog to show deposit status $query");
     String proxyUniverse = query['proxyUniverse'];
     String depositId = query['depositId'];
-    EventEntity deposit = await ServiceFactory.eventRepo()
-        .fetchEvent(proxyUniverse, EventType.Deposit, depositId);
+    EventEntity deposit = await ServiceFactory.eventRepo().fetchEvent(proxyUniverse, EventType.Deposit, depositId);
     if (deposit == null) {
       print("Couldn't find deposit for $query");
       return null;
@@ -105,7 +99,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     await Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => EventPage.forEvent(deposit),
+        builder: (context) => EventPage.forEvent(appConfiguration, deposit),
         fullscreenDialog: true,
       ),
     );
@@ -115,8 +109,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     print("Launching dialog to accept payment $query");
     String proxyUniverse = query['proxyUniverse'];
     String paymentAuthorizationId = query['paymentAuthorizationId'];
-    EventEntity payment = await ServiceFactory.eventRepo()
-        .fetchEvent(proxyUniverse, EventType.Payment, paymentAuthorizationId);
+    EventEntity payment =
+        await ServiceFactory.eventRepo().fetchEvent(proxyUniverse, EventType.Payment, paymentAuthorizationId);
     if (payment == null) {
       print("Couldn't find payment for $query");
       await Navigator.push(
@@ -124,7 +118,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         new MaterialPageRoute(
           builder: (context) => AcceptPaymentPage(
                 proxyUniverse: proxyUniverse,
-            paymentAuthorizationId: paymentAuthorizationId,
+                paymentAuthorizationId: paymentAuthorizationId,
               ),
           fullscreenDialog: true,
         ),
@@ -133,7 +127,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       await Navigator.push(
         context,
         new MaterialPageRoute(
-          builder: (context) => EventPage.forEvent(payment),
+          builder: (context) => EventPage.forEvent(appConfiguration, payment),
           fullscreenDialog: true,
         ),
       );
@@ -142,12 +136,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    if (!_termsAndConditionsAccepted) {
-      return TermsAndConditionsPage(
-        appConfiguration: appConfiguration,
-        termsAndConditionsAcceptedCallback: termsAndConditionsAcceptedCallback,
-      );
-    } else if (!_masterProxySetup) {
+    if (!_masterProxySetup) {
       return SetupMasterProxyPage(
         appConfiguration: appConfiguration,
         setupMasterProxyCallback: setupMasterProxyCallback,
@@ -163,14 +152,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     setState(() {
       _showWelcomePages = false;
       widget.appConfiguration.showWelcomePages = _showWelcomePages;
-    });
-  }
-
-  void termsAndConditionsAcceptedCallback() {
-    setState(() {
-      _termsAndConditionsAccepted = true;
-      widget.appConfiguration.termsAndConditionsAccepted =
-          _termsAndConditionsAccepted;
     });
   }
 

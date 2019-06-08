@@ -1,30 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/utils/conversion_utils.dart';
 import 'package:proxy_messages/banking.dart';
 
+part 'withdrawal_entity.g.dart';
+
+@JsonSerializable()
 class WithdrawalEntity {
   static final Set<WithdrawalStatusEnum> cancellableStatuses = Set.of([
     WithdrawalStatusEnum.Registered,
     WithdrawalStatusEnum.FailedInTransit,
   ]);
 
+  @JsonKey(nullable: false)
   final int id;
+
+  @JsonKey(nullable: false)
   final String proxyUniverse;
+
+  @JsonKey(nullable: false)
   final String withdrawalId;
+
+  @JsonKey(nullable: false)
   final DateTime creationTime;
+
+  @JsonKey(nullable: false)
   final DateTime lastUpdatedTime;
+
+  @JsonKey(nullable: false)
   final bool completed;
+
+  @JsonKey(nullable: false)
   final WithdrawalStatusEnum status;
+
+  @JsonKey(nullable: false)
   final Amount amount;
+
+  @JsonKey(nullable: false)
   final ProxyAccountId payerAccountId;
+
+  @JsonKey(nullable: false)
   final int receivingAccountId;
+
+  @JsonKey(nullable: false)
   final String destinationAccountNumber;
+
+  @JsonKey(nullable: false)
   final String destinationAccountBank;
+
+  @JsonKey(nullable: false)
   final ProxyId payerProxyId;
+
+  @JsonKey(nullable: false)
   final String signedWithdrawalRequestJson;
+
   SignedMessage<Withdrawal> _signedWithdrawal;
 
   WithdrawalEntity({
@@ -74,6 +106,9 @@ class WithdrawalEntity {
     );
   }
 
+  Map<String, dynamic> toJson() => _$WithdrawalEntityToJson(this);
+
+  static WithdrawalEntity fromJson(Map<String, dynamic> json) => _$WithdrawalEntityFromJson(json);
 
   static WithdrawalStatusEnum stringToWithdrawalStatus(
       String value, {

@@ -5,7 +5,7 @@ import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/event_entity.dart';
+import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/services/event_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -135,7 +135,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
     Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => EventPage.forEvent(event),
+        builder: (context) => EventPage.forEvent(widget.appConfiguration, event),
       ),
     );
   }
@@ -151,7 +151,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
   Future<void> _refreshEvent(BuildContext context, EventEntity event) async {
     switch (event.eventType) {
       case EventType.Deposit:
-        await BankingServiceFactory.depositService().refreshDepositStatus(
+        await BankingServiceFactory.depositService(widget.appConfiguration).refreshDepositStatus(
           proxyUniverse: event.proxyUniverse,
           depositId: (event as DepositEvent).depositId,
         );
@@ -161,7 +161,6 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
           proxyUniverse: event.proxyUniverse,
           withdrawalId: (event as WithdrawalEvent).withdrawalId,
         );
-        break;
         break;
       default:
         print("Not yet handled");

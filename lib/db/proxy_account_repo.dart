@@ -18,11 +18,7 @@ class ProxyAccountRepo {
       TABLE,
       columns: ALL_COLUMNS,
       where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
-      whereArgs: [
-        accountId.accountId,
-        accountId.bankId,
-        accountId.proxyUniverse
-      ],
+      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
     );
     if (rows.isNotEmpty) {
       return _rowToProxyAccountEntity(rows.first);
@@ -43,20 +39,19 @@ class ProxyAccountRepo {
     print("Row To Account from $row");
     return ProxyAccountEntity(
       proxyUniverse: row[PROXY_UNIVERSE],
-      accountId: ProxyAccountId(
-          accountId: row[ACCOUNT_ID],
-          bankId: row[BANK_ID],
-          proxyUniverse: row[PROXY_UNIVERSE]),
+      accountId: ProxyAccountId(accountId: row[ACCOUNT_ID], bankId: row[BANK_ID], proxyUniverse: row[PROXY_UNIVERSE]),
       accountName: row[ACCOUNT_NAME],
       bankName: row[BANK_NAME],
-      balance: Amount(row[CURRENCY], row[BALANCE]),
+      balance: Amount(
+        currency: row[CURRENCY],
+        value: row[BALANCE],
+      ),
       signedProxyAccountJson: row[SIGNED_PROXY_ACCOUNT],
       ownerProxyId: new ProxyId(row[OWNER_PROXY_ID], row[OWNER_PROXY_SHA256]),
     );
   }
 
-  static Future<int> _saveAccountInTransaction(
-      Transaction transaction, ProxyAccountEntity proxyAccount) async {
+  static Future<int> _saveAccountInTransaction(Transaction transaction, ProxyAccountEntity proxyAccount) async {
     ProxyAccountId accountId = proxyAccount.accountId;
     Map<String, dynamic> values = {
       PROXY_UNIVERSE: proxyAccount.proxyUniverse,
@@ -74,11 +69,7 @@ class ProxyAccountRepo {
       TABLE,
       values,
       where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
-      whereArgs: [
-        accountId.accountId,
-        accountId.bankId,
-        accountId.proxyUniverse
-      ],
+      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
     );
     if (updated == 0) {
       updated = await transaction.insert(TABLE, values);
@@ -87,8 +78,7 @@ class ProxyAccountRepo {
   }
 
   Future<int> saveAccount(ProxyAccountEntity proxyAccount) {
-    return db.transaction(
-        (transaction) => _saveAccountInTransaction(transaction, proxyAccount));
+    return db.transaction((transaction) => _saveAccountInTransaction(transaction, proxyAccount));
   }
 
   Future<int> deleteAccount(ProxyAccountEntity proxyAccount) {
@@ -96,11 +86,7 @@ class ProxyAccountRepo {
     return db.delete(
       TABLE,
       where: '$ACCOUNT_ID = ? AND $BANK_ID = ? AND $PROXY_UNIVERSE = ?',
-      whereArgs: [
-        accountId.accountId,
-        accountId.bankId,
-        accountId.proxyUniverse
-      ],
+      whereArgs: [accountId.accountId, accountId.bankId, accountId.proxyUniverse],
     );
   }
 

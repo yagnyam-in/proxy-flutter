@@ -6,6 +6,7 @@ import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
@@ -97,7 +98,9 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
       BankingServiceFactory.withdrawalService().processWithdrawalUpdate(alert);
     } else if (type == DepositUpdatedAlert.ALERT_TYPE) {
       DepositUpdatedAlert alert = DepositUpdatedAlert.fromJson(data);
-      BankingServiceFactory.depositService().processDepositUpdate(alert);
+      if (AppConfiguration.instance() != null) {
+        BankingServiceFactory.depositService(AppConfiguration.instance()).processDepositUpdate(alert);
+      }
     }
     return null;
   }

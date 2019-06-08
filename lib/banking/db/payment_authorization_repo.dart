@@ -123,8 +123,8 @@ class PaymentAuthorizationRepo {
             .toLocal(),
         status: _stringToAuthorizationStatus(row[STATUS]),
         amount: Amount(
-          row[AMOUNT_CURRENCY],
-          row[AMOUNT_VALUE],
+          currency: row[AMOUNT_CURRENCY],
+          value: row[AMOUNT_VALUE],
         ),
         payerAccountId: ProxyAccountId(
           accountId: row[PAYER_PROXY_ACCOUNT_ID],

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:proxy_messages/banking.dart';
 
 import 'l10n/messages_all.dart';
 
@@ -127,7 +128,7 @@ class ProxyLocalizations {
 
   String get readTermsAndConditions {
     return Intl.message(
-      'Before accepting, please go through full Terms & Conditions at ',
+      'Also accept Terms & Conditions mentioned at ',
       name: 'readTermsAndConditions',
       desc: 'I agree terms & conditions',
     );
@@ -913,6 +914,36 @@ class ProxyLocalizations {
     desc: 'Invalid Secret',
   );
 
+  String get depositNotFound => Intl.message(
+    'Deposit not found',
+    name: 'depositNotFound',
+    desc: 'Deposit not found',
+  );
+
+  String amountDisplayMessage({double value, String currency}) => Intl.message(
+    '$value $currency',
+    name: 'amountDisplayMessage',
+    args: [value, currency],
+    desc: 'Amount as String',
+  );
+
+  String get shareDeposit => Intl.message('Share');
+
+  String get loginPageTitle => Intl.message('Login');
+
+  String get loginButtonLabel => Intl.message('Login');
+
+  String get emailInputLabel => Intl.message('Email');
+
+  String get loginPageDescription {
+    return Intl.message(
+      'Please verify your email address before proceeding further.',
+    );
+  }
+
+  String get loginFailedMessage => Intl.message('Login Failed');
+
+  String get checkYourMailForLoginLink => Intl.message('Mail sent with login link, login through the link.');
 
 }
 

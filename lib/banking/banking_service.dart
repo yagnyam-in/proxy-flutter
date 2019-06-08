@@ -30,8 +30,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.proxyAccountsBloc,
     @required this.enticementBloc,
     @required this.proxyKeyRepo,
-  })  : proxyBankingUrl =
-            proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
+  })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
@@ -45,9 +44,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
   }
 
   Future<ProxyAccountEntity> createProxyWallet(
-      {@required ProxyId ownerProxyId,
-      @required String proxyUniverse,
-      @required String currency}) async {
+      {@required ProxyId ownerProxyId, @required String proxyUniverse, @required String currency}) async {
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
@@ -67,13 +64,11 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<ProxyWalletCreationResponse> signedResponse =
-        await messageFactory.buildAndVerifySignedMessage(
-            jsonResponse, ProxyWalletCreationResponse.fromJson);
+        await messageFactory.buildAndVerifySignedMessage(jsonResponse, ProxyWalletCreationResponse.fromJson);
     return _saveAccount(ownerProxyId, signedResponse);
   }
 
-  ProxyAccountEntity _saveAccount(ProxyId ownerProxyId,
-      SignedMessage<ProxyWalletCreationResponse> signedResponse) {
+  ProxyAccountEntity _saveAccount(ProxyId ownerProxyId, SignedMessage<ProxyWalletCreationResponse> signedResponse) {
     ProxyWalletCreationResponse response = signedResponse.message;
     ProxyAccount proxyAccount = response.proxyAccount.message;
     ProxyAccountId proxyAccountId = proxyAccount.proxyAccountId;
@@ -82,7 +77,10 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       accountId: proxyAccountId,
       accountName: "",
       bankName: "Wallet - ${proxyAccountId.proxyUniverse}",
-      balance: Amount(proxyAccount.currency, 0),
+      balance: Amount(
+        currency: proxyAccount.currency,
+        value: 0,
+      ),
       ownerProxyId: ownerProxyId,
       signedProxyAccountJson: jsonEncode(response.proxyAccount.toJson()),
     );
@@ -93,21 +91,18 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   Future<void> refreshAccount(ProxyAccountId accountId) async {
     print('Refreshing $accountId');
-    ProxyAccountEntity proxyAccount =
-        await proxyAccountsBloc.fetchAccount(accountId);
+    ProxyAccountEntity proxyAccount = await proxyAccountsBloc.fetchAccount(accountId);
     if (proxyAccount == null) {
       // This can happen when alert reaches earlier than API response, or account is removed.
       print("Account $proxyAccount not found");
       return null;
     }
-    ProxyKey proxyKey =
-        await proxyKeyRepo.fetchProxyKey(proxyAccount.ownerProxyId);
+    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(proxyAccount.ownerProxyId);
     AccountBalanceRequest request = AccountBalanceRequest(
       requestId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,
     );
-    SignedMessage<AccountBalanceRequest> signedRequest =
-        await messageSigningService.signMessage(request, proxyKey);
+    SignedMessage<AccountBalanceRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
     print("Sending $signedRequestJson to $proxyBankingUrl");
     String jsonResponse = await post(
@@ -117,8 +112,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<AccountBalanceResponse> signedResponse =
-        await messageFactory.buildAndVerifySignedMessage(
-            jsonResponse, AccountBalanceResponse.fromJson);
+        await messageFactory.buildAndVerifySignedMessage(jsonResponse, AccountBalanceResponse.fromJson);
     proxyAccount.balance = signedResponse.message.balance;
     print("Account $accountId has balance => ${proxyAccount.balance}");
     proxyAccountsBloc.saveAccount(proxyAccount);

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/utils/conversion_utils.dart';
 import 'package:proxy_flutter/widgets/basic_types.dart';
 
-import '../localizations.dart';
 
 enum EventType { Unknown, Deposit, Withdraw, Payment, Fx }
 
@@ -16,6 +17,7 @@ class EventAction {
       {@required this.title, @required this.icon, @required this.action});
 }
 
+@JsonSerializable()
 abstract class EventEntity {
   static const String PROXY_UNIVERSE = "proxyUniverse";
   static const String ID = "id";
@@ -40,12 +42,25 @@ abstract class EventEntity {
   static const String WITHDRAWAL_DESTINATION_ACCOUNT_BANK = "withdrawalDestAccountBank";
 
 
+  @JsonKey(nullable: false)
   final int id;
+
+  @JsonKey(nullable: false)
   final String proxyUniverse;
+
+  @JsonKey(nullable: false)
   final EventType eventType;
+
+  @JsonKey(nullable: false)
   final String eventId;
+
+  @JsonKey(nullable: false)
   final DateTime creationTime;
+
+  @JsonKey(nullable: false)
   final DateTime lastUpdatedTime;
+
+  @JsonKey(nullable: false)
   final bool completed;
 
   EventEntity({
@@ -103,13 +118,15 @@ abstract class EventEntity {
     );
   }
 
+  Map<String, dynamic> toJson();
+
   String getTitle(ProxyLocalizations localizations);
 
   String getSubTitle(ProxyLocalizations localizations);
 
-  String getStatus(ProxyLocalizations localizations);
+  String getStatusAsText(ProxyLocalizations localizations);
 
-  String getAmountText(ProxyLocalizations localizations);
+  String getAmountAsText(ProxyLocalizations localizations);
 
   IconData icon();
 

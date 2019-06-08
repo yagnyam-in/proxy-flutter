@@ -1,18 +1,26 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:proxy_core/core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
-  static const String TermsAndConditionsAccepted =
-      "termsAndConditionsAcceptedV0";
   static const String MasterProxyId = "masterProxyId";
   static const String CustomerName = "customerName";
 
-  final SharedPreferences preferences;
+  static AppConfiguration _instance;
+  static AppConfiguration instance() => _instance;
+  static AppConfiguration setInstance(AppConfiguration appConfig) {
+    _instance = appConfig;
+    return appConfig;
+  }
 
-  AppConfiguration({@required this.preferences}) {
+  final SharedPreferences preferences;
+  final FirebaseUser firebaseUser;
+
+  AppConfiguration({@required this.preferences, @required this.firebaseUser}) {
     assert(preferences != null);
+    assert(firebaseUser != null);
   }
 
   bool get showWelcomePages {
@@ -22,15 +30,6 @@ class AppConfiguration {
 
   set showWelcomePages(bool value) {
     preferences.setBool(ShowWelcomePages, value);
-  }
-
-  bool get termsAndConditionsAccepted {
-    bool show = preferences.getBool(TermsAndConditionsAccepted);
-    return show != null && show;
-  }
-
-  set termsAndConditionsAccepted(bool value) {
-    preferences.setBool(TermsAndConditionsAccepted, value);
   }
 
   ProxyId get masterProxyId {

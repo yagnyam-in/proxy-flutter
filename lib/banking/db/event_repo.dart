@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/db/db.dart';
-import 'package:proxy_flutter/model/event_entity.dart';
+import 'package:proxy_flutter/banking/model/event_entity.dart';
 
 class EventRepo {
   final DB db;

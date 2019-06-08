@@ -58,32 +58,29 @@ class DepositRepo {
         DEPOSIT_ID: deposit.depositId,
         COMPLETED: ConversionUtils.boolToInt(deposit.completed),
         CREATION_TIME: ConversionUtils.dateTimeToInt(deposit.creationTime),
-        LAST_UPDATED_TIME:
-            ConversionUtils.dateTimeToInt(deposit.lastUpdatedTime),
+        LAST_UPDATED_TIME: ConversionUtils.dateTimeToInt(deposit.lastUpdatedTime),
         STATUS: DepositEntity.depositStatusToString(deposit.status),
         AMOUNT_CURRENCY: deposit.amount.currency,
         AMOUNT_VALUE: deposit.amount.value,
-        DESTINATION_PROXY_ACCOUNT_ID:
-            deposit.destinationProxyAccountId.accountId,
-        DESTINATION_PROXY_ACCOUNT_BANK_ID:
-            deposit.destinationProxyAccountId.bankId,
-        DESTINATION_PROXY_ACCOUNT_OWNER_PROXY_ID:
-            deposit.destinationProxyAccountOwnerProxyId.id,
-        DESTINATION_PROXY_ACCOUNT_OWNER_PROXY_SHA:
-            deposit.destinationProxyAccountOwnerProxyId.sha256Thumbprint,
+        DESTINATION_PROXY_ACCOUNT_ID: deposit.destinationProxyAccountId.accountId,
+        DESTINATION_PROXY_ACCOUNT_BANK_ID: deposit.destinationProxyAccountId.bankId,
+        DESTINATION_PROXY_ACCOUNT_OWNER_PROXY_ID: deposit.destinationProxyAccountOwnerProxyId.id,
+        DESTINATION_PROXY_ACCOUNT_OWNER_PROXY_SHA: deposit.destinationProxyAccountOwnerProxyId.sha256Thumbprint,
         DEPOSIT_LINK: deposit.depositLink,
         SIGNED_DEPOSIT_REQUEST: deposit.signedDepositRequestJson,
       };
 
-  static DepositEntity _rowToDeposit(Map<dynamic, dynamic> row) =>
-      DepositEntity(
+  static DepositEntity _rowToDeposit(Map<dynamic, dynamic> row) => DepositEntity(
         id: row[ID],
         proxyUniverse: row[PROXY_UNIVERSE],
         depositId: row[DEPOSIT_ID],
         status: DepositEntity.stringToDepositStatus(row[STATUS]),
         creationTime: ConversionUtils.intToDateTime(row[CREATION_TIME]),
         lastUpdatedTime: ConversionUtils.intToDateTime(row[LAST_UPDATED_TIME]),
-        amount: Amount(row[AMOUNT_CURRENCY], row[AMOUNT_VALUE]),
+        amount: Amount(
+          currency: row[AMOUNT_CURRENCY],
+          value: row[AMOUNT_VALUE],
+        ),
         destinationProxyAccountId: ProxyAccountId(
           accountId: row[DESTINATION_PROXY_ACCOUNT_ID],
           bankId: row[DESTINATION_PROXY_ACCOUNT_BANK_ID],
@@ -112,8 +109,7 @@ class DepositRepo {
   static const String AMOUNT_CURRENCY = "amountCurrency";
 
   static const String DESTINATION_PROXY_ACCOUNT_OWNER_PROXY_ID = "ownerProxyId";
-  static const String DESTINATION_PROXY_ACCOUNT_OWNER_PROXY_SHA =
-      "ownerProxySha";
+  static const String DESTINATION_PROXY_ACCOUNT_OWNER_PROXY_SHA = "ownerProxySha";
 
   static const String DESTINATION_PROXY_ACCOUNT_ID = "proxyAccountId";
   static const String DESTINATION_PROXY_ACCOUNT_BANK_ID = "proxyAccountBankId";

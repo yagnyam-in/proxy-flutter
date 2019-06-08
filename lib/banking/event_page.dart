@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/event_entity.dart';
+import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/services/event_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -10,26 +11,28 @@ import 'package:proxy_flutter/widgets/loading.dart';
 import 'event_actions.dart';
 
 class EventPage extends StatefulWidget {
+  final AppConfiguration appConfiguration;
   final EventEntity event;
 
-  const EventPage._internal(this.event, {Key key}) : super(key: key);
+  const EventPage._internal(this.appConfiguration, this.event, {Key key}) : super(key: key);
 
-  factory EventPage.forEvent(EventEntity event, {Key key}) {
-    return EventPage._internal(event, key: key);
+  factory EventPage.forEvent(AppConfiguration appConfiguration, EventEntity event, {Key key}) {
+    return EventPage._internal(appConfiguration, event, key: key);
   }
 
   @override
   EventPageState createState() {
-    return EventPageState(event);
+    return EventPageState(appConfiguration, event);
   }
 }
 
 class EventPageState extends LoadingSupportState<EventPage> {
+  final AppConfiguration appConfiguration;
   final EventEntity event;
   final EventBloc eventBloc = ServiceFactory.eventBloc();
-  final EventActions eventActions = BankingServiceFactory.eventActions();
+  final EventActions eventActions;
 
-  EventPageState(this.event);
+  EventPageState(this.appConfiguration, this.event) : eventActions = BankingServiceFactory.eventActions(appConfiguration);
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +86,7 @@ class EventPageState extends LoadingSupportState<EventPage> {
       const SizedBox(height: 8.0),
       Center(
         child: Text(
-          event.getAmountText(localizations),
+          event.getAmountAsText(localizations),
           style: themeData.textTheme.title,
         ),
       ),
@@ -96,7 +99,7 @@ class EventPageState extends LoadingSupportState<EventPage> {
       const SizedBox(height: 8.0),
       Center(
         child: Text(
-          latestEvent?.getStatus(localizations) ?? localizations.eventDeleted,
+          latestEvent?.getStatusAsText(localizations) ?? localizations.eventDeleted,
           style: themeData.textTheme.title,
         ),
       ),

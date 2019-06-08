@@ -12,8 +12,7 @@ class WithdrawalRepo {
 
   WithdrawalRepo._instance(this.db);
 
-  factory WithdrawalRepo.instance(DB database) =>
-      WithdrawalRepo._instance(database);
+  factory WithdrawalRepo.instance(DB database) => WithdrawalRepo._instance(database);
 
   Future<WithdrawalEntity> fetchWithdrawal({
     @required String proxyUniverse,
@@ -59,8 +58,7 @@ class WithdrawalRepo {
         WITHDRAWAL_ID: withdrawal.withdrawalId,
         COMPLETED: ConversionUtils.boolToInt(withdrawal.completed),
         CREATION_TIME: ConversionUtils.dateTimeToInt(withdrawal.creationTime),
-        LAST_UPDATED_TIME:
-            ConversionUtils.dateTimeToInt(withdrawal.lastUpdatedTime),
+        LAST_UPDATED_TIME: ConversionUtils.dateTimeToInt(withdrawal.lastUpdatedTime),
         STATUS: WithdrawalEntity.withdrawalStatusToString(withdrawal.status),
         AMOUNT_CURRENCY: withdrawal.amount.currency,
         AMOUNT_VALUE: withdrawal.amount.value,
@@ -74,15 +72,17 @@ class WithdrawalRepo {
         SIGNED_WITHDRAWAL_REQUEST: withdrawal.signedWithdrawalRequestJson,
       };
 
-  static WithdrawalEntity _rowToWithdrawal(Map<dynamic, dynamic> row) =>
-      WithdrawalEntity(
+  static WithdrawalEntity _rowToWithdrawal(Map<dynamic, dynamic> row) => WithdrawalEntity(
         id: row[ID],
         proxyUniverse: row[PROXY_UNIVERSE],
         withdrawalId: row[WITHDRAWAL_ID],
         status: WithdrawalEntity.stringToWithdrawalStatus(row[STATUS]),
         creationTime: ConversionUtils.intToDateTime(row[CREATION_TIME]),
         lastUpdatedTime: ConversionUtils.intToDateTime(row[LAST_UPDATED_TIME]),
-        amount: Amount(row[AMOUNT_CURRENCY], row[AMOUNT_VALUE]),
+        amount: Amount(
+          currency: row[AMOUNT_CURRENCY],
+          value: row[AMOUNT_VALUE],
+        ),
         payerAccountId: ProxyAccountId(
           accountId: row[PAYER_PROXY_ACCOUNT_ID],
           bankId: row[PAYER_PROXY_ACCOUNT_BANK_ID],

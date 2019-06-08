@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/event_entity.dart';
+import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
+part 'deposit_event.g.dart';
+
+@JsonSerializable()
 class DepositEvent extends EventEntity with ProxyUtils {
+  @JsonKey(nullable: false)
   final DepositStatusEnum status;
+
+  @JsonKey(nullable: false)
   final Amount amount;
+
+  @JsonKey(nullable: false)
   final ProxyAccountId destinationProxyAccountId;
+
+  @JsonKey(nullable: false)
   final String depositLink;
 
   String get depositId => eventId;
 
   DepositEvent({
+    EventType eventType = EventType.Deposit, // Required for Json
     int id,
     @required String proxyUniverse,
     @required DateTime creationTime,
@@ -27,13 +39,15 @@ class DepositEvent extends EventEntity with ProxyUtils {
     this.depositLink,
   }) : super(
           id: id,
-          eventType: EventType.Deposit,
+          eventType: eventType,
           proxyUniverse: proxyUniverse,
           eventId: depositId,
           creationTime: creationTime,
           lastUpdatedTime: lastUpdatedTime,
           completed: completed,
-        );
+        ) {
+    assert(eventType == EventType.Deposit);
+  }
 
   @override
   Map<String, dynamic> toRow() {
@@ -41,17 +55,17 @@ class DepositEvent extends EventEntity with ProxyUtils {
     row[EventEntity.DEPOSIT_STATUS] = DepositEntity.depositStatusToString(status);
     row[EventEntity.DEPOSIT_AMOUNT_CURRENCY] = amount.currency;
     row[EventEntity.DEPOSIT_AMOUNT_VALUE] = amount.value;
-    row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_ID] =
-        destinationProxyAccountId.accountId;
-    row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_BANK_ID] =
-        destinationProxyAccountId.bankId;
+    row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_ID] = destinationProxyAccountId.accountId;
+    row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_BANK_ID] = destinationProxyAccountId.bankId;
     row[EventEntity.DEPOSIT_LINK] = depositLink;
     return row;
   }
 
   DepositEvent.fromRow(Map<dynamic, dynamic> row)
-      : amount = Amount(row[EventEntity.DEPOSIT_AMOUNT_CURRENCY],
-            row[EventEntity.DEPOSIT_AMOUNT_VALUE]),
+      : amount = Amount(
+          currency: row[EventEntity.DEPOSIT_AMOUNT_CURRENCY],
+          value: row[EventEntity.DEPOSIT_AMOUNT_VALUE],
+        ),
         destinationProxyAccountId = ProxyAccountId(
             accountId: row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_ID],
             bankId: row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_BANK_ID],
@@ -64,15 +78,15 @@ class DepositEvent extends EventEntity with ProxyUtils {
         super.fromRow(row);
 
   factory DepositEvent.fromDepositEntity(DepositEntity depositEntity) => DepositEvent(
-    proxyUniverse: depositEntity.proxyUniverse,
-    depositId: depositEntity.depositId,
-    creationTime: depositEntity.creationTime,
-    lastUpdatedTime: DateTime.now(),
-    amount: depositEntity.amount,
-    status: depositEntity.status,
-    destinationProxyAccountId: depositEntity.destinationProxyAccountId,
-    completed: depositEntity.completed,
-  );
+        proxyUniverse: depositEntity.proxyUniverse,
+        depositId: depositEntity.depositId,
+        creationTime: depositEntity.creationTime,
+        lastUpdatedTime: DateTime.now(),
+        amount: depositEntity.amount,
+        status: depositEntity.status,
+        destinationProxyAccountId: depositEntity.destinationProxyAccountId,
+        completed: depositEntity.completed,
+      );
 
   DepositEvent copyFromDepositEntity(DepositEntity depositEntity) {
     return copy(
@@ -82,7 +96,6 @@ class DepositEvent extends EventEntity with ProxyUtils {
       status: status ?? this.status,
     );
   }
-
 
   DepositEvent copy({
     int id,
@@ -105,21 +118,25 @@ class DepositEvent extends EventEntity with ProxyUtils {
     );
   }
 
+  @override
+  Map<String, dynamic> toJson() => _$DepositEventToJson(this);
+
+  static DepositEvent fromJson(Map<String, dynamic> json) => _$DepositEventFromJson(json);
+
   String getTitle(ProxyLocalizations localizations) {
     return localizations.depositEventTitle;
   }
 
   String getSubTitle(ProxyLocalizations localizations) {
-    return localizations
-        .depositEventSubTitle(destinationProxyAccountId.accountId);
+    return localizations.depositEventSubTitle(destinationProxyAccountId.accountId);
   }
 
-  String getAmountText(ProxyLocalizations localizations) {
+  String getAmountAsText(ProxyLocalizations localizations) {
     return '${amount.value} ${Currency.currencySymbol(amount.currency)}';
   }
 
-  String getStatus(ProxyLocalizations localizations) {
-    return DepositEntity.statusDisplayMessage(localizations, status);
+  String getStatusAsText(ProxyLocalizations localizations) {
+    return DepositEntity.statusAsText(localizations, status);
   }
 
   IconData icon() {
@@ -127,11 +144,10 @@ class DepositEvent extends EventEntity with ProxyUtils {
   }
 
   bool isCancellable() {
-    return DepositEntity.cancellableStatuses.contains(status);
+    return DepositEntity.cancelPossibleStatuses.contains(status);
   }
 
   bool isDepositPossible() {
-    return DepositEntity.depositPossibleStatuses.contains(status) &&
-        isNotEmpty(depositLink);
+    return DepositEntity.depositPossibleStatuses.contains(status) && isNotEmpty(depositLink);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/constants.dart';
 import 'package:proxy_flutter/url_config.dart';
 
 class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
@@ -19,7 +20,7 @@ class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
       uriPrefix: UrlConfig.DYNAMIC_LINK_PREFIX,
       link: link,
       androidParameters: AndroidParameters(
-        packageName: 'in.yagnyam.proxy',
+        packageName: Constants.ANDROID_PACKAGE_NAME,
       ),
       socialMetaTagParameters: SocialMetaTagParameters(
         title: title,

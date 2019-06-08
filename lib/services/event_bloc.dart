@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:proxy_flutter/db/event_repo.dart';
-import 'package:proxy_flutter/model/event_entity.dart';
+import 'package:proxy_flutter/banking/db/event_repo.dart';
+import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:rxdart/rxdart.dart';
 
 class EventBloc {

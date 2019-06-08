@@ -7,7 +7,7 @@ import 'package:proxy_flutter/banking/db/withdrawal_repo.dart';
 import 'package:proxy_flutter/db/contacts_repo.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
-import 'package:proxy_flutter/db/event_repo.dart';
+import 'package:proxy_flutter/banking/db/event_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';

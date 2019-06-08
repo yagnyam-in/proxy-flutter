@@ -1,30 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/utils/conversion_utils.dart';
 import 'package:proxy_messages/banking.dart';
 
-class DepositEntity with ProxyUtils {
-  static final Set<DepositStatusEnum> cancellableStatuses = {
-    DepositStatusEnum.Registered,
-  };
-  static final Set<DepositStatusEnum> depositPossibleStatuses = {
-    DepositStatusEnum.Registered,
-  };
+part 'deposit_entity.g.dart';
 
+@JsonSerializable()
+class DepositEntity with ProxyUtils {
+
+  @JsonKey(nullable: false)
   final int id;
+  @JsonKey(nullable: false)
   final String proxyUniverse;
+  @JsonKey(nullable: false)
   final String depositId;
+  @JsonKey(nullable: false)
   final DateTime creationTime;
+  @JsonKey(nullable: false)
   final DateTime lastUpdatedTime;
+  @JsonKey(nullable: false)
   final bool completed;
+  @JsonKey(nullable: false)
   final DepositStatusEnum status;
+  @JsonKey(nullable: false)
   final Amount amount;
+  @JsonKey(nullable: false)
   final ProxyAccountId destinationProxyAccountId;
+  @JsonKey(nullable: false)
   final ProxyId destinationProxyAccountOwnerProxyId;
+  @JsonKey(nullable: true)
   final String signedDepositRequestJson;
+  @JsonKey(nullable: true)
   final String depositLink;
+
   SignedMessage<DepositRequest> _signedDepositRequest;
 
   DepositEntity({
@@ -45,8 +56,8 @@ class DepositEntity with ProxyUtils {
   SignedMessage<DepositRequest> get signedDepositRequest {
     if (_signedDepositRequest == null) {
       print("Constructing from $signedDepositRequestJson");
-      _signedDepositRequest = MessageBuilder.instance().buildSignedMessage(
-          signedDepositRequestJson, DepositRequest.fromJson);
+      _signedDepositRequest =
+          MessageBuilder.instance().buildSignedMessage(signedDepositRequestJson, DepositRequest.fromJson);
     }
     return _signedDepositRequest;
   }
@@ -68,25 +79,29 @@ class DepositEntity with ProxyUtils {
       completed: isCompleteStatus(effectiveStatus),
       amount: this.amount,
       destinationProxyAccountId: this.destinationProxyAccountId,
-      destinationProxyAccountOwnerProxyId:
-          this.destinationProxyAccountOwnerProxyId,
-      signedDepositRequestJson:
-          signedDepositRequestJson ?? this.signedDepositRequestJson,
+      destinationProxyAccountOwnerProxyId: this.destinationProxyAccountOwnerProxyId,
+      signedDepositRequestJson: signedDepositRequestJson ?? this.signedDepositRequestJson,
       depositLink: depositLink ?? this.depositLink,
       status: effectiveStatus,
     );
   }
 
+
+  static final Set<DepositStatusEnum> cancelPossibleStatuses = {
+    DepositStatusEnum.Registered,
+  };
+  static final Set<DepositStatusEnum> depositPossibleStatuses = {
+    DepositStatusEnum.Registered,
+  };
+
   static bool isCompleteStatus(DepositStatusEnum status) {
-    return status == DepositStatusEnum.Completed ||
-        status == DepositStatusEnum.Cancelled;
+    return status == DepositStatusEnum.Completed || status == DepositStatusEnum.Cancelled;
   }
 
-
   static DepositStatusEnum stringToDepositStatus(
-      String value, {
-        DepositStatusEnum orElse = DepositStatusEnum.InProcess,
-      }) {
+    String value, {
+    DepositStatusEnum orElse = DepositStatusEnum.InProcess,
+  }) {
     return ConversionUtils.stringToEnum(
       value,
       orElse: orElse,
@@ -96,15 +111,15 @@ class DepositEntity with ProxyUtils {
   }
 
   static String depositStatusToString(
-      DepositStatusEnum value,
-      ) {
+    DepositStatusEnum value,
+  ) {
     return ConversionUtils.enumToString(
       value,
       enumName: "DepositStatusEnum",
     );
   }
 
-  static String statusDisplayMessage(ProxyLocalizations localizations, DepositStatusEnum status) {
+  static String statusAsText(ProxyLocalizations localizations, DepositStatusEnum status) {
     switch (status) {
       case DepositStatusEnum.Registered:
         return localizations.waitingForFunds;
@@ -122,5 +137,27 @@ class DepositEntity with ProxyUtils {
     }
   }
 
+  Map<String, dynamic> toJson() => _$DepositEntityToJson(this);
 
+  static DepositEntity fromJson(Map<String, dynamic> json) => _$DepositEntityFromJson(json);
+
+  String getAmountAsText(ProxyLocalizations localizations) {
+    return '${amount.value} ${Currency.currencySymbol(amount.currency)}';
+  }
+
+  String getStatusAsText(ProxyLocalizations localizations) {
+    return statusAsText(localizations, status);
+  }
+
+  IconData get icon {
+    return Icons.file_download;
+  }
+
+  bool get isCancelPossible {
+    return cancelPossibleStatuses.contains(status);
+  }
+
+  bool get isDepositPossible {
+    return depositPossibleStatuses.contains(status) && isNotEmpty(depositLink);
+  }
 }
