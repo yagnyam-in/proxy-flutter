@@ -1,34 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_messages/banking.dart';
 
+part 'payment_authorization_entity.g.dart';
+
+@JsonSerializable()
 class PaymentAuthorizationEntity {
-  static final Set<PaymentAuthorizationStatusEnum> cancellableStatuses = {
+  static final Set<PaymentAuthorizationStatusEnum> cancelPossibleStatuses = {
     PaymentAuthorizationStatusEnum.Registered,
   };
 
-  final int id;
+  @JsonKey(nullable: false)
   final String proxyUniverse;
+
+  @JsonKey(nullable: false)
   final String paymentAuthorizationId;
+
+  @JsonKey(nullable: false)
   final DateTime creationTime;
+
+  @JsonKey(nullable: false)
   final DateTime lastUpdatedTime;
 
+  @JsonKey(nullable: false)
   final PaymentAuthorizationStatusEnum status;
+
+  @JsonKey(nullable: false)
+  final bool completed;
+
+  @JsonKey(nullable: false)
   final Amount amount;
+
+  @JsonKey(nullable: false)
   final ProxyAccountId payerAccountId;
+
+  @JsonKey(nullable: false)
   final ProxyId payerProxyId;
 
-  final String signedPaymentAuthorizationRequestJson;
+  @JsonKey(nullable: false)
   final List<PaymentAuthorizationPayeeEntity> payees;
 
-  final String paymentLink;
-  SignedMessage<PaymentAuthorization> _signedPaymentAuthorizationRequest;
+  @JsonKey(nullable: false)
+  final String paymentAuthorizationLink;
+
+  @JsonKey(nullable: false, fromJson: PaymentAuthorization.signedMessageFromJson)
+  SignedMessage<PaymentAuthorization> signedPaymentAuthorization;
 
   PaymentAuthorizationEntity({
-    this.id,
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
     @required this.creationTime,
@@ -37,30 +59,19 @@ class PaymentAuthorizationEntity {
     @required this.amount,
     @required this.payerAccountId,
     @required this.payerProxyId,
-    @required this.signedPaymentAuthorizationRequestJson,
-    @required this.paymentLink,
+    @required this.signedPaymentAuthorization,
+    @required this.paymentAuthorizationLink,
     @required this.payees,
+    @required this.completed,
   });
-
-  SignedMessage<PaymentAuthorization> get signedPaymentAuthorization {
-    if (_signedPaymentAuthorizationRequest == null) {
-      print("Constructing from $signedPaymentAuthorizationRequestJson");
-      _signedPaymentAuthorizationRequest = MessageBuilder.instance()
-          .buildSignedMessage(signedPaymentAuthorizationRequestJson,
-              PaymentAuthorization.fromJson);
-    }
-    return _signedPaymentAuthorizationRequest;
-  }
 
   PaymentAuthorizationEntity copy({
     int id,
     PaymentAuthorizationStatusEnum status,
     DateTime lastUpdatedTime,
-    List<PaymentAuthorizationPayeeEntity> payees,
   }) {
     PaymentAuthorizationStatusEnum effectiveStatus = status ?? this.status;
     return PaymentAuthorizationEntity(
-      id: id ?? this.id,
       proxyUniverse: this.proxyUniverse,
       paymentAuthorizationId: this.paymentAuthorizationId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
@@ -68,11 +79,11 @@ class PaymentAuthorizationEntity {
       amount: this.amount,
       payerAccountId: this.payerAccountId,
       payerProxyId: this.payerProxyId,
-      signedPaymentAuthorizationRequestJson:
-          this.signedPaymentAuthorizationRequestJson,
+      signedPaymentAuthorization: this.signedPaymentAuthorization,
       status: effectiveStatus,
-      paymentLink: this.paymentLink,
-      payees: payees ?? this.payees,
+      paymentAuthorizationLink: this.paymentAuthorizationLink,
+      payees: this.payees,
+      completed: isCompleteStatus(effectiveStatus),
     );
   }
 
@@ -80,7 +91,7 @@ class PaymentAuthorizationEntity {
     return status == PaymentAuthorizationStatusEnum.Processed;
   }
 
-  String getStatus(ProxyLocalizations localizations) {
+  static String statusAsText(ProxyLocalizations localizations, PaymentAuthorizationStatusEnum status) {
     switch (status) {
       case PaymentAuthorizationStatusEnum.Registered:
         return localizations.registered;
@@ -106,7 +117,23 @@ class PaymentAuthorizationEntity {
     }
   }
 
-  bool isCancellable() {
-    return cancellableStatuses.contains(status);
+  Map<String, dynamic> toJson() => _$PaymentAuthorizationEntityToJson(this);
+
+  static PaymentAuthorizationEntity fromJson(Map json) => _$PaymentAuthorizationEntityFromJson(json);
+
+  String getAmountAsText(ProxyLocalizations localizations) {
+    return '${amount.value} ${Currency.currencySymbol(amount.currency)}';
+  }
+
+  String getStatusAsText(ProxyLocalizations localizations) {
+    return statusAsText(localizations, status);
+  }
+
+  IconData get icon {
+    return Icons.file_upload;
+  }
+
+  bool get isCancelPossible {
+    return cancelPossibleStatuses.contains(status);
   }
 }

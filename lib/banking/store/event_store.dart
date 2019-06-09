@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/event_entity.dart';
+import 'package:proxy_flutter/banking/model/payment_authorization_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 
@@ -63,11 +64,14 @@ class EventStore with ProxyUtils, FirestoreUtils {
 
 
   static EventEntity fromJson(Map<dynamic, dynamic> json) {
+    print("Constructing Event of type ${json['eventType']}");
     switch (json["eventType"]) {
       case 'Deposit':
         return DepositEvent.fromJson(json);
       case 'Withdrawal':
         return WithdrawalEvent.fromJson(json);
+      case 'PaymentAuthorization':
+        return PaymentAuthorizationEvent.fromJson(json);
       default:
         return null;
     }

@@ -9,7 +9,6 @@ part of 'deposit_event.dart';
 DepositEvent _$DepositEventFromJson(Map json) {
   return DepositEvent(
       eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
-      id: json['id'] as int,
       proxyUniverse: json['proxyUniverse'] as String,
       creationTime: DateTime.parse(json['creationTime'] as String),
       lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
@@ -22,20 +21,28 @@ DepositEvent _$DepositEventFromJson(Map json) {
       depositLink: json['depositLink'] as String);
 }
 
-Map<String, dynamic> _$DepositEventToJson(DepositEvent instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'proxyUniverse': instance.proxyUniverse,
-      'eventType': _$EventTypeEnumMap[instance.eventType],
-      'creationTime': instance.creationTime.toIso8601String(),
-      'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
-      'completed': instance.completed,
-      'status': _$DepositStatusEnumEnumMap[instance.status],
-      'amount': instance.amount.toJson(),
-      'destinationProxyAccountId': instance.destinationProxyAccountId.toJson(),
-      'depositLink': instance.depositLink,
-      'depositId': instance.depositId
-    };
+Map<String, dynamic> _$DepositEventToJson(DepositEvent instance) {
+  final val = <String, dynamic>{
+    'proxyUniverse': instance.proxyUniverse,
+    'eventType': _$EventTypeEnumMap[instance.eventType],
+    'creationTime': instance.creationTime.toIso8601String(),
+    'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
+    'completed': instance.completed,
+    'status': _$DepositStatusEnumEnumMap[instance.status],
+    'amount': instance.amount.toJson(),
+    'destinationProxyAccountId': instance.destinationProxyAccountId.toJson(),
+    'depositLink': instance.depositLink,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('depositId', instance.depositId);
+  return val;
+}
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
   if (source == null) {
@@ -53,8 +60,8 @@ T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
 const _$EventTypeEnumMap = <EventType, dynamic>{
   EventType.Unknown: 'Unknown',
   EventType.Deposit: 'Deposit',
-  EventType.Withdraw: 'Withdraw',
-  EventType.Payment: 'Payment',
+  EventType.Withdrawal: 'Withdrawal',
+  EventType.PaymentAuthorization: 'PaymentAuthorization',
   EventType.Fx: 'Fx'
 };
 

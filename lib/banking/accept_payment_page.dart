@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -9,10 +10,12 @@ import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 
 class AcceptPaymentPage extends StatefulWidget {
+  final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String paymentAuthorizationId;
 
   const AcceptPaymentPage({
+    @required this.appConfiguration,
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
     Key key,
@@ -21,20 +24,22 @@ class AcceptPaymentPage extends StatefulWidget {
   @override
   AcceptPaymentPageState createState() {
     return AcceptPaymentPageState(
+      appConfiguration: appConfiguration,
       proxyUniverse: proxyUniverse,
       paymentAuthorizationId: paymentAuthorizationId,
     );
   }
 }
 
-class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage>
-    with ProxyUtils {
+class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with ProxyUtils {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String paymentAuthorizationId;
   Future<SignedMessage<PaymentAuthorization>> _paymentAuthorization;
 
   AcceptPaymentPageState({
+    @required this.appConfiguration,
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
   });
@@ -67,8 +72,7 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage>
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: FutureBuilder<SignedMessage<PaymentAuthorization>>(
             future: _paymentAuthorization,
-            builder: (BuildContext context,
-                AsyncSnapshot<SignedMessage<PaymentAuthorization>> snapshot) {
+            builder: (BuildContext context, AsyncSnapshot<SignedMessage<PaymentAuthorization>> snapshot) {
               return body(context, localizations, snapshot);
             },
           ),
@@ -78,7 +82,7 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage>
   }
 
   Future<SignedMessage<PaymentAuthorization>> _fetchPaymentAuthorization() {
-    return BankingServiceFactory.paymentAuthorizationService().fetchPaymentAuthorization(
+    return BankingServiceFactory.paymentAuthorizationService(appConfiguration).fetchPaymentAuthorization(
       proxyUniverse: proxyUniverse,
       paymentAuthorizationId: paymentAuthorizationId,
     );
@@ -99,6 +103,7 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage>
         );
       } else {
         return _AcceptPaymentPageBody(
+          appConfiguration: appConfiguration,
           paymentAuthorization: snapshot.data,
         );
       }
@@ -109,25 +114,31 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage>
 }
 
 class _AcceptPaymentPageBody extends StatefulWidget {
+  final AppConfiguration appConfiguration;
   final SignedMessage<PaymentAuthorization> paymentAuthorization;
 
-  const _AcceptPaymentPageBody({Key key, this.paymentAuthorization})
-      : super(key: key);
+  const _AcceptPaymentPageBody({
+    Key key,
+    @required this.appConfiguration,
+    @required this.paymentAuthorization,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
     return _AcceptPaymentPageBodyState(
+      appConfiguration: appConfiguration,
       paymentAuthorization: paymentAuthorization,
     );
   }
 }
 
 class _AcceptPaymentPageBodyState extends State<_AcceptPaymentPageBody> {
+  final AppConfiguration appConfiguration;
   final SignedMessage<PaymentAuthorization> paymentAuthorization;
   final TextEditingController secretController;
   Future<bool> _paymentCanBeAcceptedFuture;
 
-  _AcceptPaymentPageBodyState({Key key, @required this.paymentAuthorization})
+  _AcceptPaymentPageBodyState({Key key, @required this.appConfiguration, @required this.paymentAuthorization})
       : secretController = TextEditingController();
 
   @override
@@ -240,7 +251,7 @@ class _AcceptPaymentPageBodyState extends State<_AcceptPaymentPageBody> {
 
   Future<void> acceptPayment(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    Payee payee = await BankingServiceFactory.paymentAuthorizationService().matchingPayee(
+    Payee payee = await BankingServiceFactory.paymentAuthorizationService(appConfiguration).matchingPayee(
       paymentAuthorization: paymentAuthorization.message,
       secret: secretController.text,
     );

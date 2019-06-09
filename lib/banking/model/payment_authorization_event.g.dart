@@ -1,36 +1,38 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'withdrawal_event.dart';
+part of 'payment_authorization_event.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-WithdrawalEvent _$WithdrawalEventFromJson(Map json) {
-  return WithdrawalEvent(
+PaymentAuthorizationEvent _$PaymentAuthorizationEventFromJson(Map json) {
+  return PaymentAuthorizationEvent(
       eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
       proxyUniverse: json['proxyUniverse'] as String,
       creationTime: DateTime.parse(json['creationTime'] as String),
       lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
-      withdrawalId: json['withdrawalId'] as String,
       completed: json['completed'] as bool,
-      status: _$enumDecode(_$WithdrawalStatusEnumEnumMap, json['status']),
+      paymentAuthorizationId: json['paymentAuthorizationId'] as String,
+      status:
+          _$enumDecode(_$PaymentAuthorizationStatusEnumEnumMap, json['status']),
       amount: Amount.fromJson(json['amount'] as Map),
-      destinationAccountNumber: json['destinationAccountNumber'] as String,
-      destinationAccountBank: json['destinationAccountBank'] as String);
+      payerAccountId: ProxyAccountId.fromJson(json['payerAccountId'] as Map),
+      paymentAuthorizationLink: json['paymentAuthorizationLink'] as String);
 }
 
-Map<String, dynamic> _$WithdrawalEventToJson(WithdrawalEvent instance) {
+Map<String, dynamic> _$PaymentAuthorizationEventToJson(
+    PaymentAuthorizationEvent instance) {
   final val = <String, dynamic>{
     'proxyUniverse': instance.proxyUniverse,
     'eventType': _$EventTypeEnumMap[instance.eventType],
     'creationTime': instance.creationTime.toIso8601String(),
     'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
     'completed': instance.completed,
-    'status': _$WithdrawalStatusEnumEnumMap[instance.status],
+    'status': _$PaymentAuthorizationStatusEnumEnumMap[instance.status],
     'amount': instance.amount.toJson(),
-    'destinationAccountNumber': instance.destinationAccountNumber,
-    'destinationAccountBank': instance.destinationAccountBank,
+    'payerAccountId': instance.payerAccountId.toJson(),
+    'paymentAuthorizationLink': instance.paymentAuthorizationLink,
   };
 
   void writeNotNull(String key, dynamic value) {
@@ -39,7 +41,7 @@ Map<String, dynamic> _$WithdrawalEventToJson(WithdrawalEvent instance) {
     }
   }
 
-  writeNotNull('withdrawalId', instance.withdrawalId);
+  writeNotNull('paymentAuthorizationId', instance.paymentAuthorizationId);
   return val;
 }
 
@@ -64,12 +66,16 @@ const _$EventTypeEnumMap = <EventType, dynamic>{
   EventType.Fx: 'Fx'
 };
 
-const _$WithdrawalStatusEnumEnumMap = <WithdrawalStatusEnum, dynamic>{
-  WithdrawalStatusEnum.Created: 'Created',
-  WithdrawalStatusEnum.Registered: 'Registered',
-  WithdrawalStatusEnum.Rejected: 'Rejected',
-  WithdrawalStatusEnum.InTransit: 'InTransit',
-  WithdrawalStatusEnum.Completed: 'Completed',
-  WithdrawalStatusEnum.FailedInTransit: 'FailedInTransit',
-  WithdrawalStatusEnum.FailedCompleted: 'FailedCompleted'
+const _$PaymentAuthorizationStatusEnumEnumMap =
+    <PaymentAuthorizationStatusEnum, dynamic>{
+  PaymentAuthorizationStatusEnum.Created: 'Created',
+  PaymentAuthorizationStatusEnum.Registered: 'Registered',
+  PaymentAuthorizationStatusEnum.Rejected: 'Rejected',
+  PaymentAuthorizationStatusEnum.InsufficientFunds: 'InsufficientFunds',
+  PaymentAuthorizationStatusEnum.CancelledByPayer: 'CancelledByPayer',
+  PaymentAuthorizationStatusEnum.CancelledByPayee: 'CancelledByPayee',
+  PaymentAuthorizationStatusEnum.InProcess: 'InProcess',
+  PaymentAuthorizationStatusEnum.Processed: 'Processed',
+  PaymentAuthorizationStatusEnum.Expired: 'Expired',
+  PaymentAuthorizationStatusEnum.Error: 'Error'
 };

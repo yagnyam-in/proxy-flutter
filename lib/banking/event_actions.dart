@@ -25,7 +25,7 @@ class EventActions {
     switch (event?.eventType) {
       case EventType.Deposit:
         return possibleActionsForDeposit(event as DepositEvent, localizations);
-      case EventType.Withdraw:
+      case EventType.Withdrawal:
         return possibleActionsForWithdrawal(
             event as WithdrawalEvent, localizations);
       default:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
@@ -6,10 +7,19 @@ import 'package:proxy_flutter/utils/conversion_utils.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 
+part 'payment_authorization_payee_entity.g.dart';
 
+@JsonSerializable()
 class PaymentAuthorizationPayeeEntity {
-  final int id;
+  @JsonKey(nullable: false)
   final PayeeTypeEnum payeeType;
+  @JsonKey(nullable: false)
+  final String proxyUniverse;
+  @JsonKey(nullable: false)
+  final String paymentAuthorizationId;
+  @JsonKey(nullable: false)
+  final String paymentEncashmentId;
+
   final ProxyId proxyId;
   final String email;
   final String phone;
@@ -17,12 +27,8 @@ class PaymentAuthorizationPayeeEntity {
   final String emailHash;
   final String phoneHash;
   final String secretHash;
-  final String proxyUniverse;
-  final String paymentAuthorizationId;
-  final String paymentEncashmentId;
 
   PaymentAuthorizationPayeeEntity({
-    this.id,
     @required this.payeeType,
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
@@ -35,4 +41,10 @@ class PaymentAuthorizationPayeeEntity {
     this.phoneHash,
     this.secretHash,
   });
+
+
+  Map<String, dynamic> toJson() => _$PaymentAuthorizationPayeeEntityToJson(this);
+
+  static PaymentAuthorizationPayeeEntity fromJson(Map json) => _$PaymentAuthorizationPayeeEntityFromJson(json);
+
 }

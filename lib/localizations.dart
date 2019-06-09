@@ -948,6 +948,23 @@ class ProxyLocalizations {
   String get created => Intl.message('Created');
 
   String get withdrawalNotFound => Intl.message('Withdrawal not found');
+
+  String get paymentAuthorizationEventTitle => Intl.message('Payment Sent');
+
+  String paymentAuthorizationEventSubTitle(String payerAccount) {
+    return Intl.message(
+      'Account: $payerAccount',
+      name: 'paymentAuthorizationEventSubTitle',
+      args: [payerAccount],
+      desc: 'Paying from Account',
+      examples: {
+        'payerAccount': 'NL11INGB040037899',
+      },
+    );
+  }
+
+  String get paymentAuthorizationNotFound => Intl.message('Payment Authorization not found');
+
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

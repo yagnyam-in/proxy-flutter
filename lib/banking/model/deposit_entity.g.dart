@@ -24,21 +24,30 @@ DepositEntity _$DepositEntityFromJson(Map json) {
           json['signedDepositRequest'] as Map));
 }
 
-Map<String, dynamic> _$DepositEntityToJson(DepositEntity instance) =>
-    <String, dynamic>{
-      'proxyUniverse': instance.proxyUniverse,
-      'depositId': instance.depositId,
-      'creationTime': instance.creationTime.toIso8601String(),
-      'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
-      'completed': instance.completed,
-      'status': _$DepositStatusEnumEnumMap[instance.status],
-      'amount': instance.amount.toJson(),
-      'destinationProxyAccountId': instance.destinationProxyAccountId.toJson(),
-      'destinationProxyAccountOwnerProxyId':
-          instance.destinationProxyAccountOwnerProxyId.toJson(),
-      'signedDepositRequest': instance.signedDepositRequest.toJson(),
-      'depositLink': instance.depositLink
-    };
+Map<String, dynamic> _$DepositEntityToJson(DepositEntity instance) {
+  final val = <String, dynamic>{
+    'proxyUniverse': instance.proxyUniverse,
+    'depositId': instance.depositId,
+    'creationTime': instance.creationTime.toIso8601String(),
+    'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
+    'completed': instance.completed,
+    'status': _$DepositStatusEnumEnumMap[instance.status],
+    'amount': instance.amount.toJson(),
+    'destinationProxyAccountId': instance.destinationProxyAccountId.toJson(),
+    'destinationProxyAccountOwnerProxyId':
+        instance.destinationProxyAccountOwnerProxyId.toJson(),
+    'signedDepositRequest': instance.signedDepositRequest.toJson(),
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('depositLink', instance.depositLink);
+  return val;
+}
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
   if (source == null) {

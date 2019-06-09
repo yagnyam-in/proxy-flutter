@@ -5,7 +5,9 @@ import 'package:proxy_flutter/banking/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
+import 'package:proxy_flutter/banking/payment_authorization_page.dart';
 import 'package:proxy_flutter/banking/store/event_store.dart';
+import 'package:proxy_flutter/banking/withdrawal_page.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/banking/model/event_entity.dart';
@@ -134,21 +136,37 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
   }
 
   void _launchEvent(BuildContext context, EventEntity event) {
+    Widget eventPage = _eventPage(event);
+    if (eventPage == null) {
+      return;
+    }
     Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => _eventPage(context, event),
+        builder: (context) => eventPage,
       ),
     );
   }
 
-  Widget _eventPage(BuildContext context, EventEntity event) {
+  Widget _eventPage(EventEntity event) {
     switch (event.eventType) {
       case EventType.Deposit:
         return DepositPage(
           appConfiguration: appConfiguration,
           proxyUniverse: event.proxyUniverse,
           depositId: event.eventId,
+        );
+      case EventType.Withdrawal:
+        return WithdrawalPage(
+          appConfiguration: appConfiguration,
+          proxyUniverse: event.proxyUniverse,
+          withdrawalId: event.eventId,
+        );
+      case EventType.PaymentAuthorization:
+        return PaymentAuthorizationPage(
+          appConfiguration: appConfiguration,
+          proxyUniverse: event.proxyUniverse,
+          paymentAuthorizationId: event.eventId,
         );
       default:
         return null;
@@ -171,7 +189,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
           depositId: (event as DepositEvent).depositId,
         );
         break;
-      case EventType.Withdraw:
+      case EventType.Withdrawal:
         await BankingServiceFactory.withdrawalService(widget.appConfiguration).refreshWithdrawalStatus(
           proxyUniverse: event.proxyUniverse,
           withdrawalId: (event as WithdrawalEvent).withdrawalId,

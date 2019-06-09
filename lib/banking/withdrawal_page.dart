@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
-import 'package:proxy_flutter/banking/store/deposit_store.dart';
 import 'package:proxy_flutter/banking/store/withdrawal_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-class WithdrawPage extends StatefulWidget {
+class WithdrawalPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String withdrawalId;
 
-  const WithdrawPage({
+  const WithdrawalPage({
     Key key,
     @required this.appConfiguration,
     @required this.proxyUniverse,
@@ -23,8 +20,8 @@ class WithdrawPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  WithdrawPageState createState() {
-    return WithdrawPageState(
+  WithdrawalPageState createState() {
+    return WithdrawalPageState(
       appConfiguration: appConfiguration,
       proxyUniverse: proxyUniverse,
       withdrawalId: withdrawalId,
@@ -32,13 +29,13 @@ class WithdrawPage extends StatefulWidget {
   }
 }
 
-class WithdrawPageState extends LoadingSupportState<WithdrawPage> {
+class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String withdrawalId;
   Stream<WithdrawalEntity> _withdrawalStream;
 
-  WithdrawPageState({
+  WithdrawalPageState({
     @required this.appConfiguration,
     @required this.proxyUniverse,
     @required this.withdrawalId,
@@ -64,7 +61,7 @@ class WithdrawPageState extends LoadingSupportState<WithdrawPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations.depositEventTitle),
+        title: Text(localizations.withdrawalEventTitle),
         actions: [
           new FlatButton(
             onPressed: () => Navigator.of(context).pop(),

@@ -3,13 +3,13 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/account_card.dart';
 import 'package:proxy_flutter/banking/banking_service.dart';
+import 'package:proxy_flutter/banking/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/deposit_service.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
 import 'package:proxy_flutter/banking/payment_authorization_service.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
-import 'package:proxy_flutter/banking/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/withdrawal_service.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/contacts_page.dart';
@@ -57,13 +57,14 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
   final ProxyAccountsBloc _proxyAccountsBloc = BankingServiceFactory.proxyAccountsBloc();
   final BankingService _bankingService = BankingServiceFactory.bankingService();
   final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
-  final PaymentAuthorizationService _paymentAuthorizationService = BankingServiceFactory.paymentAuthorizationService();
+  final PaymentAuthorizationService _paymentAuthorizationService;
   final WithdrawalService _withdrawalService;
   final DepositService _depositService;
 
   _BankingHomeState(this.appConfiguration)
       : _depositService = BankingServiceFactory.depositService(appConfiguration),
-        _withdrawalService = BankingServiceFactory.withdrawalService(appConfiguration);
+        _withdrawalService = BankingServiceFactory.withdrawalService(appConfiguration),
+        _paymentAuthorizationService = BankingServiceFactory.paymentAuthorizationService(appConfiguration);
 
   @override
   void initState() {

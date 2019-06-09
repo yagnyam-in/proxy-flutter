@@ -73,7 +73,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
       request,
       signedResponse.message,
     );
-    await _depositStore.saveDeposit(depositEntity);
+    await _saveDeposit(depositEntity);
     return depositEntity.depositLink;
   }
 
@@ -125,7 +125,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositRequestCancelResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, DepositRequestCancelResponse.fromJson);
-    await _updateDepositStatus(depositEntity, status: signedResponse.message.status);
+    await _saveDeposit(depositEntity, status: signedResponse.message.status);
   }
 
   Future<void> _refreshDepositStatus(DepositEntity depositEntity) async {
@@ -148,7 +148,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositRequestStatusResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, DepositRequestStatusResponse.fromJson);
-    await _updateDepositStatus(depositEntity, status: signedResponse.message.status);
+    await _saveDeposit(depositEntity, status: signedResponse.message.status);
   }
 
   DepositEntity _createDepositEntity(
@@ -171,7 +171,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
   }
 
-  Future<DepositEntity> _updateDepositStatus(
+  Future<DepositEntity> _saveDeposit(
     DepositEntity entity, {
     DepositStatusEnum status,
   }) async {

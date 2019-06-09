@@ -6,7 +6,6 @@ import 'package:proxy_flutter/banking/receiving_account_bloc.dart';
 import 'package:proxy_flutter/banking/withdrawal_service.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/db.dart';
-import 'package:proxy_flutter/banking/db/payment_authorization_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/receiving_account_repo.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
@@ -22,9 +21,6 @@ class BankingServiceFactory {
     return ReceivingAccountRepo.instance(DB.instance());
   }
 
-  static PaymentAuthorizationRepo paymentAuthorizationRepo() {
-    return PaymentAuthorizationRepo.instance(DB.instance());
-  }
 
   static BankingService bankingService() {
     return BankingService(
@@ -67,12 +63,12 @@ class BankingServiceFactory {
     );
   }
 
-  static PaymentAuthorizationService paymentAuthorizationService() {
+  static PaymentAuthorizationService paymentAuthorizationService(AppConfiguration appConfig) {
     return PaymentAuthorizationService(
+      appConfig: appConfig,
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
-      paymentAuthorizationRepo: paymentAuthorizationRepo(),
       cryptographyService: ServiceFactory.cryptographyService(),
     );
   }
@@ -81,7 +77,7 @@ class BankingServiceFactory {
     return EventActions(
       withdrawalService: withdrawalService(appConfig),
       depositService: depositService(appConfig),
-      paymentService: paymentAuthorizationService(),
+      paymentService: paymentAuthorizationService(appConfig),
     );
   }
 }

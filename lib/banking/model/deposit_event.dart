@@ -27,7 +27,6 @@ class DepositEvent extends EventEntity with ProxyUtils {
 
   DepositEvent({
     EventType eventType = EventType.Deposit, // Required for Json
-    int id,
     @required String proxyUniverse,
     @required DateTime creationTime,
     @required DateTime lastUpdatedTime,
@@ -38,7 +37,6 @@ class DepositEvent extends EventEntity with ProxyUtils {
     @required this.destinationProxyAccountId,
     this.depositLink,
   }) : super(
-          id: id,
           eventType: eventType,
           proxyUniverse: proxyUniverse,
           eventId: depositId,
@@ -48,34 +46,6 @@ class DepositEvent extends EventEntity with ProxyUtils {
         ) {
     assert(eventType == EventType.Deposit);
   }
-
-  @override
-  Map<String, dynamic> toRow() {
-    Map<String, dynamic> row = super.toRow();
-    row[EventEntity.DEPOSIT_STATUS] = DepositEntity.depositStatusToString(status);
-    row[EventEntity.DEPOSIT_AMOUNT_CURRENCY] = amount.currency;
-    row[EventEntity.DEPOSIT_AMOUNT_VALUE] = amount.value;
-    row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_ID] = destinationProxyAccountId.accountId;
-    row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_BANK_ID] = destinationProxyAccountId.bankId;
-    row[EventEntity.DEPOSIT_LINK] = depositLink;
-    return row;
-  }
-
-  DepositEvent.fromRow(Map<dynamic, dynamic> row)
-      : amount = Amount(
-          currency: row[EventEntity.DEPOSIT_AMOUNT_CURRENCY],
-          value: row[EventEntity.DEPOSIT_AMOUNT_VALUE],
-        ),
-        destinationProxyAccountId = ProxyAccountId(
-            accountId: row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_ID],
-            bankId: row[EventEntity.DEPOSIT_DESTINATION_PROXY_ACCOUNT_BANK_ID],
-            proxyUniverse: row[EventEntity.PROXY_UNIVERSE]),
-        depositLink = row[EventEntity.DEPOSIT_LINK],
-        status = DepositEntity.stringToDepositStatus(
-          row[EventEntity.DEPOSIT_STATUS],
-          orElse: DepositStatusEnum.Registered,
-        ),
-        super.fromRow(row);
 
   factory DepositEvent.fromDepositEntity(DepositEntity depositEntity) => DepositEvent(
         proxyUniverse: depositEntity.proxyUniverse,
@@ -105,7 +75,6 @@ class DepositEvent extends EventEntity with ProxyUtils {
     bool completed,
   }) {
     return DepositEvent(
-      id: id ?? this.id,
       proxyUniverse: this.proxyUniverse,
       depositId: this.eventId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,

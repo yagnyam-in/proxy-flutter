@@ -5,7 +5,9 @@ import 'package:proxy_flutter/banking/model/event_entity.dart';
 class EventCard extends StatelessWidget {
   final EventEntity event;
 
-  const EventCard({Key key, this.event}) : super(key: key);
+  EventCard({Key key, this.event}) : super(key: key) {
+    assert(event != null);
+  }
 
   @override
   Widget build(BuildContext context) {
