@@ -1,6 +1,4 @@
 import 'package:proxy_flutter/banking/banking_service.dart';
-import 'package:proxy_flutter/banking/db/deposit_repo.dart';
-import 'package:proxy_flutter/banking/db/withdrawal_repo.dart';
 import 'package:proxy_flutter/banking/deposit_service.dart';
 import 'package:proxy_flutter/banking/payment_authorization_service.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
@@ -28,14 +26,6 @@ class BankingServiceFactory {
     return PaymentAuthorizationRepo.instance(DB.instance());
   }
 
-  static WithdrawalRepo withdrawalRepo() {
-    return WithdrawalRepo.instance(DB.instance());
-  }
-
-  static DepositRepo depositRepo() {
-    return DepositRepo.instance(DB.instance());
-  }
-
   static BankingService bankingService() {
     return BankingService(
       messageFactory: ServiceFactory.messageFactory(),
@@ -58,13 +48,13 @@ class BankingServiceFactory {
 
   static ProxyAccountsBloc proxyAccountsBloc() => _proxyAccountsBlocInstance;
 
-  static WithdrawalService withdrawalService() {
+  static WithdrawalService withdrawalService(AppConfiguration appConfig) {
     return WithdrawalService(
+      appConfig: appConfig,
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyAccountsBloc: proxyAccountsBloc(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
-      withdrawalRepo: withdrawalRepo(),
     );
   }
 
@@ -73,7 +63,6 @@ class BankingServiceFactory {
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
-      depositRepo: depositRepo(),
       appConfig: appConfig,
     );
   }
@@ -90,7 +79,7 @@ class BankingServiceFactory {
 
   static EventActions eventActions(AppConfiguration appConfig) {
     return EventActions(
-      withdrawalService: withdrawalService(),
+      withdrawalService: withdrawalService(appConfig),
       depositService: depositService(appConfig),
       paymentService: paymentAuthorizationService(),
     );

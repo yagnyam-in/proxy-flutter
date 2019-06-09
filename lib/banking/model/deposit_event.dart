@@ -121,7 +121,7 @@ class DepositEvent extends EventEntity with ProxyUtils {
   @override
   Map<String, dynamic> toJson() => _$DepositEventToJson(this);
 
-  static DepositEvent fromJson(Map<String, dynamic> json) => _$DepositEventFromJson(json);
+  static DepositEvent fromJson(Map json) => _$DepositEventFromJson(json);
 
   String getTitle(ProxyLocalizations localizations) {
     return localizations.depositEventTitle;

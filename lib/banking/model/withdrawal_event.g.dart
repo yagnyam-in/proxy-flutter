@@ -6,7 +6,7 @@ part of 'withdrawal_event.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-WithdrawalEvent _$WithdrawalEventFromJson(Map<String, dynamic> json) {
+WithdrawalEvent _$WithdrawalEventFromJson(Map json) {
   return WithdrawalEvent(
       eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
       id: json['id'] as int,
@@ -16,7 +16,7 @@ WithdrawalEvent _$WithdrawalEventFromJson(Map<String, dynamic> json) {
       withdrawalId: json['withdrawalId'] as String,
       completed: json['completed'] as bool,
       status: _$enumDecode(_$WithdrawalStatusEnumEnumMap, json['status']),
-      amount: Amount.fromJson(json['amount'] as Map<String, dynamic>),
+      amount: Amount.fromJson(json['amount'] as Map),
       destinationAccountNumber: json['destinationAccountNumber'] as String,
       destinationAccountBank: json['destinationAccountBank'] as String);
 }
@@ -30,7 +30,7 @@ Map<String, dynamic> _$WithdrawalEventToJson(WithdrawalEvent instance) =>
       'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
       'completed': instance.completed,
       'status': _$WithdrawalStatusEnumEnumMap[instance.status],
-      'amount': instance.amount,
+      'amount': instance.amount.toJson(),
       'destinationAccountNumber': instance.destinationAccountNumber,
       'destinationAccountBank': instance.destinationAccountBank,
       'withdrawalId': instance.withdrawalId
@@ -58,6 +58,7 @@ const _$EventTypeEnumMap = <EventType, dynamic>{
 };
 
 const _$WithdrawalStatusEnumEnumMap = <WithdrawalStatusEnum, dynamic>{
+  WithdrawalStatusEnum.Created: 'Created',
   WithdrawalStatusEnum.Registered: 'Registered',
   WithdrawalStatusEnum.Rejected: 'Rejected',
   WithdrawalStatusEnum.InTransit: 'InTransit',

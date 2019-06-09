@@ -1,46 +1,50 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/event_entity.dart';
+import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 
 class EventStore with ProxyUtils, FirestoreUtils {
-  DocumentReference ref({
+
+  CollectionReference eventsRef({
     @required String proxyUniverse,
-    @required String eventId,
   }) {
     return root
         .collection(FirestoreUtils.PROXY_UNIVERSE_NODE)
         .document(proxyUniverse)
-        .collection('events')
+        .collection('events');
+  }
+
+  DocumentReference ref({
+    @required String proxyUniverse,
+    @required String eventId,
+  }) {
+    return eventsRef(proxyUniverse: proxyUniverse)
         .document(eventId);
   }
 
+  final FirebaseUser firebaseUser;
   final DocumentReference root;
 
   EventStore({
-    @required this.root,
-  }) {
-    assert(root != null);
+    @required this.firebaseUser,
+  }) : root = FirestoreUtils.rootRef(firebaseUser) {
+    assert(firebaseUser != null);
   }
 
-  Future<EventEntity> fetchEvent({
+
+  Stream<QuerySnapshot> fetchEvents({
     @required String proxyUniverse,
-    @required String eventId,
-  }) async {
-    DocumentSnapshot snapshot = await ref(
-      proxyUniverse: proxyUniverse,
-      eventId: eventId,
-    ).get();
-    if (snapshot.exists) {
-      return fromJson(snapshot.data);
-    }
-    return null;
+  }) {
+    return eventsRef(proxyUniverse: proxyUniverse).snapshots();
   }
+
 
   Future<EventEntity> saveEvent(EventEntity event) async {
     await ref(
@@ -50,10 +54,20 @@ class EventStore with ProxyUtils, FirestoreUtils {
     return event;
   }
 
+  Future<void> deleteEvent(EventEntity event) {
+    return ref(
+      proxyUniverse: event.proxyUniverse,
+      eventId: event.eventId,
+    ).delete();
+  }
+
+
   static EventEntity fromJson(Map<dynamic, dynamic> json) {
     switch (json["eventType"]) {
       case 'Deposit':
         return DepositEvent.fromJson(json);
+      case 'Withdrawal':
+        return WithdrawalEvent.fromJson(json);
       default:
         return null;
     }

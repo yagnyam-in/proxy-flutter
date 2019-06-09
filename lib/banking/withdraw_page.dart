@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
+import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
 import 'package:proxy_flutter/banking/store/deposit_store.dart';
+import 'package:proxy_flutter/banking/store/withdrawal_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -8,46 +10,46 @@ import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DepositPage extends StatefulWidget {
+class WithdrawPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
-  final String depositId;
+  final String withdrawalId;
 
-  const DepositPage({
+  const WithdrawPage({
     Key key,
     @required this.appConfiguration,
     @required this.proxyUniverse,
-    @required this.depositId,
+    @required this.withdrawalId,
   }) : super(key: key);
 
   @override
-  DepositPageState createState() {
-    return DepositPageState(
+  WithdrawPageState createState() {
+    return WithdrawPageState(
       appConfiguration: appConfiguration,
       proxyUniverse: proxyUniverse,
-      depositId: depositId,
+      withdrawalId: withdrawalId,
     );
   }
 }
 
-class DepositPageState extends LoadingSupportState<DepositPage> {
+class WithdrawPageState extends LoadingSupportState<WithdrawPage> {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
-  final String depositId;
-  Stream<DepositEntity> _depositStream;
+  final String withdrawalId;
+  Stream<WithdrawalEntity> _withdrawalStream;
 
-  DepositPageState({
+  WithdrawPageState({
     @required this.appConfiguration,
     @required this.proxyUniverse,
-    @required this.depositId,
+    @required this.withdrawalId,
   });
 
   @override
   void initState() {
     super.initState();
-    _depositStream = DepositStore(firebaseUser: appConfiguration.firebaseUser).subscribeForDeposit(
+    _withdrawalStream = WithdrawalStore(firebaseUser: appConfiguration.firebaseUser).subscribeForWithdrawal(
       proxyUniverse: proxyUniverse,
-      depositId: depositId,
+      withdrawalId: withdrawalId,
     );
   }
 
@@ -77,9 +79,9 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
         loading: loading,
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: StreamBuilder<DepositEntity>(
-            stream: _depositStream,
-            builder: (BuildContext context, AsyncSnapshot<DepositEntity> snapshot) {
+          child: StreamBuilder<WithdrawalEntity>(
+            stream: _withdrawalStream,
+            builder: (BuildContext context, AsyncSnapshot<WithdrawalEntity> snapshot) {
               return body(context, localizations, snapshot);
             },
           ),
@@ -91,17 +93,17 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
   Widget body(
     BuildContext context,
     ProxyLocalizations localizations,
-    AsyncSnapshot<DepositEntity> snapshot,
+    AsyncSnapshot<WithdrawalEntity> snapshot,
   ) {
     if (!snapshot.hasData) {
       return _noDepositFound(context);
     }
     ThemeData themeData = Theme.of(context);
-    DepositEntity depositEntity = snapshot.data;
+    WithdrawalEntity withdrawalEntity = snapshot.data;
 
     List<Widget> rows = [
       const SizedBox(height: 16.0),
-      Icon(depositEntity.icon, size: 64.0),
+      Icon(withdrawalEntity.icon, size: 64.0),
       const SizedBox(height: 24.0),
       Center(
         child: Text(
@@ -112,8 +114,8 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
       Center(
         child: Text(
           localizations.amountDisplayMessage(
-            currency: Currency.currencySymbol(depositEntity.amount.currency),
-            value: depositEntity.amount.value,
+            currency: Currency.currencySymbol(withdrawalEntity.amount.currency),
+            value: withdrawalEntity.amount.value,
           ),
           style: themeData.textTheme.title,
         ),
@@ -127,26 +129,17 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
       const SizedBox(height: 8.0),
       Center(
         child: Text(
-          depositEntity.getStatusAsText(localizations),
+          withdrawalEntity.getStatusAsText(localizations),
           style: themeData.textTheme.title,
         ),
       ),
     ];
 
     List<Widget> actions = [];
-    if (depositEntity.isDepositPossible) {
+    if (withdrawalEntity.isCancelPossible) {
       actions.add(
         RaisedButton.icon(
-          onPressed: () => _pay(depositEntity),
-          icon: Icon(Icons.open_in_browser),
-          label: Text(localizations.payButtonLabel),
-        ),
-      );
-    }
-    if (depositEntity.isCancelPossible) {
-      actions.add(
-        RaisedButton.icon(
-          onPressed: () => _cancelDeposit(depositEntity),
+          onPressed: () => _cancelWithdrawal(withdrawalEntity),
           icon: Icon(Icons.close),
           label: Text(localizations.cancelButtonLabel),
         ),
@@ -173,7 +166,7 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
         const SizedBox(height: 24.0),
         Center(
           child: Text(
-            localizations.depositNotFound,
+            localizations.withdrawalNotFound,
           ),
         ),
         const SizedBox(height: 32.0),
@@ -190,13 +183,5 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _pay(DepositEntity depositEntity) async {
-    if (await canLaunch(depositEntity.depositLink)) {
-      await launch(depositEntity.depositLink);
-    } else {
-      print("Unable to Launch ${depositEntity.depositLink}");
-    }
-  }
-
-  void _cancelDeposit(DepositEntity depositEntity) {}
+  void _cancelWithdrawal(WithdrawalEntity withdrawalEntity) {}
 }

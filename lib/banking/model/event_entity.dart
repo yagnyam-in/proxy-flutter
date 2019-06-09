@@ -17,7 +17,6 @@ class EventAction {
       {@required this.title, @required this.icon, @required this.action});
 }
 
-@JsonSerializable()
 abstract class EventEntity {
   static const String PROXY_UNIVERSE = "proxyUniverse";
   static const String ID = "id";
@@ -42,7 +41,6 @@ abstract class EventEntity {
   static const String WITHDRAWAL_DESTINATION_ACCOUNT_BANK = "withdrawalDestAccountBank";
 
 
-  @JsonKey(nullable: false)
   final int id;
 
   @JsonKey(nullable: false)

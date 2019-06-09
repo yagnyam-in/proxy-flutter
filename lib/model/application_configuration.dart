@@ -36,5 +36,5 @@ class ApplicationConfiguration with ProxyUtils {
 
   Map<String, dynamic> toJson() => _$ApplicationConfigurationToJson(this);
 
-  static ApplicationConfiguration fromJson(Map<String, dynamic> json) => _$ApplicationConfigurationFromJson(json);
+  static ApplicationConfiguration fromJson(Map json) => _$ApplicationConfigurationFromJson(json);
 }

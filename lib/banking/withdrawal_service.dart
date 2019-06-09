@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/db/withdrawal_repo.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
+import 'package:proxy_flutter/banking/store/withdrawal_store.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/model/receiving_account_entity.dart';
@@ -18,28 +19,29 @@ import 'model/withdrawal_entity.dart';
 class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
+  final AppConfiguration appConfig;
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
   final ProxyAccountsBloc proxyAccountsBloc;
   final ProxyKeyRepo proxyKeyRepo;
-  final WithdrawalRepo withdrawalRepo;
+  final WithdrawalStore _withdrawalStore;
 
   WithdrawalService({
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
+    @required this.appConfig,
     @required this.messageFactory,
     @required this.messageSigningService,
     @required this.proxyAccountsBloc,
     @required this.proxyKeyRepo,
-    @required this.withdrawalRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
+        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        _withdrawalStore = WithdrawalStore(firebaseUser: appConfig.firebaseUser) {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
-  Future<WithdrawalEntity> withdraw(ProxyAccountEntity proxyAccount,
-      ReceivingAccountEntity receivingAccount) async {
+  Future<WithdrawalEntity> withdraw(ProxyAccountEntity proxyAccount, ReceivingAccountEntity receivingAccount) async {
     String withdrawalId = uuidFactory.v4();
     ProxyId ownerProxyId = proxyAccount.ownerProxyId;
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(ownerProxyId);
@@ -58,29 +60,37 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
         address: receivingAccount.address,
       ),
     );
-    SignedMessage<Withdrawal> signedRequest =
-        await messageSigningService.signMessage(request, proxyKey);
-    String signedRequestJson = jsonEncode(signedRequest.toJson());
-    WithdrawalEntity event = await _createWithdrawalEntity(
-        withdrawalId, proxyAccount, receivingAccount, signedRequestJson);
+    SignedMessage<Withdrawal> signedRequest = await messageSigningService.signMessage(request, proxyKey);
 
-    print("Sending $request to $proxyBankingUrl");
-    String jsonResponse = await post(
-      httpClientFactory(),
-      proxyBankingUrl,
-      signedRequestJson,
+    WithdrawalEntity event = _createWithdrawalEntity(
+      withdrawalId,
+      proxyAccount,
+      receivingAccount,
+      signedRequest,
     );
-    print("Received $jsonResponse from $proxyBankingUrl");
-    SignedMessage<WithdrawalResponse> signedResponse = await messageFactory
-        .buildAndVerifySignedMessage(jsonResponse, WithdrawalResponse.fromJson);
-    event = await _updateStatus(event, signedResponse.message.status);
-    return event;
+
+    try {
+      String signedRequestJson = jsonEncode(signedRequest.toJson());
+      print("Sending $request to $proxyBankingUrl");
+      String jsonResponse = await post(
+        httpClientFactory(),
+        proxyBankingUrl,
+        signedRequestJson,
+      );
+      print("Received $jsonResponse from $proxyBankingUrl");
+      SignedMessage<WithdrawalResponse> signedResponse =
+          await messageFactory.buildAndVerifySignedMessage(jsonResponse, WithdrawalResponse.fromJson);
+      event = event.copy(status: signedResponse.message.status);
+    } catch (e) {
+      print("Error sending withdrawal to Server: $e");
+    }
+    return _withdrawalStore.saveWithdrawal(event);
   }
 
   Future<void> processWithdrawalUpdate(WithdrawalUpdatedAlert alert) async {
     String withdrawalId = alert.withdrawalId;
     print('Refreshing $alert');
-    WithdrawalEntity event = await withdrawalRepo.fetchWithdrawal(
+    WithdrawalEntity event = await _withdrawalStore.fetchWithdrawal(
       proxyUniverse: alert.proxyUniverse,
       withdrawalId: withdrawalId,
     );
@@ -95,7 +105,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required String proxyUniverse,
     @required String withdrawalId,
   }) async {
-    WithdrawalEntity withdrawalEntity = await withdrawalRepo.fetchWithdrawal(
+    WithdrawalEntity withdrawalEntity = await _withdrawalStore.fetchWithdrawal(
       proxyUniverse: proxyUniverse,
       withdrawalId: withdrawalId,
     );
@@ -104,8 +114,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
       requestId: uuidFactory.v4(),
       request: withdrawalEntity.signedWithdrawal,
     );
-    SignedMessage<WithdrawalStatusRequest> signedRequest =
-        await messageSigningService.signMessage(request, proxyKey);
+    SignedMessage<WithdrawalStatusRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
     print("Sending $signedRequestJson to $proxyBankingUrl");
     String jsonResponse = await post(
@@ -115,20 +124,17 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<WithdrawalStatusResponse> signedResponse =
-        await messageFactory.buildAndVerifySignedMessage(
-            jsonResponse, WithdrawalStatusResponse.fromJson);
+        await messageFactory.buildAndVerifySignedMessage(jsonResponse, WithdrawalStatusResponse.fromJson);
     return await _updateStatus(withdrawalEntity, signedResponse.message.status);
   }
 
-  Future<WithdrawalEntity> _refreshWithdrawalStatus(
-      WithdrawalEntity event) async {
+  Future<WithdrawalEntity> _refreshWithdrawalStatus(WithdrawalEntity event) async {
     ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(event.payerProxyId);
     WithdrawalStatusRequest request = WithdrawalStatusRequest(
       requestId: uuidFactory.v4(),
       request: event.signedWithdrawal,
     );
-    SignedMessage<WithdrawalStatusRequest> signedRequest =
-        await messageSigningService.signMessage(request, proxyKey);
+    SignedMessage<WithdrawalStatusRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
     print("Sending $signedRequestJson to $proxyBankingUrl");
     String jsonResponse = await post(
@@ -138,25 +144,24 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<WithdrawalStatusResponse> signedResponse =
-        await messageFactory.buildAndVerifySignedMessage(
-            jsonResponse, WithdrawalStatusResponse.fromJson);
+        await messageFactory.buildAndVerifySignedMessage(jsonResponse, WithdrawalStatusResponse.fromJson);
     return await _updateStatus(event, signedResponse.message.status);
   }
 
-  Future<WithdrawalEntity> _createWithdrawalEntity(
+  WithdrawalEntity _createWithdrawalEntity(
     String withdrawalId,
     ProxyAccountEntity proxyAccount,
     ReceivingAccountEntity receivingAccount,
-    String signedRequest,
+    SignedMessage<Withdrawal> signedRequest,
   ) {
-    WithdrawalEntity withdrawalEntity = WithdrawalEntity(
+    return WithdrawalEntity(
       proxyUniverse: proxyAccount.proxyUniverse,
       withdrawalId: withdrawalId,
-      status: WithdrawalStatusEnum.Registered,
+      status: WithdrawalStatusEnum.Created,
       amount: proxyAccount.balance,
       payerAccountId: proxyAccount.accountId,
       payerProxyId: proxyAccount.ownerProxyId,
-      signedWithdrawalRequestJson: signedRequest,
+      signedWithdrawal: signedRequest,
       creationTime: DateTime.now(),
       lastUpdatedTime: DateTime.now(),
       destinationAccountBank: receivingAccount.accountNumber,
@@ -164,7 +169,6 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
       receivingAccountId: receivingAccount.id,
       completed: false,
     );
-    return withdrawalRepo.saveWithdrawal(withdrawalEntity);
   }
 
   Future<WithdrawalEntity> _updateStatus(
@@ -176,7 +180,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
       status: status,
       lastUpdatedTime: DateTime.now(),
     );
-    await withdrawalRepo.saveWithdrawal(clone);
+    await _withdrawalStore.saveWithdrawal(clone);
     return clone;
   }
 }

@@ -8,3 +8,4 @@ targets:
           #
           # The default value for each is listed.
           explicit_to_json: true
+          any_map: true

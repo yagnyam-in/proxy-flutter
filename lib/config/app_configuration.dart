@@ -7,9 +7,12 @@ class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
   static const String MasterProxyId = "masterProxyId";
   static const String CustomerName = "customerName";
+  static const String PROXY_UNIVERSE = "proxyUniverse";
 
   static AppConfiguration _instance;
+
   static AppConfiguration instance() => _instance;
+
   static AppConfiguration setInstance(AppConfiguration appConfig) {
     _instance = appConfig;
     return appConfig;
@@ -18,7 +21,10 @@ class AppConfiguration {
   final SharedPreferences preferences;
   final FirebaseUser firebaseUser;
 
-  AppConfiguration({@required this.preferences, @required this.firebaseUser}) {
+  AppConfiguration({
+    @required this.preferences,
+    @required this.firebaseUser,
+  }) {
     assert(preferences != null);
     assert(firebaseUser != null);
   }
@@ -51,5 +57,13 @@ class AppConfiguration {
 
   set customerName(String value) {
     preferences.setString(CustomerName, value);
+  }
+
+  String get proxyUniverse {
+    String val = preferences.getString(PROXY_UNIVERSE);
+    if (val == null || val.isEmpty) {
+      return ProxyUniverse.TEST;
+    }
+    return val;
   }
 }

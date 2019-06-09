@@ -2,12 +2,9 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
-import 'package:proxy_flutter/banking/db/deposit_repo.dart';
-import 'package:proxy_flutter/banking/db/withdrawal_repo.dart';
 import 'package:proxy_flutter/db/contacts_repo.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
-import 'package:proxy_flutter/banking/db/event_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
@@ -115,10 +112,7 @@ class DB {
     await ReceivingAccountRepo.onCreate(db, version);
     await CustomerRepo.onCreate(db, version);
     await ProxyUniverseRepo.onCreate(db, version);
-    await EventRepo.onCreate(db, version);
     await ContactsRepo.onCreate(db, version);
-    await DepositRepo.onCreate(db, version);
-    await WithdrawalRepo.onCreate(db, version);
   }
 
   static Future<void> onUpgrade(
@@ -131,10 +125,7 @@ class DB {
     await ReceivingAccountRepo.onUpgrade(db, oldVersion, newVersion);
     await CustomerRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyUniverseRepo.onUpgrade(db, oldVersion, newVersion);
-    await EventRepo.onUpgrade(db, oldVersion, newVersion);
     await ContactsRepo.onUpgrade(db, oldVersion, newVersion);
-    await DepositRepo.onUpgrade(db, oldVersion, newVersion);
-    await WithdrawalRepo.onUpgrade(db, oldVersion, newVersion);
   }
 
   Future<void> addColumns({

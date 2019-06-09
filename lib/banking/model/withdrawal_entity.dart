@@ -16,9 +16,6 @@ class WithdrawalEntity {
   ]);
 
   @JsonKey(nullable: false)
-  final int id;
-
-  @JsonKey(nullable: false)
   final String proxyUniverse;
 
   @JsonKey(nullable: false)
@@ -54,13 +51,10 @@ class WithdrawalEntity {
   @JsonKey(nullable: false)
   final ProxyId payerProxyId;
 
-  @JsonKey(nullable: false)
-  final String signedWithdrawalRequestJson;
-
-  SignedMessage<Withdrawal> _signedWithdrawal;
+  @JsonKey(nullable: false, fromJson: Withdrawal.signedMessageFromJson)
+  SignedMessage<Withdrawal> signedWithdrawal;
 
   WithdrawalEntity({
-    this.id,
     @required this.proxyUniverse,
     @required this.creationTime,
     @required this.lastUpdatedTime,
@@ -70,26 +64,18 @@ class WithdrawalEntity {
     @required this.amount,
     @required this.payerAccountId,
     @required this.payerProxyId,
-    @required this.signedWithdrawalRequestJson,
+    @required this.signedWithdrawal,
     @required this.receivingAccountId,
     @required this.destinationAccountNumber,
     @required this.destinationAccountBank,
   });
 
-  SignedMessage<Withdrawal> get signedWithdrawal {
-    if (_signedWithdrawal == null) {
-      print("Constructing from $signedWithdrawalRequestJson");
-      _signedWithdrawal = MessageBuilder.instance()
-          .buildSignedMessage(signedWithdrawalRequestJson, Withdrawal.fromJson);
-    }
-    return _signedWithdrawal;
-  }
-
-  WithdrawalEntity copy(
-      {int id, WithdrawalStatusEnum status, DateTime lastUpdatedTime}) {
+  WithdrawalEntity copy({
+    WithdrawalStatusEnum status,
+    DateTime lastUpdatedTime,
+  }) {
     WithdrawalStatusEnum effectiveStatus = status ?? this.status;
     return WithdrawalEntity(
-      id: id ?? this.id,
       proxyUniverse: this.proxyUniverse,
       withdrawalId: this.withdrawalId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
@@ -98,7 +84,7 @@ class WithdrawalEntity {
       amount: this.amount,
       payerAccountId: this.payerAccountId,
       payerProxyId: this.payerProxyId,
-      signedWithdrawalRequestJson: this.signedWithdrawalRequestJson,
+      signedWithdrawal: this.signedWithdrawal,
       status: effectiveStatus,
       receivingAccountId: this.receivingAccountId,
       destinationAccountNumber: this.destinationAccountNumber,
@@ -108,12 +94,12 @@ class WithdrawalEntity {
 
   Map<String, dynamic> toJson() => _$WithdrawalEntityToJson(this);
 
-  static WithdrawalEntity fromJson(Map<String, dynamic> json) => _$WithdrawalEntityFromJson(json);
+  static WithdrawalEntity fromJson(Map json) => _$WithdrawalEntityFromJson(json);
 
   static WithdrawalStatusEnum stringToWithdrawalStatus(
-      String value, {
-        WithdrawalStatusEnum orElse = WithdrawalStatusEnum.Registered,
-      }) {
+    String value, {
+    WithdrawalStatusEnum orElse = WithdrawalStatusEnum.Registered,
+  }) {
     return ConversionUtils.stringToEnum(
       value,
       orElse: orElse,
@@ -123,18 +109,16 @@ class WithdrawalEntity {
   }
 
   static String withdrawalStatusToString(
-      WithdrawalStatusEnum value,
-      ) {
+    WithdrawalStatusEnum value,
+  ) {
     return ConversionUtils.enumToString(
       value,
       enumName: "WithdrawalStatusEnum",
     );
   }
 
-
   static bool isCompleteStatus(WithdrawalStatusEnum status) {
-    return status == WithdrawalStatusEnum.Completed ||
-        status == WithdrawalStatusEnum.FailedCompleted;
+    return status == WithdrawalStatusEnum.Completed || status == WithdrawalStatusEnum.FailedCompleted;
   }
 
   String getTitle(ProxyLocalizations localizations) {
@@ -145,12 +129,10 @@ class WithdrawalEntity {
     return localizations.withdrawalEventSubTitle(destinationAccountNumber);
   }
 
-  String getAmountText(ProxyLocalizations localizations) {
-    return '${amount.value} ${Currency.currencySymbol(amount.currency)}';
-  }
-
-  String getStatus(ProxyLocalizations localizations) {
+  static String statusAsText(ProxyLocalizations localizations, WithdrawalStatusEnum status) {
     switch (status) {
+      case WithdrawalStatusEnum.Created:
+        return localizations.created;
       case WithdrawalStatusEnum.Registered:
         return localizations.registered;
       case WithdrawalStatusEnum.Rejected:
@@ -169,11 +151,21 @@ class WithdrawalEntity {
     }
   }
 
-  IconData icon() {
+  IconData get icon {
     return Icons.file_upload;
   }
 
-  bool isCancellable() {
+  bool get isCancelPossible {
     return cancellableStatuses.contains(status);
   }
+
+
+  String getAmountAsText(ProxyLocalizations localizations) {
+    return '${amount.value} ${Currency.currencySymbol(amount.currency)}';
+  }
+
+  String getStatusAsText(ProxyLocalizations localizations) {
+    return statusAsText(localizations, status);
+  }
+
 }

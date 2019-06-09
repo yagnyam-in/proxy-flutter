@@ -6,38 +6,37 @@ part of 'deposit_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-DepositEntity _$DepositEntityFromJson(Map<String, dynamic> json) {
+DepositEntity _$DepositEntityFromJson(Map json) {
   return DepositEntity(
-      id: json['id'] as int,
       proxyUniverse: json['proxyUniverse'] as String,
       creationTime: DateTime.parse(json['creationTime'] as String),
       lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
       depositId: json['depositId'] as String,
       completed: json['completed'] as bool,
       status: _$enumDecode(_$DepositStatusEnumEnumMap, json['status']),
-      amount: Amount.fromJson(json['amount'] as Map<String, dynamic>),
-      destinationProxyAccountId: ProxyAccountId.fromJson(
-          json['destinationProxyAccountId'] as Map<String, dynamic>),
-      destinationProxyAccountOwnerProxyId: ProxyId.fromJson(
-          json['destinationProxyAccountOwnerProxyId'] as Map<String, dynamic>),
+      amount: Amount.fromJson(json['amount'] as Map),
+      destinationProxyAccountId:
+          ProxyAccountId.fromJson(json['destinationProxyAccountId'] as Map),
+      destinationProxyAccountOwnerProxyId:
+          ProxyId.fromJson(json['destinationProxyAccountOwnerProxyId'] as Map),
       depositLink: json['depositLink'] as String,
-      signedDepositRequestJson: json['signedDepositRequestJson'] as String);
+      signedDepositRequest: DepositRequest.signedMessageFromJson(
+          json['signedDepositRequest'] as Map));
 }
 
 Map<String, dynamic> _$DepositEntityToJson(DepositEntity instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'proxyUniverse': instance.proxyUniverse,
       'depositId': instance.depositId,
       'creationTime': instance.creationTime.toIso8601String(),
       'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
       'completed': instance.completed,
       'status': _$DepositStatusEnumEnumMap[instance.status],
-      'amount': instance.amount,
-      'destinationProxyAccountId': instance.destinationProxyAccountId,
+      'amount': instance.amount.toJson(),
+      'destinationProxyAccountId': instance.destinationProxyAccountId.toJson(),
       'destinationProxyAccountOwnerProxyId':
-          instance.destinationProxyAccountOwnerProxyId,
-      'signedDepositRequestJson': instance.signedDepositRequestJson,
+          instance.destinationProxyAccountOwnerProxyId.toJson(),
+      'signedDepositRequest': instance.signedDepositRequest.toJson(),
       'depositLink': instance.depositLink
     };
 
@@ -55,6 +54,7 @@ T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
 }
 
 const _$DepositStatusEnumEnumMap = <DepositStatusEnum, dynamic>{
+  DepositStatusEnum.Created: 'Created',
   DepositStatusEnum.Registered: 'Registered',
   DepositStatusEnum.Rejected: 'Rejected',
   DepositStatusEnum.InProcess: 'InProcess',

@@ -1,16 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
+import 'package:proxy_flutter/banking/store/event_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/banking/model/event_entity.dart';
-import 'package:proxy_flutter/services/event_bloc.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:uuid/uuid.dart';
-import 'package:proxy_flutter/banking/event_page.dart';
 
 import 'event_card.dart';
 
@@ -18,40 +18,44 @@ final Uuid uuidFactory = Uuid();
 
 class EventsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
 
-  EventsPage({Key key, @required this.appConfiguration, this.proxyUniverse})
-      : super(key: key) {
+  EventsPage({
+    Key key,
+    @required this.appConfiguration,
+  }) : super(key: key) {
+    assert(appConfiguration != null);
     print("Constructing EventsPage");
   }
 
   @override
   _EventsPageState createState() {
-    return _EventsPageState();
+    return _EventsPageState(appConfiguration);
   }
 }
 
 class _EventsPageState extends LoadingSupportState<EventsPage> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final EventBloc eventBloc = ServiceFactory.eventBloc();
+  final AppConfiguration appConfiguration;
 
-  _EventsPageState();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final EventStore _eventStore;
+  Stream<QuerySnapshot> _eventStream;
+
+  _EventsPageState(this.appConfiguration)
+      : _eventStore = EventStore(firebaseUser: appConfiguration.firebaseUser);
 
   @override
   void initState() {
     super.initState();
+    _eventStream = _eventStore.fetchEvents(proxyUniverse: appConfiguration.proxyUniverse);
   }
 
   void showToast(String message) {
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text(message),
-      duration: Duration(seconds: 3),
-    ));
-  }
-
-  bool _showEvent(EventEntity event) {
-    return widget.proxyUniverse == null ||
-        event.proxyUniverse == widget.proxyUniverse;
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
@@ -64,20 +68,18 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-        child: StreamBuilder<List<EventEntity>>(
-          stream: eventBloc.events,
-          initialData: [],
-          builder: (BuildContext context,
-              AsyncSnapshot<List<EventEntity>> snapshot) {
-            return eventsWidget(context, snapshot);
-          },
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _eventStream,
+          builder: eventsWidget,
         ),
       ),
     );
   }
 
   Widget eventsWidget(
-      BuildContext context, AsyncSnapshot<List<EventEntity>> events) {
+    BuildContext context,
+    AsyncSnapshot<QuerySnapshot> events,
+  ) {
     List<Widget> rows = [];
     if (!events.hasData) {
       rows.add(
@@ -85,18 +87,18 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
           child: Text("Loading"),
         ),
       );
-    } else if (events.data.isEmpty) {
+    } else if (events.data.documents.isEmpty) {
       rows.add(
         Center(
           child: Text("No Events"),
         ),
       );
     } else {
-      print("adding ${events.data.length} events");
-      events.data.where(_showEvent).forEach((event) {
+      print("adding ${events.data.documents.length} events");
+      events.data.documents.forEach((event) {
         rows.addAll([
           const SizedBox(height: 8.0),
-          eventCard(context, event),
+          eventCard(context, EventStore.fromJson(event.data)),
         ]);
       });
     }
@@ -135,9 +137,22 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
     Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => EventPage.forEvent(widget.appConfiguration, event),
+        builder: (context) => _eventPage(context, event),
       ),
     );
+  }
+
+  Widget _eventPage(BuildContext context, EventEntity event) {
+    switch (event.eventType) {
+      case EventType.Deposit:
+        return DepositPage(
+          appConfiguration: appConfiguration,
+          proxyUniverse: event.proxyUniverse,
+          depositId: event.eventId,
+        );
+      default:
+        return null;
+    }
   }
 
   void _archiveEvent(BuildContext context, EventEntity event) async {
@@ -145,7 +160,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
     if (!event.completed) {
       showToast(localizations.withdrawalNotYetComplete);
     }
-    await eventBloc.deleteEvent(event);
+    await _eventStore.deleteEvent(event);
   }
 
   Future<void> _refreshEvent(BuildContext context, EventEntity event) async {
@@ -157,7 +172,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
         );
         break;
       case EventType.Withdraw:
-        await BankingServiceFactory.withdrawalService().refreshWithdrawalStatus(
+        await BankingServiceFactory.withdrawalService(widget.appConfiguration).refreshWithdrawalStatus(
           proxyUniverse: event.proxyUniverse,
           withdrawalId: (event as WithdrawalEvent).withdrawalId,
         );

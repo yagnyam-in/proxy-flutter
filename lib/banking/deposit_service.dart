@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/db/deposit_repo.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/store/deposit_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
@@ -24,7 +23,6 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
   final ProxyKeyRepo proxyKeyRepo;
-  final DepositRepo depositRepo;
   final DepositStore _depositStore;
 
   DepositService({
@@ -34,7 +32,6 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.messageFactory,
     @required this.messageSigningService,
     @required this.proxyKeyRepo,
-    @required this.depositRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
         _depositStore = DepositStore(firebaseUser: appConfig.firebaseUser) {
@@ -61,7 +58,6 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     SignedMessage<DepositRequestCreationRequest> signedRequest =
         await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
-    DepositEntity depositEntity = await _createDepositEntity(proxyAccount, request);
 
     // print("Sending $signedRequestJson to $proxyBankingUrl");
     String jsonResponse = await post(
@@ -72,14 +68,18 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     // print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositRequestCreationResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, DepositRequestCreationResponse.fromJson);
-    depositEntity = await _updateDeposit(depositEntity,
-        signedDepositRequest: signedResponse.message.depositRequest, status: signedResponse.message.status);
-    return signedResponse.message.depositLink;
+    DepositEntity depositEntity = _createDepositEntity(
+      proxyAccount,
+      request,
+      signedResponse.message,
+    );
+    await _depositStore.saveDeposit(depositEntity);
+    return depositEntity.depositLink;
   }
 
   Future<void> processDepositUpdate(DepositUpdatedAlert alert) async {
     DepositEntity depositEntity =
-        await depositRepo.fetchDeposit(proxyUniverse: alert.proxyUniverse, depositId: alert.depositId);
+        await _depositStore.fetchDeposit(proxyUniverse: alert.proxyUniverse, depositId: alert.depositId);
     if (depositEntity != null) {
       await _refreshDepositStatus(depositEntity);
     }
@@ -89,7 +89,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required String proxyUniverse,
     @required String depositId,
   }) async {
-    DepositEntity depositEntity = await depositRepo.fetchDeposit(
+    DepositEntity depositEntity = await _depositStore.fetchDeposit(
       proxyUniverse: proxyUniverse,
       depositId: depositId,
     );
@@ -103,7 +103,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required String depositId,
   }) async {
     print('Cancelling $proxyUniverse/$depositId');
-    DepositEntity depositEntity = await depositRepo.fetchDeposit(
+    DepositEntity depositEntity = await _depositStore.fetchDeposit(
       proxyUniverse: proxyUniverse,
       depositId: depositId,
     );
@@ -125,7 +125,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositRequestCancelResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, DepositRequestCancelResponse.fromJson);
-    await _updateDeposit(depositEntity, status: signedResponse.message.status);
+    await _updateDepositStatus(depositEntity, status: signedResponse.message.status);
   }
 
   Future<void> _refreshDepositStatus(DepositEntity depositEntity) async {
@@ -148,42 +148,39 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositRequestStatusResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, DepositRequestStatusResponse.fromJson);
-    await _updateDeposit(depositEntity, status: signedResponse.message.status);
+    await _updateDepositStatus(depositEntity, status: signedResponse.message.status);
   }
 
-  Future<DepositEntity> _createDepositEntity(
+  DepositEntity _createDepositEntity(
     ProxyAccountEntity proxyAccount,
     DepositRequestCreationRequest request,
-  ) async {
-    DepositEntity depositEntity = DepositEntity(
+    DepositRequestCreationResponse response,
+  ) {
+    return DepositEntity(
       proxyUniverse: proxyAccount.proxyUniverse,
       depositId: request.depositId,
-      status: DepositStatusEnum.InProcess,
+      status: response.status,
       amount: request.amount,
       destinationProxyAccountId: proxyAccount.accountId,
       destinationProxyAccountOwnerProxyId: proxyAccount.ownerProxyId,
       creationTime: DateTime.now(),
       lastUpdatedTime: DateTime.now(),
+      signedDepositRequest: response.depositRequest,
+      depositLink: response.depositRequest.message.depositLink,
       completed: false,
     );
-    await _depositStore.saveDeposit(depositEntity);
-    return depositRepo.saveDeposit(depositEntity);
   }
 
-  Future<DepositEntity> _updateDeposit(
+  Future<DepositEntity> _updateDepositStatus(
     DepositEntity entity, {
-    SignedMessage<DepositRequest> signedDepositRequest,
     DepositStatusEnum status,
   }) async {
     // print("Setting ${entity.eventId} status to $localStatus");
     DepositEntity clone = entity.copy(
-      signedDepositRequestJson: signedDepositRequest != null ? jsonEncode(signedDepositRequest.toJson()) : null,
-      depositLink: signedDepositRequest?.message?.depositLink,
       status: status,
       lastUpdatedTime: DateTime.now(),
     );
     await _depositStore.saveDeposit(clone);
-    await depositRepo.saveDeposit(clone);
     return clone;
   }
 }

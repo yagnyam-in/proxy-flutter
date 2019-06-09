@@ -12,8 +12,6 @@ part 'deposit_entity.g.dart';
 class DepositEntity with ProxyUtils {
 
   @JsonKey(nullable: false)
-  final int id;
-  @JsonKey(nullable: false)
   final String proxyUniverse;
   @JsonKey(nullable: false)
   final String depositId;
@@ -31,15 +29,12 @@ class DepositEntity with ProxyUtils {
   final ProxyAccountId destinationProxyAccountId;
   @JsonKey(nullable: false)
   final ProxyId destinationProxyAccountOwnerProxyId;
-  @JsonKey(nullable: true)
-  final String signedDepositRequestJson;
+  @JsonKey(nullable: false, fromJson: DepositRequest.signedMessageFromJson)
+  SignedMessage<DepositRequest> signedDepositRequest;
   @JsonKey(nullable: true)
   final String depositLink;
 
-  SignedMessage<DepositRequest> _signedDepositRequest;
-
   DepositEntity({
-    this.id,
     @required this.proxyUniverse,
     @required this.creationTime,
     @required this.lastUpdatedTime,
@@ -49,29 +44,16 @@ class DepositEntity with ProxyUtils {
     @required this.amount,
     @required this.destinationProxyAccountId,
     @required this.destinationProxyAccountOwnerProxyId,
-    this.depositLink,
-    this.signedDepositRequestJson,
+    @required this.depositLink,
+    @required this.signedDepositRequest,
   });
 
-  SignedMessage<DepositRequest> get signedDepositRequest {
-    if (_signedDepositRequest == null) {
-      print("Constructing from $signedDepositRequestJson");
-      _signedDepositRequest =
-          MessageBuilder.instance().buildSignedMessage(signedDepositRequestJson, DepositRequest.fromJson);
-    }
-    return _signedDepositRequest;
-  }
-
   DepositEntity copy({
-    int id,
-    String depositLink,
-    String signedDepositRequestJson,
     DepositStatusEnum status,
     DateTime lastUpdatedTime,
   }) {
     DepositStatusEnum effectiveStatus = status ?? this.status;
     return DepositEntity(
-      id: id ?? this.id,
       proxyUniverse: this.proxyUniverse,
       depositId: this.depositId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
@@ -80,8 +62,8 @@ class DepositEntity with ProxyUtils {
       amount: this.amount,
       destinationProxyAccountId: this.destinationProxyAccountId,
       destinationProxyAccountOwnerProxyId: this.destinationProxyAccountOwnerProxyId,
-      signedDepositRequestJson: signedDepositRequestJson ?? this.signedDepositRequestJson,
-      depositLink: depositLink ?? this.depositLink,
+      depositLink: this.depositLink,
+      signedDepositRequest: this.signedDepositRequest,
       status: effectiveStatus,
     );
   }
@@ -121,6 +103,8 @@ class DepositEntity with ProxyUtils {
 
   static String statusAsText(ProxyLocalizations localizations, DepositStatusEnum status) {
     switch (status) {
+      case DepositStatusEnum.Created:
+        return localizations.created;
       case DepositStatusEnum.Registered:
         return localizations.waitingForFunds;
       case DepositStatusEnum.Rejected:
@@ -139,7 +123,7 @@ class DepositEntity with ProxyUtils {
 
   Map<String, dynamic> toJson() => _$DepositEntityToJson(this);
 
-  static DepositEntity fromJson(Map<String, dynamic> json) => _$DepositEntityFromJson(json);
+  static DepositEntity fromJson(Map json) => _$DepositEntityFromJson(json);
 
   String getAmountAsText(ProxyLocalizations localizations) {
     return '${amount.value} ${Currency.currencySymbol(amount.currency)}';

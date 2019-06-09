@@ -84,23 +84,25 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("FCM token refresh failed with error $error");
   }
 
-  Future<void> onMessage(Map<String, dynamic> message) {
+  Future<void> onMessage(Map<String, dynamic> message) async {
     print("onMessage $message");
     Map<dynamic, dynamic> data = message['data'];
     print('data: $data');
     String type = data != null ? data['alertType'] : null;
     print('type: $type');
+    if (AppConfiguration.instance() == null) {
+      print("Ignoring $message as App Config is null");
+      return null;
+    }
     if (type == AccountUpdatedAlert.ALERT_TYPE) {
       AccountUpdatedAlert alert = AccountUpdatedAlert.fromJson(data);
       BankingServiceFactory.bankingService().refreshAccount(alert.proxyAccountId);
     } else if (type == WithdrawalUpdatedAlert.ALERT_TYPE) {
       WithdrawalUpdatedAlert alert = WithdrawalUpdatedAlert.fromJson(data);
-      BankingServiceFactory.withdrawalService().processWithdrawalUpdate(alert);
+      BankingServiceFactory.withdrawalService(AppConfiguration.instance()).processWithdrawalUpdate(alert);
     } else if (type == DepositUpdatedAlert.ALERT_TYPE) {
       DepositUpdatedAlert alert = DepositUpdatedAlert.fromJson(data);
-      if (AppConfiguration.instance() != null) {
-        BankingServiceFactory.depositService(AppConfiguration.instance()).processDepositUpdate(alert);
-      }
+      BankingServiceFactory.depositService(AppConfiguration.instance()).processDepositUpdate(alert);
     }
     return null;
   }

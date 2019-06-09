@@ -5,7 +5,6 @@ import 'package:proxy_flutter/db/contacts_repo.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
-import 'package:proxy_flutter/banking/db/event_repo.dart';
 import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
@@ -17,7 +16,6 @@ import 'package:proxy_flutter/services/local_proxy_resolver.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
 
 import 'deep_link_service.dart';
-import 'event_bloc.dart';
 
 class ServiceFactory {
   static final NotificationService _notificationServiceInstance =
@@ -81,12 +79,6 @@ class ServiceFactory {
   static final BootService _bootServiceInstance = BootService();
 
   static BootService bootService() => _bootServiceInstance;
-
-  static EventRepo eventRepo() => EventRepo.instance(DB.instance());
-
-  static final EventBloc _eventBlocInstance = EventBloc(eventRepo: eventRepo());
-
-  static EventBloc eventBloc() => _eventBlocInstance;
 
   static ContactsRepo contactsRepo() => ContactsRepo.instance(DB.instance());
 

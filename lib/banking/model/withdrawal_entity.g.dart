@@ -6,22 +6,19 @@ part of 'withdrawal_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-WithdrawalEntity _$WithdrawalEntityFromJson(Map<String, dynamic> json) {
+WithdrawalEntity _$WithdrawalEntityFromJson(Map json) {
   return WithdrawalEntity(
-      id: json['id'] as int,
       proxyUniverse: json['proxyUniverse'] as String,
       creationTime: DateTime.parse(json['creationTime'] as String),
       lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
       withdrawalId: json['withdrawalId'] as String,
       completed: json['completed'] as bool,
       status: _$enumDecode(_$WithdrawalStatusEnumEnumMap, json['status']),
-      amount: Amount.fromJson(json['amount'] as Map<String, dynamic>),
-      payerAccountId: ProxyAccountId.fromJson(
-          json['payerAccountId'] as Map<String, dynamic>),
-      payerProxyId:
-          ProxyId.fromJson(json['payerProxyId'] as Map<String, dynamic>),
-      signedWithdrawalRequestJson:
-          json['signedWithdrawalRequestJson'] as String,
+      amount: Amount.fromJson(json['amount'] as Map),
+      payerAccountId: ProxyAccountId.fromJson(json['payerAccountId'] as Map),
+      payerProxyId: ProxyId.fromJson(json['payerProxyId'] as Map),
+      signedWithdrawal:
+          Withdrawal.signedMessageFromJson(json['signedWithdrawal'] as Map),
       receivingAccountId: json['receivingAccountId'] as int,
       destinationAccountNumber: json['destinationAccountNumber'] as String,
       destinationAccountBank: json['destinationAccountBank'] as String);
@@ -29,20 +26,19 @@ WithdrawalEntity _$WithdrawalEntityFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$WithdrawalEntityToJson(WithdrawalEntity instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'proxyUniverse': instance.proxyUniverse,
       'withdrawalId': instance.withdrawalId,
       'creationTime': instance.creationTime.toIso8601String(),
       'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
       'completed': instance.completed,
       'status': _$WithdrawalStatusEnumEnumMap[instance.status],
-      'amount': instance.amount,
-      'payerAccountId': instance.payerAccountId,
+      'amount': instance.amount.toJson(),
+      'payerAccountId': instance.payerAccountId.toJson(),
       'receivingAccountId': instance.receivingAccountId,
       'destinationAccountNumber': instance.destinationAccountNumber,
       'destinationAccountBank': instance.destinationAccountBank,
-      'payerProxyId': instance.payerProxyId,
-      'signedWithdrawalRequestJson': instance.signedWithdrawalRequestJson
+      'payerProxyId': instance.payerProxyId.toJson(),
+      'signedWithdrawal': instance.signedWithdrawal.toJson()
     };
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
@@ -59,6 +55,7 @@ T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
 }
 
 const _$WithdrawalStatusEnumEnumMap = <WithdrawalStatusEnum, dynamic>{
+  WithdrawalStatusEnum.Created: 'Created',
   WithdrawalStatusEnum.Registered: 'Registered',
   WithdrawalStatusEnum.Rejected: 'Rejected',
   WithdrawalStatusEnum.InTransit: 'InTransit',

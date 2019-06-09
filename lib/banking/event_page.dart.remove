@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/store/event_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/banking/model/event_entity.dart';
@@ -29,10 +30,12 @@ class EventPage extends StatefulWidget {
 class EventPageState extends LoadingSupportState<EventPage> {
   final AppConfiguration appConfiguration;
   final EventEntity event;
-  final EventBloc eventBloc = ServiceFactory.eventBloc();
+  final EventStore _eventStore;
   final EventActions eventActions;
 
-  EventPageState(this.appConfiguration, this.event) : eventActions = BankingServiceFactory.eventActions(appConfiguration);
+  EventPageState(this.appConfiguration, this.event)
+      : eventActions = BankingServiceFactory.eventActions(appConfiguration),
+        _eventStore = EventStore(firebaseUser: appConfiguration.firebaseUser);
 
   @override
   Widget build(BuildContext context) {

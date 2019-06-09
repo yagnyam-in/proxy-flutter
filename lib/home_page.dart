@@ -1,10 +1,10 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/banking_home.dart';
-import 'package:proxy_flutter/banking/event_page.dart';
-import 'package:proxy_flutter/banking/model/event_entity.dart';
+import 'package:proxy_flutter/banking/deposit_page.dart';
+import 'package:proxy_flutter/banking/model/deposit_entity.dart';
+import 'package:proxy_flutter/banking/store/deposit_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } else if (link.path == '/actions/deposit-status') {
       _depositStatus(link.queryParameters);
     } else if (link.path == '/actions/accept-payment') {
-      _acceptPayment(link.queryParameters);
+      // _acceptPayment(link.queryParameters);
     } else {
       print('ignoring $link');
     }
@@ -91,7 +91,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     print("Launching dialog to show deposit status $query");
     String proxyUniverse = query['proxyUniverse'];
     String depositId = query['depositId'];
-    EventEntity deposit = await ServiceFactory.eventRepo().fetchEvent(proxyUniverse, EventType.Deposit, depositId);
+    DepositEntity deposit = await DepositStore(firebaseUser: appConfiguration.firebaseUser)
+        .fetchDeposit(proxyUniverse: proxyUniverse, depositId: depositId);
     if (deposit == null) {
       print("Couldn't find deposit for $query");
       return null;
@@ -99,17 +100,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     await Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => EventPage.forEvent(appConfiguration, deposit),
+        builder: (context) => DepositPage(
+              appConfiguration: appConfiguration,
+              proxyUniverse: proxyUniverse,
+              depositId: depositId,
+            ),
         fullscreenDialog: true,
       ),
     );
   }
 
+  /*
   Future<void> _acceptPayment(Map<String, String> query) async {
     print("Launching dialog to accept payment $query");
     String proxyUniverse = query['proxyUniverse'];
     String paymentAuthorizationId = query['paymentAuthorizationId'];
-    EventEntity payment =
+    EventEntity payment = DepositStore(firebaseUser: appConfiguration.firebaseUser).fetchDeposit(proxyUniverse: proxyUniverse, depositId: null)
         await ServiceFactory.eventRepo().fetchEvent(proxyUniverse, EventType.Payment, paymentAuthorizationId);
     if (payment == null) {
       print("Couldn't find payment for $query");
@@ -133,6 +139,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       );
     }
   }
+   */
 
   @override
   Widget build(BuildContext context) {

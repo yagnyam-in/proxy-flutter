@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:proxy_messages/banking.dart';
 
 import 'l10n/messages_all.dart';
 
 class ProxyLocalizations {
   static Future<ProxyLocalizations> load(Locale locale) {
-    final String name =
-        locale.countryCode.isEmpty ? locale.languageCode : locale.toString();
+    final String name = locale.countryCode.isEmpty ? locale.languageCode : locale.toString();
     final String localeName = Intl.canonicalizedLocale(name);
 
     return initializeMessages(localeName).then((_) {
@@ -254,8 +252,7 @@ class ProxyLocalizations {
     return Intl.message(
       'By Adding your Bunq account, you can directly start using it anonymously',
       name: 'setupBunqAccountDescription',
-      desc:
-          'By Adding your Bunq account, you can directly start using it anonymously',
+      desc: 'By Adding your Bunq account, you can directly start using it anonymously',
     );
   }
 
@@ -896,36 +893,35 @@ class ProxyLocalizations {
       );
 
   String get closeButtonLabel => Intl.message(
-    'Close',
-    name: 'closeButtonLabel',
-    desc: 'Close Button Label',
-  );
+        'Close',
+        name: 'closeButtonLabel',
+        desc: 'Close Button Label',
+      );
 
-  String get paymentCanNotBeAccepted =>Intl.message(
-    'Payment can not be Accepted',
-    name: 'paymentCanNotBeAccepted',
-    desc: 'Payment can not be Accepted',
-  );
+  String get paymentCanNotBeAccepted => Intl.message(
+        'Payment can not be Accepted',
+        name: 'paymentCanNotBeAccepted',
+        desc: 'Payment can not be Accepted',
+      );
 
-
-  String get invalidSecret =>Intl.message(
-    'Invalid Secret',
-    name: 'invalidSecret',
-    desc: 'Invalid Secret',
-  );
+  String get invalidSecret => Intl.message(
+        'Invalid Secret',
+        name: 'invalidSecret',
+        desc: 'Invalid Secret',
+      );
 
   String get depositNotFound => Intl.message(
-    'Deposit not found',
-    name: 'depositNotFound',
-    desc: 'Deposit not found',
-  );
+        'Deposit not found',
+        name: 'depositNotFound',
+        desc: 'Deposit not found',
+      );
 
   String amountDisplayMessage({double value, String currency}) => Intl.message(
-    '$value $currency',
-    name: 'amountDisplayMessage',
-    args: [value, currency],
-    desc: 'Amount as String',
-  );
+        '$value $currency',
+        name: 'amountDisplayMessage',
+        args: [value, currency],
+        desc: 'Amount as String',
+      );
 
   String get shareDeposit => Intl.message('Share');
 
@@ -945,19 +941,23 @@ class ProxyLocalizations {
 
   String get checkYourMailForLoginLink => Intl.message('Mail sent with login link, login through the link.');
 
+  String get cancelButtonLabel => Intl.message('Cancel');
+
+  String get payButtonLabel => Intl.message('Pay');
+
+  String get created => Intl.message('Created');
+
+  String get withdrawalNotFound => Intl.message('Withdrawal not found');
 }
 
-class ProxyLocalizationsDelegate
-    extends LocalizationsDelegate<ProxyLocalizations> {
+class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {
   const ProxyLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) =>
-      ['en', 'nl', 'te'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => ['en', 'nl', 'te'].contains(locale.languageCode);
 
   @override
-  Future<ProxyLocalizations> load(Locale locale) =>
-      ProxyLocalizations.load(locale);
+  Future<ProxyLocalizations> load(Locale locale) => ProxyLocalizations.load(locale);
 
   @override
   bool shouldReload(ProxyLocalizationsDelegate old) => false;

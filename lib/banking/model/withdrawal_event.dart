@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
 part 'withdrawal_event.g.dart';
@@ -117,7 +117,7 @@ class WithdrawalEvent extends EventEntity with ProxyUtils {
   @override
   Map<String, dynamic> toJson() => _$WithdrawalEventToJson(this);
 
-  static WithdrawalEvent fromJson(Map<String, dynamic> json) => _$WithdrawalEventFromJson(json);
+  static WithdrawalEvent fromJson(Map json) => _$WithdrawalEventFromJson(json);
 
   @override
   String getTitle(ProxyLocalizations localizations) {
@@ -136,23 +136,7 @@ class WithdrawalEvent extends EventEntity with ProxyUtils {
 
   @override
   String getStatusAsText(ProxyLocalizations localizations) {
-    switch (status) {
-      case WithdrawalStatusEnum.Registered:
-        return localizations.registered;
-      case WithdrawalStatusEnum.Rejected:
-        return localizations.rejected;
-      case WithdrawalStatusEnum.InTransit:
-        return localizations.inTransit;
-      case WithdrawalStatusEnum.Completed:
-        return localizations.completed;
-      case WithdrawalStatusEnum.FailedInTransit:
-        return localizations.failedInTransit;
-      case WithdrawalStatusEnum.FailedCompleted:
-        return localizations.failedCompleted;
-      default:
-        print("Unhandled Event state: $status");
-        return localizations.inTransit;
-    }
+    return WithdrawalEntity.statusAsText(localizations, status);
   }
 
   IconData icon() {
