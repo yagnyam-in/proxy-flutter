@@ -11,8 +11,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  intl:
-  intl_translation:
+  intl: ^0.15.8
+  intl_translation: ^0.17.5
   proxy_core:
     path: ../proxy-core-dart
     # git: git://github.com/yagnyam-in/proxy-core-dart.git
