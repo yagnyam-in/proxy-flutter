@@ -19,7 +19,7 @@ WithdrawalEntity _$WithdrawalEntityFromJson(Map json) {
       payerProxyId: ProxyId.fromJson(json['payerProxyId'] as Map),
       signedWithdrawal:
           Withdrawal.signedMessageFromJson(json['signedWithdrawal'] as Map),
-      receivingAccountId: json['receivingAccountId'] as int,
+      receivingAccountId: json['receivingAccountId'] as String,
       destinationAccountNumber: json['destinationAccountNumber'] as String,
       destinationAccountBank: json['destinationAccountBank'] as String);
 }

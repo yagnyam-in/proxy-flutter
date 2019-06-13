@@ -40,7 +40,7 @@ class WithdrawalEntity {
   final ProxyAccountId payerAccountId;
 
   @JsonKey(nullable: false)
-  final int receivingAccountId;
+  final String receivingAccountId;
 
   @JsonKey(nullable: false)
   final String destinationAccountNumber;

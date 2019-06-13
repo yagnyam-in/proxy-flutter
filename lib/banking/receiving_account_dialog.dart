@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/banking_home.dart';
+import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
+import 'package:proxy_flutter/banking/store/receiving_account_store.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/receiving_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
 class ReceivingAccountDialog extends StatefulWidget {
+  final AppConfiguration appConfiguration;
   final ReceivingAccountEntity receivingAccount;
 
-  ReceivingAccountDialog({Key key, this.receivingAccount}) : super(key: key) {
+  ReceivingAccountDialog(this.appConfiguration, {Key key, this.receivingAccount}) : super(key: key) {
     print("Constructing ReceivingAccountDialog");
+    assert(appConfiguration != null);
   }
 
   @override
-  _ReceivingAccountDialogState createState() => _ReceivingAccountDialogState(receivingAccount);
+  _ReceivingAccountDialogState createState() => _ReceivingAccountDialogState(appConfiguration, receivingAccount);
 }
 
 class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
+  final AppConfiguration appConfiguration;
+  final ReceivingAccountStore _receivingAccountStore;
   final ReceivingAccountEntity receivingAccount;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -38,11 +45,12 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   String _proxyUniverse;
   String _currency;
 
-  _ReceivingAccountDialogState(this.receivingAccount)
-      : accountNameController = TextEditingController(text: receivingAccount?.accountName),
+  _ReceivingAccountDialogState(this.appConfiguration, this.receivingAccount)
+      : _receivingAccountStore = ReceivingAccountStore(appConfiguration),
+        accountNameController = TextEditingController(text: receivingAccount?.accountName),
         accountNumberController = TextEditingController(text: receivingAccount?.accountNumber),
         accountHolderController = TextEditingController(text: receivingAccount?.accountHolder),
-        bankController = TextEditingController(text: receivingAccount?.bank),
+        bankController = TextEditingController(text: receivingAccount?.bankName),
         ifscCodeController = TextEditingController(text: receivingAccount?.ifscCode),
         emailController = TextEditingController(text: receivingAccount?.email),
         phoneController = TextEditingController(text: receivingAccount?.phone),
@@ -237,20 +245,23 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
     } else if (!_formKey.currentState.validate()) {
       print("Validation failure");
     } else {
-      Navigator.of(context).pop(new ReceivingAccountEntity(
-        proxyUniverse: _proxyUniverse,
-        id: receivingAccount?.id,
-        accountName: accountNameController.text,
-        accountNumber: accountNumberController.text,
-        accountHolder: accountHolderController.text,
-        bank: bankController.text,
-        currency: _currency,
-        ifscCode: ifscCodeController.text,
-        email: emailController.text,
-        phone: phoneController.text,
-        address: addressController.text,
-        active: receivingAccount?.active ?? true,
-      ));
+      _receivingAccountStore.saveAccount(
+        ReceivingAccountEntity(
+          proxyUniverse: _proxyUniverse,
+          accountId: receivingAccount?.accountId ?? uuidFactory.v4(),
+          currency: _currency,
+          accountName: accountNameController.text,
+          accountNumber: accountNumberController.text,
+          accountHolder: accountHolderController.text,
+          bankName: bankController.text,
+          ifscCode: ifscCodeController.text,
+          email: emailController.text,
+          phone: phoneController.text,
+          address: addressController.text,
+          active: receivingAccount?.active ?? true,
+        ),
+      );
+      Navigator.of(context).pop();
     }
   }
 

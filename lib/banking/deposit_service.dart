@@ -5,10 +5,10 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
+import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/store/deposit_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
-import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -16,6 +16,7 @@ import 'package:uuid/uuid.dart';
 import 'model/deposit_entity.dart';
 
 class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
+  final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
   final AppConfiguration appConfig;
@@ -26,6 +27,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   final DepositStore _depositStore;
 
   DepositService({
+    @required this.appConfiguration,
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
     @required this.appConfig,
@@ -35,6 +37,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
         _depositStore = DepositStore(firebaseUser: appConfig.firebaseUser) {
+    assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 

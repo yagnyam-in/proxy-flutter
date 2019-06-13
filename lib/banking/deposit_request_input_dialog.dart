@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/customer_entity.dart';
-import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);

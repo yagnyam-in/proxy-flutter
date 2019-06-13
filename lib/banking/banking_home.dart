@@ -7,9 +7,11 @@ import 'package:proxy_flutter/banking/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/deposit_service.dart';
 import 'package:proxy_flutter/banking/enticement_card.dart';
+import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
+import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/payment_authorization_service.dart';
-import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
 import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
+import 'package:proxy_flutter/banking/store/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/withdrawal_service.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/contacts_page.dart';
@@ -17,8 +19,6 @@ import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/customer_entity.dart';
 import 'package:proxy_flutter/model/enticement_entity.dart';
-import 'package:proxy_flutter/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/profile_page.dart';
 import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
@@ -54,12 +54,12 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
   final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final CustomerRepo _customerRepo = ServiceFactory.customerRepo();
-  final ProxyAccountsBloc _proxyAccountsBloc = BankingServiceFactory.proxyAccountsBloc();
   final BankingService _bankingService = BankingServiceFactory.bankingService();
   final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
   final PaymentAuthorizationService _paymentAuthorizationService;
   final WithdrawalService _withdrawalService;
   final DepositService _depositService;
+  Stream<List<ProxyAccountEntity>> _proxyAccountsStream;
 
   _BankingHomeState(this.appConfiguration)
       : _depositService = BankingServiceFactory.depositService(appConfiguration),
@@ -69,7 +69,10 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
   @override
   void initState() {
     super.initState();
+    _proxyAccountsStream = ProxyAccountStore(appConfiguration: appConfiguration)
+        .subscribeForAccounts(proxyUniverse: appConfiguration.proxyUniverse);
     ServiceFactory.bootService().start();
+
   }
 
   @override
@@ -120,7 +123,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: StreamBuilder<List<ProxyAccountEntity>>(
-              stream: _proxyAccountsBloc.accounts,
+              stream: _proxyAccountsStream,
               initialData: [],
               builder: (BuildContext context, AsyncSnapshot<List<ProxyAccountEntity>> snapshot) {
                 return accountsWidget(context, snapshot);
@@ -334,7 +337,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
       showToast(localizations.canNotDeleteActiveAccount);
       return;
     }
-    _proxyAccountsBloc.deleteAccount(proxyAccount);
+    ProxyAccountStore(appConfiguration: appConfiguration).deleteAccount(proxyAccount);
   }
 
   Widget enticementCard(BuildContext context, EnticementEntity enticement) {

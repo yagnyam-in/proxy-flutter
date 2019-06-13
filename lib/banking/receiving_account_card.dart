@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/model/receiving_account_entity.dart';
+import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
 class ReceivingAccountCard extends StatelessWidget {
@@ -31,7 +31,7 @@ class ReceivingAccountCard extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       title: Text(
-        '${account.bank} - ${account.proxyUniverse}',
+        '${account.bankName} - ${account.proxyUniverse}',
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Padding(

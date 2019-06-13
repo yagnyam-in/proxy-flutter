@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
+import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
+import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/store/withdrawal_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
-import 'package:proxy_flutter/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -17,23 +16,23 @@ import 'package:uuid/uuid.dart';
 import 'model/withdrawal_entity.dart';
 
 class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
+  final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
   final AppConfiguration appConfig;
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
-  final ProxyAccountsBloc proxyAccountsBloc;
   final ProxyKeyRepo proxyKeyRepo;
   final WithdrawalStore _withdrawalStore;
 
   WithdrawalService({
+    @required this.appConfiguration,
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
     @required this.appConfig,
     @required this.messageFactory,
     @required this.messageSigningService,
-    @required this.proxyAccountsBloc,
     @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
@@ -50,7 +49,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
       proxyAccount: proxyAccount.signedProxyAccount,
       amount: proxyAccount.balance,
       destinationAccount: new NonProxyAccount(
-        bank: receivingAccount.bank,
+        bank: receivingAccount.bankName,
         accountNumber: receivingAccount.accountNumber,
         accountHolder: receivingAccount.accountHolder,
         currency: receivingAccount.currency,
@@ -166,8 +165,8 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
       creationTime: DateTime.now(),
       lastUpdatedTime: DateTime.now(),
       destinationAccountBank: receivingAccount.accountNumber,
-      destinationAccountNumber: receivingAccount.bank,
-      receivingAccountId: receivingAccount.id,
+      destinationAccountNumber: receivingAccount.bankName,
+      receivingAccountId: receivingAccount.accountId,
       completed: false,
     );
   }

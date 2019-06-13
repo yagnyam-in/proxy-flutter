@@ -4,34 +4,38 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/proxy_accounts_bloc.dart';
+import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
+import 'package:proxy_flutter/banking/store/proxy_account_store.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
-import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
 class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
+  final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
-  final ProxyAccountsBloc proxyAccountsBloc;
+  final ProxyAccountStore _proxyAccountStore;
   final EnticementBloc enticementBloc;
   final ProxyKeyRepo proxyKeyRepo;
 
   BankingService({
+    @required this.appConfiguration,
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
     @required this.messageFactory,
     @required this.messageSigningService,
-    @required this.proxyAccountsBloc,
     @required this.enticementBloc,
     @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
+        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        _proxyAccountStore = ProxyAccountStore(appConfiguration: appConfiguration) {
+    assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
@@ -73,7 +77,6 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     ProxyAccount proxyAccount = response.proxyAccount.message;
     ProxyAccountId proxyAccountId = proxyAccount.proxyAccountId;
     ProxyAccountEntity proxyAccountEntity = ProxyAccountEntity(
-      proxyUniverse: proxyAccountId.proxyUniverse,
       accountId: proxyAccountId,
       accountName: "",
       bankName: "Wallet - ${proxyAccountId.proxyUniverse}",
@@ -82,16 +85,16 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
         value: 0,
       ),
       ownerProxyId: ownerProxyId,
-      signedProxyAccountJson: jsonEncode(response.proxyAccount.toJson()),
+      signedProxyAccount: response.proxyAccount,
     );
-    proxyAccountsBloc.saveAccount(proxyAccountEntity);
+    _proxyAccountStore.saveAccount(proxyAccountEntity);
     enticementBloc.dismissEnticement(EnticementBloc.START);
     return proxyAccountEntity;
   }
 
   Future<void> refreshAccount(ProxyAccountId accountId) async {
     print('Refreshing $accountId');
-    ProxyAccountEntity proxyAccount = await proxyAccountsBloc.fetchAccount(accountId);
+    ProxyAccountEntity proxyAccount = await _proxyAccountStore.fetchAccount(accountId);
     if (proxyAccount == null) {
       // This can happen when alert reaches earlier than API response, or account is removed.
       print("Account $proxyAccount not found");
@@ -113,8 +116,9 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<AccountBalanceResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, AccountBalanceResponse.fromJson);
-    proxyAccount.balance = signedResponse.message.balance;
-    print("Account $accountId has balance => ${proxyAccount.balance}");
-    proxyAccountsBloc.saveAccount(proxyAccount);
+    if (signedResponse.message.balance != proxyAccount.balance) {
+      print("Account $accountId has balance => ${proxyAccount.balance}");
+      _proxyAccountStore.saveAccount(proxyAccount.copy(balance: signedResponse.message.balance));
+    }
   }
 }

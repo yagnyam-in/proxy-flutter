@@ -7,12 +7,12 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
+import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/payment_authorization_input_dialog.dart';
 import 'package:proxy_flutter/banking/store/payment_authorization_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
@@ -21,6 +21,7 @@ import 'package:proxy_messages/payments.dart';
 import 'package:uuid/uuid.dart';
 
 class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, RandomUtils {
+  final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
   final AppConfiguration appConfig;
@@ -32,6 +33,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
   final PaymentAuthorizationStore _paymentAuthorizationStore;
 
   PaymentAuthorizationService({
+    @required this.appConfiguration,
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
     @required this.appConfig,
@@ -42,6 +44,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
         _paymentAuthorizationStore = PaymentAuthorizationStore(firebaseUser: appConfig.firebaseUser) {
+    assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 

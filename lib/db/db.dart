@@ -5,11 +5,9 @@ import 'package:path/path.dart';
 import 'package:proxy_flutter/db/contacts_repo.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
-import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/db/proxy_universe_repo.dart';
-import 'package:proxy_flutter/db/receiving_account_repo.dart';
 import 'package:sqflite/sqflite.dart';
 
 Database _database;
@@ -107,9 +105,7 @@ class DB {
     DB db = DB._internal(Future.value(database));
     await ProxyRepo.onCreate(db, version);
     await ProxyKeyRepo.onCreate(db, version);
-    await ProxyAccountRepo.onCreate(db, version);
     await EnticementRepo.onCreate(db, version);
-    await ReceivingAccountRepo.onCreate(db, version);
     await CustomerRepo.onCreate(db, version);
     await ProxyUniverseRepo.onCreate(db, version);
     await ContactsRepo.onCreate(db, version);
@@ -120,9 +116,7 @@ class DB {
     DB db = DB._internal(Future.value(database));
     await ProxyRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyKeyRepo.onUpgrade(db, oldVersion, newVersion);
-    await ProxyAccountRepo.onUpgrade(db, oldVersion, newVersion);
     await EnticementRepo.onUpgrade(db, oldVersion, newVersion);
-    await ReceivingAccountRepo.onUpgrade(db, oldVersion, newVersion);
     await CustomerRepo.onUpgrade(db, oldVersion, newVersion);
     await ProxyUniverseRepo.onUpgrade(db, oldVersion, newVersion);
     await ContactsRepo.onUpgrade(db, oldVersion, newVersion);

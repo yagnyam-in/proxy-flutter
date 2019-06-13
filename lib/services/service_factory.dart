@@ -5,7 +5,6 @@ import 'package:proxy_flutter/db/contacts_repo.dart';
 import 'package:proxy_flutter/db/customer_repo.dart';
 import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/enticement_repo.dart';
-import 'package:proxy_flutter/db/proxy_account_repo.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
@@ -54,10 +53,6 @@ class ServiceFactory {
 
   static ProxyKeyRepo proxyKeyRepo() {
     return ProxyKeyRepo.instance(DB.instance());
-  }
-
-  static ProxyAccountRepo proxyAccountRepo() {
-    return ProxyAccountRepo.instance(DB.instance());
   }
 
   static ProxyIdFactory proxyIdFactory() => ProxyIdFactory.instance();
