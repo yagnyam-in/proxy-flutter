@@ -19,24 +19,21 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
-  final AppConfiguration appConfig;
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
   final ProxyKeyRepo proxyKeyRepo;
   final DepositStore _depositStore;
 
-  DepositService({
-    @required this.appConfiguration,
+  DepositService(this.appConfiguration, {
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
-    @required this.appConfig,
     @required this.messageFactory,
     @required this.messageSigningService,
     @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _depositStore = DepositStore(firebaseUser: appConfig.firebaseUser) {
+        _depositStore = DepositStore(firebaseUser: appConfiguration.firebaseUser) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
   }

@@ -6,6 +6,7 @@ import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/store/deposit_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/db/contact_store.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/setup_master_proxy_page.dart';
@@ -77,11 +78,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (proxyId == null) {
       return null;
     }
-    ContactEntity existingContact = await ServiceFactory.contactsRepo().fetchContact(proxyId);
+    ContactEntity existingContact = await ContactStore(appConfiguration).fetchContact(proxyId);
     await Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => ModifyProxyPage(existingContact ?? ContactEntity(proxyId: proxyId)),
+        builder: (context) => ModifyProxyPage(appConfiguration, existingContact ?? ContactEntity(proxyId: proxyId)),
         fullscreenDialog: true,
       ),
     );
@@ -149,9 +150,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         setupMasterProxyCallback: setupMasterProxyCallback,
       );
     } else {
-      return BankingHome(
-        appConfiguration: appConfiguration,
-      );
+      return BankingHome(appConfiguration);
     }
   }
 

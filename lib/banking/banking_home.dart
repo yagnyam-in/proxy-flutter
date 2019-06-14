@@ -15,12 +15,12 @@ import 'package:proxy_flutter/banking/store/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/withdrawal_service.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/contacts_page.dart';
-import 'package:proxy_flutter/db/customer_repo.dart';
+import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/customer_entity.dart';
-import 'package:proxy_flutter/model/enticement_entity.dart';
+import 'package:proxy_flutter/model/enticement.dart';
+import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_flutter/profile_page.dart';
-import 'package:proxy_flutter/services/enticement_bloc.dart';
+import 'package:proxy_flutter/services/enticement_service.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -39,7 +39,7 @@ final Uuid uuidFactory = Uuid();
 class BankingHome extends StatefulWidget {
   final AppConfiguration appConfiguration;
 
-  BankingHome({Key key, @required this.appConfiguration}) : super(key: key) {
+  BankingHome(this.appConfiguration, {Key key}) : super(key: key) {
     print("Constructing BankingHome");
     assert(appConfiguration != null);
   }
@@ -53,26 +53,27 @@ class BankingHome extends StatefulWidget {
 class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils {
   final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final CustomerRepo _customerRepo = ServiceFactory.customerRepo();
-  final BankingService _bankingService = BankingServiceFactory.bankingService();
-  final EnticementBloc _enticementBloc = ServiceFactory.enticementBloc();
+  final BankingService _bankingService;
   final PaymentAuthorizationService _paymentAuthorizationService;
   final WithdrawalService _withdrawalService;
   final DepositService _depositService;
+  final EnticementService _enticementService;
+
   Stream<List<ProxyAccountEntity>> _proxyAccountsStream;
 
   _BankingHomeState(this.appConfiguration)
-      : _depositService = BankingServiceFactory.depositService(appConfiguration),
+      : _bankingService = BankingServiceFactory.bankingService(appConfiguration),
+        _depositService = BankingServiceFactory.depositService(appConfiguration),
         _withdrawalService = BankingServiceFactory.withdrawalService(appConfiguration),
+        _enticementService = EnticementService(appConfiguration),
         _paymentAuthorizationService = BankingServiceFactory.paymentAuthorizationService(appConfiguration);
 
   @override
   void initState() {
     super.initState();
-    _proxyAccountsStream = ProxyAccountStore(appConfiguration: appConfiguration)
-        .subscribeForAccounts(proxyUniverse: appConfiguration.proxyUniverse);
+    _proxyAccountsStream =
+        ProxyAccountStore(appConfiguration).subscribeForAccounts(proxyUniverse: appConfiguration.proxyUniverse);
     ServiceFactory.bootService().start();
-
   }
 
   @override
@@ -337,10 +338,10 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
       showToast(localizations.canNotDeleteActiveAccount);
       return;
     }
-    ProxyAccountStore(appConfiguration: appConfiguration).deleteAccount(proxyAccount);
+    ProxyAccountStore(appConfiguration).deleteAccount(proxyAccount);
   }
 
-  Widget enticementCard(BuildContext context, EnticementEntity enticement) {
+  Widget enticementCard(BuildContext context, Enticement enticement) {
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
@@ -351,7 +352,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
             color: Colors.red,
             icon: Icons.delete,
             onTap: () {
-              _enticementBloc.dismissEnticement(enticement.enticementId);
+              _enticementService.dismissEnticement(enticement);
             }),
       ],
     );
@@ -408,29 +409,31 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
 
   Future<DepositRequestInput> _acceptDepositRequestInput(BuildContext context,
       [ProxyAccountEntity proxyAccount]) async {
-    CustomerEntity customer = await _customerRepo.fetchCustomer();
+    UserStore userStore = UserStore(appConfiguration);
+    UserEntity user = await userStore.fetchUser();
     DepositRequestInput depositRequestInput = proxyAccount == null
-        ? DepositRequestInput.fromCustomer(customer)
-        : DepositRequestInput.forAccount(proxyAccount, customer);
+        ? DepositRequestInput.fromCustomer(user)
+        : DepositRequestInput.forAccount(proxyAccount, user);
     DepositRequestInput result = await Navigator.of(context).push(MaterialPageRoute<DepositRequestInput>(
       builder: (context) => DepositRequestInputDialog(depositRequestInput: depositRequestInput),
       fullscreenDialog: true,
     ));
     if (result != null) {
-      if (customer != null) {
-        customer = customer.copy(
+      if (user != null) {
+        user = user.copy(
           name: result.customerName,
           phone: result.customerPhone,
           email: result.customerEmail,
         );
       } else {
-        customer = CustomerEntity(
+        user = UserEntity(
+          id: uuidFactory.v4(),
           name: result.customerName,
           phone: result.customerPhone,
           email: result.customerEmail,
         );
       }
-      await _customerRepo.saveCustomer(customer);
+      await userStore.saveUser(user);
     }
     return result;
   }

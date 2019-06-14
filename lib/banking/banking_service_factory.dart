@@ -8,36 +8,36 @@ import 'package:proxy_flutter/services/service_factory.dart';
 import 'event_actions.dart';
 
 class BankingServiceFactory {
-  static BankingService bankingService() {
+  static BankingService bankingService(AppConfiguration appConfiguration) {
     return BankingService(
+      appConfiguration,
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
-      enticementBloc: ServiceFactory.enticementBloc(),
     );
   }
 
-  static WithdrawalService withdrawalService(AppConfiguration appConfig) {
+  static WithdrawalService withdrawalService(AppConfiguration appConfiguration) {
     return WithdrawalService(
-      appConfig: appConfig,
+      appConfiguration,
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
     );
   }
 
-  static DepositService depositService(AppConfiguration appConfig) {
+  static DepositService depositService(AppConfiguration appConfiguration) {
     return DepositService(
+      appConfiguration,
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
-      appConfig: appConfig,
     );
   }
 
-  static PaymentAuthorizationService paymentAuthorizationService(AppConfiguration appConfig) {
+  static PaymentAuthorizationService paymentAuthorizationService(AppConfiguration appConfiguration) {
     return PaymentAuthorizationService(
-      appConfig: appConfig,
+      appConfiguration,
       messageFactory: ServiceFactory.messageFactory(),
       messageSigningService: ServiceFactory.messageSigningService(),
       proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
@@ -45,11 +45,11 @@ class BankingServiceFactory {
     );
   }
 
-  static EventActions eventActions(AppConfiguration appConfig) {
+  static EventActions eventActions(AppConfiguration appConfiguration) {
     return EventActions(
-      withdrawalService: withdrawalService(appConfig),
-      depositService: depositService(appConfig),
-      paymentService: paymentAuthorizationService(appConfig),
+      withdrawalService: withdrawalService(appConfiguration),
+      depositService: depositService(appConfiguration),
+      paymentService: paymentAuthorizationService(appConfiguration),
     );
   }
 }

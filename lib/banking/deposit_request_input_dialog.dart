@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/customer_entity.dart';
+import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
@@ -29,24 +29,24 @@ class DepositRequestInput with ProxyUtils {
     this.customerEmail,
   });
 
-  factory DepositRequestInput.forAccount(ProxyAccountEntity proxyAccount, [CustomerEntity customer]) {
+  factory DepositRequestInput.forAccount(ProxyAccountEntity proxyAccount, [UserEntity user]) {
     return DepositRequestInput._internal(
       proxyUniverse: proxyAccount.proxyUniverse,
       currency: proxyAccount.balance.currency,
       accountName: proxyAccount.validAccountName,
-      customerName: customer?.name,
-      customerPhone: customer?.phone,
-      customerEmail: customer?.email,
+      customerName: user?.name,
+      customerPhone: user?.phone,
+      customerEmail: user?.email,
     );
   }
 
-  factory DepositRequestInput.fromCustomer(CustomerEntity customer) {
+  factory DepositRequestInput.fromCustomer(UserEntity user) {
     return DepositRequestInput._internal(
       proxyUniverse: null,
       currency: null,
-      customerName: customer?.name,
-      customerPhone: customer?.phone,
-      customerEmail: customer?.email,
+      customerName: user?.name,
+      customerPhone: user?.phone,
+      customerEmail: user?.email,
     );
   }
 

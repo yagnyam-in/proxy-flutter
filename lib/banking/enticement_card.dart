@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/model/enticement_entity.dart';
+import 'package:proxy_flutter/model/enticement.dart';
 
 class EnticementCard extends StatelessWidget {
-  final EnticementEntity enticement;
+  final Enticement enticement;
 
   const EnticementCard({Key key, this.enticement}) : super(key: key);
 

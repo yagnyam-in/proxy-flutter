@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/db/contact_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/modify_proxy_page.dart';
-import 'package:proxy_flutter/services/contacts_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 import 'contact_card.dart';
-import 'services/service_factory.dart';
 import 'widgets/widget_helper.dart';
 
 final Uuid uuidFactory = Uuid();
@@ -53,20 +52,24 @@ class ContactsPage extends StatefulWidget {
 
   @override
   _ContactsPageState createState() {
-    return _ContactsPageState(pageMode);
+    return _ContactsPageState(appConfiguration, pageMode);
   }
 }
 
 class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
+  final AppConfiguration appConfiguration;
   final ContactsPageMode pageMode;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final ContactsBloc contactsBloc = ServiceFactory.contactsBloc();
+  final ContactStore _contactStore;
+  Stream<List<ContactEntity>> _contactsStream;
 
-  _ContactsPageState(this.pageMode);
+  _ContactsPageState(this.appConfiguration, this.pageMode)
+      : _contactStore = ContactStore(appConfiguration);
 
   @override
   void initState() {
     super.initState();
+    _contactsStream = _contactStore.subscribeForContacts();
   }
 
   void showToast(String message) {
@@ -101,16 +104,18 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
         child: StreamBuilder<List<ContactEntity>>(
-            stream: contactsBloc.contacts,
+            stream: _contactsStream,
             initialData: [],
-            builder: (BuildContext context, AsyncSnapshot<List<ContactEntity>> snapshot) {
+            builder: (BuildContext context,
+                AsyncSnapshot<List<ContactEntity>> snapshot) {
               return accountsWidget(context, snapshot);
             }),
       ),
     );
   }
 
-  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ContactEntity>> accounts) {
+  Widget accountsWidget(
+      BuildContext context, AsyncSnapshot<List<ContactEntity>> accounts) {
     List<Widget> rows = [];
     if (!accounts.hasData) {
       rows.add(
@@ -167,13 +172,13 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
   void _edit(BuildContext context, ContactEntity contact) async {
     await Navigator.of(context).push(
       new MaterialPageRoute<ContactEntity>(
-        builder: (context) => ModifyProxyPage(contact),
+        builder: (context) => ModifyProxyPage(appConfiguration, contact),
         fullscreenDialog: true,
       ),
     );
   }
 
   void _archiveContact(BuildContext context, ContactEntity contact) async {
-    await contactsBloc.deleteContact(contact);
+    await _contactStore.archiveContact(contact);
   }
 }

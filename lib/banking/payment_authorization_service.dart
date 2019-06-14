@@ -24,7 +24,6 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
   final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
-  final AppConfiguration appConfig;
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
@@ -32,18 +31,17 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
   final CryptographyService cryptographyService;
   final PaymentAuthorizationStore _paymentAuthorizationStore;
 
-  PaymentAuthorizationService({
-    @required this.appConfiguration,
+  PaymentAuthorizationService(
+    this.appConfiguration, {
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
-    @required this.appConfig,
     @required this.messageFactory,
     @required this.messageSigningService,
     @required this.proxyKeyRepo,
     @required this.cryptographyService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _paymentAuthorizationStore = PaymentAuthorizationStore(firebaseUser: appConfig.firebaseUser) {
+        _paymentAuthorizationStore = PaymentAuthorizationStore(firebaseUser: appConfiguration.firebaseUser) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
   }
@@ -113,7 +111,8 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
       ),
       payees: payeeEntityList.map(_payeeEntityToPayee).toList(),
     );
-    SignedMessage<PaymentAuthorization> signedPaymentAuthorization = await messageSigningService.signMessage(request, proxyKey);
+    SignedMessage<PaymentAuthorization> signedPaymentAuthorization =
+        await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedPaymentAuthorization.toJson());
     Uri paymentLink = await ServiceFactory.deepLinkService().createDeepLink(
       Uri.parse(
@@ -121,7 +120,6 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
       title: localizations.sharePaymentTitle,
       description: localizations.sharePaymentDescription,
     );
-
 
     PaymentAuthorizationEntity paymentAuthorizationEntity = _createAuthorizationEntity(
       proxyAccount: proxyAccount,
@@ -141,7 +139,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
       );
       print("Received $jsonResponse from $proxyBankingUrl");
       SignedMessage<PaymentAuthorizationRegistered> signedResponse =
-      await messageFactory.buildAndVerifySignedMessage(jsonResponse, PaymentAuthorizationRegistered.fromJson);
+          await messageFactory.buildAndVerifySignedMessage(jsonResponse, PaymentAuthorizationRegistered.fromJson);
       status = signedResponse.message.paymentAuthorizationStatus;
     } catch (e) {
       print("Error while registering Payment Authorization: $e");
@@ -187,7 +185,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     @required SignedMessage<PaymentAuthorization> signedPaymentAuthorization,
     @required String paymentLink,
   }) {
-      return PaymentAuthorizationEntity(
+    return PaymentAuthorizationEntity(
       proxyUniverse: proxyAccount.proxyUniverse,
       paymentAuthorizationId: request.paymentAuthorizationId,
       status: PaymentAuthorizationStatusEnum.Created,

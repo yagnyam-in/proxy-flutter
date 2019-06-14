@@ -965,6 +965,9 @@ class ProxyLocalizations {
 
   String get paymentAuthorizationNotFound => Intl.message('Payment Authorization not found');
 
+  String get somethingWentWrong => Intl.message('Something went wrong');
+
+  String get noDataAvailable => Intl.message('no data available');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

@@ -1,22 +1,29 @@
 import 'package:flutter/cupertino.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 
-class ContactEntity {
-  final int id;
+part 'contact_entity.g.dart';
 
+@JsonSerializable()
+class ContactEntity {
+
+  @JsonKey(nullable: false)
   final String proxyUniverse;
 
+  @JsonKey(nullable: false)
   final ProxyId proxyId;
 
+  @JsonKey(nullable: false)
   final String phone;
 
+  @JsonKey(nullable: false)
   final String email;
 
+  @JsonKey(nullable: false)
   final String name;
 
   ContactEntity({
-    this.id,
     @required this.proxyId,
     this.proxyUniverse,
     this.name,
@@ -31,7 +38,6 @@ class ContactEntity {
     String name,
   }) {
     return ContactEntity(
-      id: this.id,
       proxyId: this.proxyId,
       proxyUniverse: proxyUniverse ?? this.proxyUniverse,
       name: name ?? this.name,
@@ -39,4 +45,10 @@ class ContactEntity {
       email: email ?? this.email,
     );
   }
+
+
+  Map<String, dynamic> toJson() => _$ContactEntityToJson(this);
+
+  static ContactEntity fromJson(Map json) => _$ContactEntityFromJson(json);
+
 }

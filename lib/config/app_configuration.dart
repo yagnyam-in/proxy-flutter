@@ -66,4 +66,8 @@ class AppConfiguration {
     }
     return val;
   }
+
+  bool get isProductionUniverse {
+    return proxyUniverse == ProxyUniverse.PRODUCTION;
+  }
 }

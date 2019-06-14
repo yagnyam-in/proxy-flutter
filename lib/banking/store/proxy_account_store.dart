@@ -13,9 +13,7 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;
   final DocumentReference root;
 
-  ProxyAccountStore({
-    @required this.appConfiguration,
-  }) : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser) {
+  ProxyAccountStore(this.appConfiguration) : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser) {
     assert(appConfiguration != null);
   }
 

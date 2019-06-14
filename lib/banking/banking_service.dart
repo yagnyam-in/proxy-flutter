@@ -8,7 +8,6 @@ import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/store/proxy_account_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
-import 'package:proxy_flutter/services/enticement_bloc.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -21,20 +20,18 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
   final ProxyAccountStore _proxyAccountStore;
-  final EnticementBloc enticementBloc;
   final ProxyKeyRepo proxyKeyRepo;
 
-  BankingService({
-    @required this.appConfiguration,
+  BankingService(
+    this.appConfiguration, {
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
     @required this.messageFactory,
     @required this.messageSigningService,
-    @required this.enticementBloc,
     @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _proxyAccountStore = ProxyAccountStore(appConfiguration: appConfiguration) {
+        _proxyAccountStore = ProxyAccountStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
   }
@@ -88,7 +85,6 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       signedProxyAccount: response.proxyAccount,
     );
     _proxyAccountStore.saveAccount(proxyAccountEntity);
-    enticementBloc.dismissEnticement(EnticementBloc.START);
     return proxyAccountEntity;
   }
 
