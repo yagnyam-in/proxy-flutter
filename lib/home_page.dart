@@ -1,6 +1,7 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/banking_home.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
@@ -66,7 +67,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } else if (link.path == '/actions/deposit-status') {
       _depositStatus(link.queryParameters);
     } else if (link.path == '/actions/accept-payment') {
-      // _acceptPayment(link.queryParameters);
+      _acceptPayment(link.queryParameters);
     } else {
       print('ignoring $link');
     }
@@ -111,36 +112,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  /*
   Future<void> _acceptPayment(Map<String, String> query) async {
     print("Launching dialog to accept payment $query");
     String proxyUniverse = query['proxyUniverse'];
     String paymentAuthorizationId = query['paymentAuthorizationId'];
-    EventEntity payment = DepositStore(firebaseUser: appConfiguration.firebaseUser).fetchDeposit(proxyUniverse: proxyUniverse, depositId: null)
-        await ServiceFactory.eventRepo().fetchEvent(proxyUniverse, EventType.Payment, paymentAuthorizationId);
-    if (payment == null) {
-      print("Couldn't find payment for $query");
-      await Navigator.push(
-        context,
-        new MaterialPageRoute(
-          builder: (context) => AcceptPaymentPage(
-                proxyUniverse: proxyUniverse,
-                paymentAuthorizationId: paymentAuthorizationId,
-              ),
-          fullscreenDialog: true,
-        ),
-      );
-    } else {
-      await Navigator.push(
-        context,
-        new MaterialPageRoute(
-          builder: (context) => EventPage.forEvent(appConfiguration, payment),
-          fullscreenDialog: true,
-        ),
-      );
-    }
+    await Navigator.push(
+      context,
+      new MaterialPageRoute(
+        builder: (context) => AcceptPaymentPage(
+              appConfiguration: appConfiguration,
+              proxyUniverse: proxyUniverse,
+              paymentAuthorizationId: paymentAuthorizationId,
+            ),
+        fullscreenDialog: true,
+      ),
+    );
   }
-   */
 
   @override
   Widget build(BuildContext context) {

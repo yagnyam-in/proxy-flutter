@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/account_card.dart';
-import 'package:proxy_flutter/banking/banking_service.dart';
-import 'package:proxy_flutter/banking/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
-import 'package:proxy_flutter/banking/deposit_service.dart';
-import 'package:proxy_flutter/banking/enticement_card.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/payment_authorization_service.dart';
 import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
+import 'package:proxy_flutter/banking/services/banking_service.dart';
+import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/services/deposit_service.dart';
+import 'package:proxy_flutter/banking/services/payment_authorization_service.dart';
+import 'package:proxy_flutter/banking/services/withdrawal_service.dart';
 import 'package:proxy_flutter/banking/store/proxy_account_store.dart';
-import 'package:proxy_flutter/banking/withdrawal_service.dart';
+import 'package:proxy_flutter/banking/widgets/account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/contacts_page.dart';
 import 'package:proxy_flutter/db/user_store.dart';
@@ -24,6 +23,7 @@ import 'package:proxy_flutter/services/enticement_service.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
+import 'package:proxy_flutter/widgets/enticement_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:share/share.dart';
@@ -50,7 +50,7 @@ class BankingHome extends StatefulWidget {
   }
 }
 
-class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils {
+class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils, EnticementHelper {
   final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final BankingService _bankingService;
@@ -60,6 +60,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
   final EnticementService _enticementService;
 
   Stream<List<ProxyAccountEntity>> _proxyAccountsStream;
+  Stream<List<Enticement>> _enticementsStream;
 
   _BankingHomeState(this.appConfiguration)
       : _bankingService = BankingServiceFactory.bankingService(appConfiguration),
@@ -71,8 +72,8 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
   @override
   void initState() {
     super.initState();
-    _proxyAccountsStream =
-        ProxyAccountStore(appConfiguration).subscribeForAccounts(proxyUniverse: appConfiguration.proxyUniverse);
+    _proxyAccountsStream = ProxyAccountStore(appConfiguration).subscribeForAccounts();
+    _enticementsStream = _enticementService.subscribeForFirstEnticement();
     ServiceFactory.bootService().start();
   }
 
@@ -121,53 +122,53 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
       ),
       body: BusyChildWidget(
         loading: loading,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: StreamBuilder<List<ProxyAccountEntity>>(
-              stream: _proxyAccountsStream,
-              initialData: [],
-              builder: (BuildContext context, AsyncSnapshot<List<ProxyAccountEntity>> snapshot) {
-                return accountsWidget(context, snapshot);
-              }),
+        child: ListView.builder(
+          itemCount: 2,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return streamBuilder(
+                name: "Account Loading",
+                stream: _proxyAccountsStream,
+                builder: (context, accounts) => _accounts(context, accounts),
+              );
+            } else {
+              return streamBuilder(
+                name: "Enticement Loading",
+                stream: _enticementsStream,
+                builder: (context, enticements) => _enticements(context, enticements),
+              );
+            }
+          },
         ),
       ),
     );
   }
 
-  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ProxyAccountEntity>> accounts) {
-    print("Constructing Accounts list");
-    List<Widget> rows = [
-      actionBar(context),
-    ];
-    if (accounts.hasError) {
-      rows.add(
-        Center(
-          child: Text("Error loading accounts"),
-        ),
-      );
-    } else if (!accounts.hasData) {
-      rows.add(
-        Center(
-          child: Text("Loading"),
-        ),
-      );
-    } else if (accounts.data.isEmpty) {
-      rows.add(
-        Center(
-          child: Text("No Accounts"),
-        ),
-      );
-    } else {
-      print("adding ${accounts.data.length} accounts");
-      accounts.data.forEach((account) {
-        rows.addAll([
+  Widget _accounts(BuildContext context, List<ProxyAccountEntity> accounts) {
+    print("accounts : $accounts");
+    return ListView(
+      shrinkWrap: true,
+      physics: ClampingScrollPhysics(),
+      children: accounts.expand((account) {
+        return [
           const SizedBox(height: 8.0),
           accountCard(context, account),
-        ]);
-      });
-    }
+        ];
+      }).toList(),
+    );
+  }
+
+  Widget _enticements(BuildContext context, List<Enticement> enticements) {
+    print("enticements : $enticements");
     return ListView(
-      children: rows,
+      shrinkWrap: true,
+      physics: ClampingScrollPhysics(),
+      children: enticements.expand((enticement) {
+        return [
+          const SizedBox(height: 8.0),
+          enticementCard(context, enticement),
+        ];
+      }).toList(),
     );
   }
 
@@ -182,7 +183,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
           label: Text(localizations.deposit),
         ),
         RaisedButton.icon(
-          onPressed: () => _createAccountAndPay(context),
+          onPressed: () => createAccountAndPay(context),
           icon: Icon(Icons.file_upload),
           label: Text(localizations.payment),
         ),
@@ -208,7 +209,7 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
     }
   }
 
-  void _createAccountAndPay(BuildContext context) async {
+  void createAccountAndPay(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     PaymentAuthorizationInput paymentInput = await _acceptPaymentInput(context);
     if (paymentInput != null) {
@@ -304,10 +305,10 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
   Future<void> _depositToAccount(BuildContext context, ProxyAccountEntity proxyAccount) async {
     DepositRequestInput input = await _acceptDepositRequestInput(context, proxyAccount);
     if (input != null) {
-      String depositLink = await invoke(() => _depositService.depositLink(
-            proxyAccount,
-            input,
-          ));
+      String depositLink = await invoke(
+        () => _depositService.depositLink(proxyAccount, input),
+        name: "Deposit",
+      );
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
       } else {
@@ -321,7 +322,10 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
     ReceivingAccountEntity receivingAccountEntity = await _chooseReceivingAccountDialog(context, proxyAccount);
     if (receivingAccountEntity != null) {
       print("Actual Withdraw");
-      await invoke(() => _withdrawalService.withdraw(proxyAccount, receivingAccountEntity));
+      await invoke(
+        () => _withdrawalService.withdraw(proxyAccount, receivingAccountEntity),
+        name: "Withdrawal",
+      );
     } else {
       print("Ignoring withdraw");
     }
@@ -339,23 +343,6 @@ class _BankingHomeState extends LoadingSupportState<BankingHome> with ProxyUtils
       return;
     }
     ProxyAccountStore(appConfiguration).deleteAccount(proxyAccount);
-  }
-
-  Widget enticementCard(BuildContext context, Enticement enticement) {
-    return Slidable(
-      actionPane: SlidableDrawerActionPane(),
-      actionExtentRatio: 0.25,
-      child: EnticementCard(enticement: enticement),
-      secondaryActions: <Widget>[
-        new IconSlideAction(
-            caption: 'Delete',
-            color: Colors.red,
-            icon: Icons.delete,
-            onTap: () {
-              _enticementService.dismissEnticement(enticement);
-            }),
-      ],
-    );
   }
 
   void _manageReceivingAccounts(BuildContext context) {

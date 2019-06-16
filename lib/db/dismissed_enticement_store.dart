@@ -24,10 +24,12 @@ class DismissedEnticementStore with ProxyUtils, FirestoreUtils {
   }
 
   Stream<List<DismissedEnticementEntity>> subscribeForEnticements() {
+    print("Subscribing for dismissed enticements");
     return enticementsRef().snapshots().map(_querySnapshotToEntitys);
   }
 
   Future<List<DismissedEnticementEntity>> fetchEnticements() async {
+    print("Fetching all dismissed enticements");
     return _querySnapshotToEntitys(await enticementsRef().getDocuments());
   }
 

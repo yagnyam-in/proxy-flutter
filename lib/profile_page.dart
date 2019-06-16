@@ -76,7 +76,7 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
       alignment: MainAxisAlignment.spaceAround,
       children: [
         RaisedButton.icon(
-          onPressed: () => invoke(() => _shareProfile(context, localizations)),
+          onPressed: () => invoke(() => _shareProfile(context, localizations), name: "Share"),
           icon: Icon(Icons.share),
           label: Text(localizations.shareProfile),
         ),

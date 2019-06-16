@@ -83,6 +83,11 @@ class ReceivingAccountEntity {
     );
   }
 
+  @override
+  String toString() {
+    return toJson().toString();
+  }
+
   Map<String, dynamic> toJson() => _$ReceivingAccountEntityToJson(this);
 
   static ReceivingAccountEntity fromJson(Map json) => _$ReceivingAccountEntityFromJson(json);

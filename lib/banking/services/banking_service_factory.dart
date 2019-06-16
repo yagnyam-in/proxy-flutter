@@ -1,7 +1,7 @@
-import 'package:proxy_flutter/banking/banking_service.dart';
-import 'package:proxy_flutter/banking/deposit_service.dart';
-import 'package:proxy_flutter/banking/payment_authorization_service.dart';
-import 'package:proxy_flutter/banking/withdrawal_service.dart';
+import 'package:proxy_flutter/banking/services/banking_service.dart';
+import 'package:proxy_flutter/banking/services/deposit_service.dart';
+import 'package:proxy_flutter/banking/services/payment_authorization_service.dart';
+import 'package:proxy_flutter/banking/services/withdrawal_service.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 

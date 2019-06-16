@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/dismissed_enticement_store.dart';
-import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/dismissed_enticement_entity.dart';
 import 'package:proxy_flutter/model/enticement.dart';
 import 'package:proxy_flutter/services/enticement_factory.dart';
@@ -17,17 +16,22 @@ class EnticementService {
     assert(appConfiguration != null);
   }
 
-  Stream<List<Enticement>> subscribeForEnticements(ProxyLocalizations localizations) {
+  Stream<Enticement> subscribeForEnticement() {
+    return subscribeForEnticements().map((l) => l.first);
+  }
+
+  Stream<List<Enticement>> subscribeForEnticements() {
+    List<Enticement> all = _enticementFactory.getEnticements(appConfiguration.proxyUniverse);
+    print("All Enticements => $all");
     Stream<List<DismissedEnticementEntity>> dismissed = _dismissedEnticementStore.subscribeForEnticements();
-    List<Enticement> all = _enticementFactory.getEnticements(localizations, appConfiguration.proxyUniverse);
     return dismissed.map((dismissed) => _filterActiveEnticements(all, dismissed));
   }
 
-  Future<void> dismissEnticement(Enticement enticement) {
-    return _dismissedEnticementStore.saveEnticement(DismissedEnticementEntity.fromEnticement(enticement));
+  Stream<List<Enticement>> subscribeForFirstEnticement() {
+    return subscribeForEnticements().map((l) => l.take(1).toList());
   }
 
-  Future<void> dismissEnticementById({
+  Future<void> dismissEnticement({
     @required String proxyUniverse,
     @required String enticementId,
   }) {
@@ -38,6 +42,8 @@ class EnticementService {
   }
 
   List<Enticement> _filterActiveEnticements(List<Enticement> all, List<DismissedEnticementEntity> dismissed) {
-    return all.skipWhile((e) => dismissed.any((d) => d.id == e.id && d.proxyUniverse == e.proxyUniverse)).toList();
+    return all
+        .skipWhile((e) => dismissed.any((d) => d.id == e.id && e.proxyUniverses.contains(d.proxyUniverse)))
+        .toList();
   }
 }

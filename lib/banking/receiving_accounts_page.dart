@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/receiving_account_card.dart';
+import 'package:proxy_flutter/banking/widgets/receiving_account_card.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/store/receiving_account_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';

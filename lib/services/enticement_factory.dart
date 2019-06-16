@@ -4,43 +4,61 @@ import 'package:proxy_flutter/model/enticement.dart';
 
 // Priority 0 means highest
 class EnticementFactory {
-
-  List<Enticement> getEnticements(ProxyLocalizations localizations, String proxyUniverse) {
+  List<Enticement> getEnticements(String proxyUniverse) {
+    print("Get Enticements for proxyUniverse: $proxyUniverse");
     List<Enticement> enticements = [
-      addBunqAccount(localizations),
-      addReceivingAccount(localizations),
-      addTestReceivingAccounts(localizations),
+      addTestReceivingAccounts,
+      makePayment,
+      addReceivingAccount,
+      addBunqAccount,
     ];
-    return enticements.takeWhile((e) => e.proxyUniverse == proxyUniverse).toList();
+    enticements.sort((e1, e2) => Comparable.compare(e1.priority, e2.priority));
+    print("Enticements for proxyUniverse: $proxyUniverse => $enticements");
+    return enticements.takeWhile((e) => e.proxyUniverses.contains(proxyUniverse)).toList();
   }
 
-  static Enticement addBunqAccount(ProxyLocalizations localizations) {
+
+  static Enticement get addTestReceivingAccounts {
     return Enticement(
-      proxyUniverse: ProxyUniverse.PRODUCTION,
-      id: Enticement.ADD_BUNQ_ACCOUNT,
-      title: localizations.addBunqAccountTitle,
-      description: localizations.addBunqAccountDescription,
-      priority: 300,
+      proxyUniverses: {ProxyUniverse.TEST},
+      id: Enticement.ADD_TEST_RECEIVING_ACCOUNTS,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.addTestReceivingAccountsTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.addTestReceivingAccountsDescription,
+      priority: 100,
     );
   }
 
-  static Enticement addReceivingAccount(ProxyLocalizations localizations) {
+
+  static Enticement get makePayment {
     return Enticement(
-      proxyUniverse: ProxyUniverse.PRODUCTION,
-      id: Enticement.ADD_RECEIVING_ACCOUNT,
-      title: localizations.addBunqAccountTitle,
-      description: localizations.addBunqAccountDescription,
+      proxyUniverses: {ProxyUniverse.PRODUCTION, ProxyUniverse.TEST},
+      id: Enticement.MAKE_PAYMENT,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.makePaymentTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.makePaymentDescription,
       priority: 200,
     );
   }
 
-  static Enticement addTestReceivingAccounts(ProxyLocalizations localizations) {
+
+  static Enticement get addReceivingAccount {
     return Enticement(
-      proxyUniverse: ProxyUniverse.TEST,
-      id: Enticement.ADD_TEST_RECEIVING_ACCOUNTS,
-      title: localizations.addBunqAccountTitle,
-      description: localizations.addBunqAccountDescription,
-      priority: 100,
+      proxyUniverses: {ProxyUniverse.PRODUCTION, ProxyUniverse.TEST},
+      id: Enticement.ADD_RECEIVING_ACCOUNT,
+      titleBuilder: (localizations) => localizations.addReceivingAccountTitle,
+      descriptionBuilder: (localizations) => localizations.addReceivingAccountDescription,
+      priority: 300,
     );
   }
+
+
+  static Enticement get addBunqAccount {
+    return Enticement(
+      proxyUniverses: {ProxyUniverse.PRODUCTION, ProxyUniverse.TEST},
+      id: Enticement.ADD_BUNQ_ACCOUNT,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.addBunqAccountTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.addBunqAccountDescription,
+      priority: 400,
+    );
+  }
+
 }

@@ -59,6 +59,7 @@ class ReceivingAccountStore with ProxyUtils, FirestoreUtils {
   }
 
   Future<ReceivingAccountEntity> saveAccount(ReceivingAccountEntity account) async {
+    print("Saving $account");
     assert(account.proxyUniverse == appConfiguration.proxyUniverse);
     await ref(
       accountId: account.accountId,

@@ -6,6 +6,7 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
+import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
 import 'package:proxy_flutter/banking/store/withdrawal_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
@@ -13,7 +14,6 @@ import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
-import 'model/withdrawal_entity.dart';
 
 class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
   final AppConfiguration appConfiguration;

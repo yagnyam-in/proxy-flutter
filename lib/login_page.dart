@@ -196,7 +196,7 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
               child: RaisedButton(
                 onPressed: () async {
                   if (_formKey.currentState.validate()) {
-                    invoke(() => _register(context));
+                    invoke(() => _register(context), name: "Register");
                   }
                 },
                 child: Text(localizations.loginButtonLabel),

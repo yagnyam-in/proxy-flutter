@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
+import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/store/deposit_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
@@ -13,7 +14,6 @@ import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
-import 'model/deposit_entity.dart';
 
 class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   final AppConfiguration appConfiguration;

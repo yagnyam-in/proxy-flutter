@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
@@ -70,11 +70,15 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
         loading: loading,
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: FutureBuilder<SignedMessage<PaymentAuthorization>>(
+          child: futureBuilder(
+            name: "Payment Authorization Fetcher",
             future: _paymentAuthorization,
-            builder: (BuildContext context, AsyncSnapshot<SignedMessage<PaymentAuthorization>> snapshot) {
-              return body(context, localizations, snapshot);
-            },
+            emptyMessage: localizations.invalidPayment,
+            builder: (context, authorization) => _AcceptPaymentPageBody(
+                  scaffoldKey: _scaffoldKey,
+                  appConfiguration: appConfiguration,
+                  paymentAuthorization: authorization,
+                ),
           ),
         ),
       ),
@@ -87,38 +91,16 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
       paymentAuthorizationId: paymentAuthorizationId,
     );
   }
-
-  Widget body(BuildContext context, ProxyLocalizations localizations,
-      AsyncSnapshot<SignedMessage<PaymentAuthorization>> snapshot) {
-    if (snapshot.connectionState == ConnectionState.done) {
-      if (snapshot.hasError) {
-        return new Text(
-          '${snapshot.error}',
-          style: TextStyle(color: Colors.red),
-        );
-      } else if (snapshot.data == null) {
-        return new Text(
-          localizations.invalidPayment,
-          style: TextStyle(color: Colors.red),
-        );
-      } else {
-        return _AcceptPaymentPageBody(
-          appConfiguration: appConfiguration,
-          paymentAuthorization: snapshot.data,
-        );
-      }
-    }
-    print("Status: ${snapshot.connectionState}");
-    return new Center(child: new CircularProgressIndicator());
-  }
 }
 
 class _AcceptPaymentPageBody extends StatefulWidget {
+  final GlobalKey<ScaffoldState> scaffoldKey;
   final AppConfiguration appConfiguration;
   final SignedMessage<PaymentAuthorization> paymentAuthorization;
 
   const _AcceptPaymentPageBody({
     Key key,
+    @required this.scaffoldKey,
     @required this.appConfiguration,
     @required this.paymentAuthorization,
   }) : super(key: key);

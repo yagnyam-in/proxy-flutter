@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/deposit_service.dart';
+import 'package:proxy_flutter/banking/services/deposit_service.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
-import 'package:proxy_flutter/banking/payment_authorization_service.dart';
-import 'package:proxy_flutter/banking/withdrawal_service.dart';
+import 'package:proxy_flutter/banking/services/payment_authorization_service.dart';
+import 'package:proxy_flutter/banking/services/withdrawal_service.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:quiver/strings.dart';

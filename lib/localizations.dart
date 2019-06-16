@@ -968,6 +968,22 @@ class ProxyLocalizations {
   String get somethingWentWrong => Intl.message('Something went wrong');
 
   String get noDataAvailable => Intl.message('no data available');
+
+  String get addReceivingAccountTitle => Intl.message('Add Bank Account');
+
+  String get addReceivingAccountDescription => Intl.message('By adding your Bank Account, you get your money to your Bank Account');
+
+  String get addTestReceivingAccountsTitle => Intl.message('Add Test Bank Accounts');
+
+  String get addTestReceivingAccountsDescription => Intl.message('By adding your Test Bank Accounts, you can test different scenarios');
+
+  String get dismissButtonLabel => Intl.message('Dismiss');
+
+  String get proceedButtonLabel => Intl.message('Proceed');
+
+  String get makePaymentTitle => Intl.message('Make Payment');
+
+  String get makePaymentDescription => Intl.message("Its very easy to make Payment, you don't need to know any account details to make payment");
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

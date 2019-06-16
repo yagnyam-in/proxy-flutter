@@ -81,4 +81,12 @@ class TestReceivingAccounts {
       bankName: 'Bunq',
     );
   }
+
+  static List<ReceivingAccountEntity> get allTestAccounts => [
+    immediateSuccessfulAccountForInr,
+    immediateFailureAccountForInr,
+    eventualSuccessfulAccountForInr,
+    eventualFailureAccountForInr,
+    bunqAccountForEUR
+  ];
 }

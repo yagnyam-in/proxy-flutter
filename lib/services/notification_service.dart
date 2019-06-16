@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';

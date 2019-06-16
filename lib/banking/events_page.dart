@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:proxy_flutter/banking/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
@@ -14,7 +14,7 @@ import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:uuid/uuid.dart';
 
-import 'event_card.dart';
+import 'package:proxy_flutter/banking/widgets/event_card.dart';
 
 final Uuid uuidFactory = Uuid();
 
@@ -42,8 +42,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
   final EventStore _eventStore;
   Stream<QuerySnapshot> _eventStream;
 
-  _EventsPageState(this.appConfiguration)
-      : _eventStore = EventStore(firebaseUser: appConfiguration.firebaseUser);
+  _EventsPageState(this.appConfiguration) : _eventStore = EventStore(firebaseUser: appConfiguration.firebaseUser);
 
   @override
   void initState() {
@@ -123,7 +122,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
           caption: localizations.refreshButtonHint,
           color: Colors.orange,
           icon: Icons.refresh,
-          onTap: () => invoke(() => _refreshEvent(context, event)),
+          onTap: () => invoke(() => _refreshEvent(context, event), name: "Refresh Event"),
         ),
         new IconSlideAction(
           caption: localizations.archive,

@@ -30,10 +30,8 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
     return accountsRef(proxyUniverse: proxyUniverse).document(accountId);
   }
 
-  Stream<List<ProxyAccountEntity>> subscribeForAccounts({
-    @required String proxyUniverse,
-  }) {
-    return accountsRef(proxyUniverse: proxyUniverse).snapshots().map(_querySnapshotToAccounts);
+  Stream<List<ProxyAccountEntity>> subscribeForAccounts() {
+    return accountsRef(proxyUniverse: appConfiguration.proxyUniverse).snapshots().map(_querySnapshotToAccounts);
   }
 
   Stream<ProxyAccountEntity> subscribeForAccount(ProxyAccountId accountId) {
