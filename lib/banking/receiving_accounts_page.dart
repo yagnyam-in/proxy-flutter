@@ -147,7 +147,7 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
       alignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
         RaisedButton.icon(
-          onPressed: () => createNewAccount(context),
+          onPressed: () => createReceivingAccount(context),
           icon: Icon(Icons.add),
           label: Text(localizations.newReceivingAccountsButtonHint),
         ),
@@ -155,8 +155,8 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
     );
   }
 
-  void createNewAccount(BuildContext context) async {
-    ReceivingAccountEntity receivingAccount = await Navigator.of(context).push(
+  void createReceivingAccount(BuildContext context) async {
+    await Navigator.of(context).push(
       new MaterialPageRoute<ReceivingAccountEntity>(
         builder: (context) => ReceivingAccountDialog(
               appConfiguration,
@@ -169,9 +169,6 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
         fullscreenDialog: true,
       ),
     );
-    if (receivingAccount != null) {
-      _receivingAccountStore.saveAccount(receivingAccount);
-    }
   }
 
   Widget accountCard(BuildContext context, ReceivingAccountEntity account) {

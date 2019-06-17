@@ -13,13 +13,16 @@ class ReceivingAccountDialog extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final ReceivingAccountEntity receivingAccount;
 
-  ReceivingAccountDialog(this.appConfiguration, {Key key, this.receivingAccount}) : super(key: key) {
+  ReceivingAccountDialog(this.appConfiguration,
+      {Key key, this.receivingAccount})
+      : super(key: key) {
     print("Constructing ReceivingAccountDialog");
     assert(appConfiguration != null);
   }
 
   @override
-  _ReceivingAccountDialogState createState() => _ReceivingAccountDialogState(appConfiguration, receivingAccount);
+  _ReceivingAccountDialogState createState() =>
+      _ReceivingAccountDialogState(appConfiguration, receivingAccount);
 }
 
 class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
@@ -40,21 +43,30 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   final TextEditingController addressController;
 
   final List<String> validCurrencies = [Currency.INR, Currency.EUR];
-  final List<String> validProxyUniverses = [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
+  final List<String> validProxyUniverses = [
+    ProxyUniverse.PRODUCTION,
+    ProxyUniverse.TEST
+  ];
 
   String _proxyUniverse;
   String _currency;
 
   _ReceivingAccountDialogState(this.appConfiguration, this.receivingAccount)
       : _receivingAccountStore = ReceivingAccountStore(appConfiguration),
-        accountNameController = TextEditingController(text: receivingAccount?.accountName),
-        accountNumberController = TextEditingController(text: receivingAccount?.accountNumber),
-        accountHolderController = TextEditingController(text: receivingAccount?.accountHolder),
-        bankController = TextEditingController(text: receivingAccount?.bankName),
-        ifscCodeController = TextEditingController(text: receivingAccount?.ifscCode),
+        accountNameController =
+            TextEditingController(text: receivingAccount?.accountName),
+        accountNumberController =
+            TextEditingController(text: receivingAccount?.accountNumber),
+        accountHolderController =
+            TextEditingController(text: receivingAccount?.accountHolder),
+        bankController =
+            TextEditingController(text: receivingAccount?.bankName),
+        ifscCodeController =
+            TextEditingController(text: receivingAccount?.ifscCode),
         emailController = TextEditingController(text: receivingAccount?.email),
         phoneController = TextEditingController(text: receivingAccount?.phone),
-        addressController = TextEditingController(text: receivingAccount?.address) {
+        addressController =
+            TextEditingController(text: receivingAccount?.address) {
     _proxyUniverse = receivingAccount?.proxyUniverse;
     _currency = receivingAccount?.currency;
   }
@@ -69,8 +81,9 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    String title =
-        receivingAccount == null ? localizations.newReceivingAccountTitle : localizations.modifyReceivingAccountTitle;
+    String title = receivingAccount?.accountId == null
+        ? localizations.newReceivingAccountTitle
+        : localizations.modifyReceivingAccountTitle;
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -79,7 +92,10 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
           new FlatButton(
               onPressed: () => _submit(localizations),
               child: new Text(localizations.okButtonLabel,
-                  style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white))),
+                  style: Theme.of(context)
+                      .textTheme
+                      .subhead
+                      .copyWith(color: Colors.white))),
         ],
       ),
       body: Padding(
@@ -195,7 +211,9 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
           decoration: InputDecoration(
             labelText: localizations.ifscCode,
           ),
-          validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
+          validator: (value) => _currency == Currency.INR
+              ? _fieldValidator(localizations, value)
+              : null,
         ),
         const SizedBox(height: 8.0),
         new TextFormField(
@@ -204,7 +222,9 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
             labelText: localizations.customerEmail,
           ),
           keyboardType: TextInputType.emailAddress,
-          validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
+          validator: (value) => _currency == Currency.INR
+              ? _fieldValidator(localizations, value)
+              : null,
         ),
         const SizedBox(height: 8.0),
         new TextFormField(
@@ -213,7 +233,9 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
             labelText: localizations.customerPhone,
           ),
           keyboardType: TextInputType.phone,
-          validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
+          validator: (value) => _currency == Currency.INR
+              ? _fieldValidator(localizations, value)
+              : null,
         ),
         const SizedBox(height: 8.0),
         new TextFormField(
@@ -222,7 +244,9 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
             labelText: localizations.customerAddress,
           ),
           keyboardType: TextInputType.text,
-          validator: (value) => _currency == Currency.INR ? _fieldValidator(localizations, value) : null,
+          validator: (value) => _currency == Currency.INR
+              ? _fieldValidator(localizations, value)
+              : null,
         ),
       ]);
     }
@@ -235,7 +259,7 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
     );
   }
 
-  void _submit(ProxyLocalizations localizations) {
+  void _submit(ProxyLocalizations localizations) async {
     if (_proxyUniverse == null || _proxyUniverse.isEmpty) {
       print("Invalid Proxy Universe");
       showError(localizations.fieldIsMandatory(localizations.proxyUniverse));
@@ -245,7 +269,7 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
     } else if (!_formKey.currentState.validate()) {
       print("Validation failure");
     } else {
-      _receivingAccountStore.saveAccount(
+      ReceivingAccountEntity result = await _receivingAccountStore.saveAccount(
         ReceivingAccountEntity(
           proxyUniverse: _proxyUniverse,
           accountId: receivingAccount?.accountId ?? uuidFactory.v4(),
@@ -261,7 +285,7 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
           active: receivingAccount?.active ?? true,
         ),
       );
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(result);
     }
   }
 

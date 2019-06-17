@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/store/receiving_account_store.dart';
 import 'package:proxy_flutter/banking/store/test_receiving_accounts.dart';
 import 'package:proxy_flutter/banking/widgets/enticement_card.dart';
@@ -9,7 +10,11 @@ import 'package:proxy_flutter/services/enticement_service.dart';
 mixin EnticementHelper {
   AppConfiguration get appConfiguration;
 
-  void createAccountAndPay(BuildContext context);
+  Future<Uri> createAccountAndPay(BuildContext context);
+
+  Future<ReceivingAccountEntity> createReceivingAccount(BuildContext context);
+
+  void showToast(String message);
 
   Widget enticementCard(BuildContext context, Enticement enticement) {
     return EnticementCard(
@@ -31,26 +36,54 @@ mixin EnticementHelper {
     print("Launching $enticement");
     switch (enticement.id) {
       case Enticement.ADD_TEST_RECEIVING_ACCOUNTS:
-        _addTestAccounts();
-        dismissEnticement(context, enticement);
+        _addTestAccounts(context, enticement);
         break;
       case Enticement.MAKE_PAYMENT:
-        _makePayment(context);
-        dismissEnticement(context, enticement);
+        _makePayment(context, enticement);
         break;
       case Enticement.ADD_RECEIVING_ACCOUNT:
+        _addReceivingAccount(context, enticement);
+        break;
       case Enticement.ADD_BUNQ_ACCOUNT:
+        _addBunqAccount(context, enticement);
+        break;
     }
   }
 
-  void _addTestAccounts() {
+  void _addTestAccounts(BuildContext context, Enticement enticement) {
     print("Add Test Accounts");
     ReceivingAccountStore store = ReceivingAccountStore(appConfiguration);
-    TestReceivingAccounts.allTestAccounts.forEach((a) async => await store.saveAccount(a));
+    TestReceivingAccounts.allTestAccounts
+        .forEach((a) async => await store.saveAccount(a));
+    dismissEnticement(context, enticement);
   }
 
-  void _makePayment(BuildContext context) {
+  void _makePayment(BuildContext context, Enticement enticement) async {
     print("Make Payment");
-    createAccountAndPay(context);
+    try {
+      Uri uri = await createAccountAndPay(context);
+      if (uri != null) {
+        dismissEnticement(context, enticement);
+      }
+    } catch (e) {
+      print("Error creating Payment: $e");
+    }
+  }
+
+  void _addReceivingAccount(BuildContext context, Enticement enticement) async {
+    print("Add Receiving Account");
+    try {
+      ReceivingAccountEntity account = await createReceivingAccount(context);
+      if (account != null) {
+        dismissEnticement(context, enticement);
+      }
+    } catch (e) {
+      print("Error Creating new Receiving Account: $e");
+    }
+  }
+
+  void _addBunqAccount(BuildContext context, Enticement enticement) {
+    showToast("Not yet ready");
+    dismissEnticement(context, enticement);
   }
 }
