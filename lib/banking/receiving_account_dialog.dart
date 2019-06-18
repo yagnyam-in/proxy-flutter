@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/banking_home.dart';
+import 'package:proxy_flutter/banking/proxy_accounts_page.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/store/receiving_account_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';

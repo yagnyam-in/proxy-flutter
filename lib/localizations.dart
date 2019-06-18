@@ -984,6 +984,8 @@ class ProxyLocalizations {
   String get makePaymentTitle => Intl.message('Make Payment');
 
   String get makePaymentDescription => Intl.message("Its very easy to make Payment, you don't need to know any account details to make payment");
+
+  String get accountsPageTitle => Intl.message('Accounts');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/banking_home.dart';
+import 'package:proxy_flutter/banking/proxy_accounts_page.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/store/deposit_store.dart';
