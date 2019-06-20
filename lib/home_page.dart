@@ -2,8 +2,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/accept_payment_page.dart';
-import 'package:proxy_flutter/banking/banking_home.dart';
-import 'package:proxy_flutter/banking/proxy_accounts_page.dart';
+import 'package:proxy_flutter/banking_home.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/store/deposit_store.dart';
@@ -94,7 +93,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     print("Launching dialog to show deposit status $query");
     String proxyUniverse = query['proxyUniverse'];
     String depositId = query['depositId'];
-    DepositEntity deposit = await DepositStore(firebaseUser: appConfiguration.firebaseUser)
+    DepositEntity deposit = await DepositStore(appConfiguration)
         .fetchDeposit(proxyUniverse: proxyUniverse, depositId: depositId);
     if (deposit == null) {
       print("Couldn't find deposit for $query");
@@ -134,7 +133,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     if (!_masterProxySetup) {
       return SetupMasterProxyPage(
-        appConfiguration: appConfiguration,
+        appConfiguration,
         setupMasterProxyCallback: setupMasterProxyCallback,
       );
     } else {
@@ -158,3 +157,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ServiceFactory.notificationService().refreshToken();
   }
 }
+
+
+

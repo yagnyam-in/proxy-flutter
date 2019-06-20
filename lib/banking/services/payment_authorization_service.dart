@@ -41,7 +41,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     @required this.cryptographyService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _paymentAuthorizationStore = PaymentAuthorizationStore(firebaseUser: appConfiguration.firebaseUser) {
+        _paymentAuthorizationStore = PaymentAuthorizationStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
   }

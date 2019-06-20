@@ -45,7 +45,7 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
   @override
   void initState() {
     super.initState();
-    _depositStream = DepositStore(firebaseUser: appConfiguration.firebaseUser).subscribeForDeposit(
+    _depositStream = DepositStore(appConfiguration).subscribeForDeposit(
       proxyUniverse: proxyUniverse,
       depositId: depositId,
     );

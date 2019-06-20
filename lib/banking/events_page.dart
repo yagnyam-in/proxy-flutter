@@ -1,53 +1,51 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
+import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/banking/payment_authorization_page.dart';
+import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/store/event_store.dart';
+import 'package:proxy_flutter/banking/widgets/event_card.dart';
 import 'package:proxy_flutter/banking/withdrawal_page.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:proxy_flutter/banking/widgets/event_card.dart';
 
 final Uuid uuidFactory = Uuid();
 
 class EventsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
+  final ChangeHomePage changeHomePage;
 
-  EventsPage({
-    Key key,
-    @required this.appConfiguration,
-  }) : super(key: key) {
+  EventsPage(this.appConfiguration, {Key key, @required this.changeHomePage}) : super(key: key) {
     assert(appConfiguration != null);
     print("Constructing EventsPage");
   }
 
   @override
   _EventsPageState createState() {
-    return _EventsPageState(appConfiguration);
+    return _EventsPageState(appConfiguration, changeHomePage);
   }
 }
 
-class _EventsPageState extends LoadingSupportState<EventsPage> {
+class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavigation {
   final AppConfiguration appConfiguration;
+  final ChangeHomePage changeHomePage;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final EventStore _eventStore;
-  Stream<QuerySnapshot> _eventStream;
+  Stream<List<EventEntity>> _eventStream;
 
-  _EventsPageState(this.appConfiguration) : _eventStore = EventStore(firebaseUser: appConfiguration.firebaseUser);
+  _EventsPageState(this.appConfiguration, this.changeHomePage) : _eventStore = EventStore(appConfiguration);
 
   @override
   void initState() {
     super.initState();
-    _eventStream = _eventStore.fetchEvents(proxyUniverse: appConfiguration.proxyUniverse);
+    _eventStream = _eventStore.subscribeForEvents();
   }
 
   void showToast(String message) {
@@ -67,44 +65,26 @@ class _EventsPageState extends LoadingSupportState<EventsPage> {
       appBar: AppBar(
         title: new Text(localizations.eventsPageTitle),
       ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-        child: StreamBuilder<QuerySnapshot>(
-          stream: _eventStream,
-          builder: eventsWidget,
-        ),
+      body: streamBuilder(
+        name: "Account Loading",
+        stream: _eventStream,
+        builder: (context, events) => _events(context, events),
       ),
+      bottomNavigationBar: navigationBar(context, HomePage.EventsPage, changeHomePage: changeHomePage),
     );
   }
 
-  Widget eventsWidget(
-    BuildContext context,
-    AsyncSnapshot<QuerySnapshot> events,
-  ) {
-    List<Widget> rows = [];
-    if (!events.hasData) {
-      rows.add(
-        Center(
-          child: Text("Loading"),
-        ),
-      );
-    } else if (events.data.documents.isEmpty) {
-      rows.add(
-        Center(
-          child: Text("No Events"),
-        ),
-      );
-    } else {
-      print("adding ${events.data.documents.length} events");
-      events.data.documents.forEach((event) {
-        rows.addAll([
-          const SizedBox(height: 8.0),
-          eventCard(context, EventStore.fromJson(event.data)),
-        ]);
-      });
-    }
+  Widget _events(BuildContext context, List<EventEntity> events) {
+    print("events : $events");
     return ListView(
-      children: rows,
+      shrinkWrap: true,
+      physics: ClampingScrollPhysics(),
+      children: events.expand((account) {
+        return [
+          const SizedBox(height: 4.0),
+          eventCard(context, account),
+        ];
+      }).toList(),
     );
   }
 

@@ -1,16 +1,24 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/store/event_store.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 
 class DepositStore with ProxyUtils, FirestoreUtils {
+  final AppConfiguration appConfiguration;
+  final DocumentReference root;
+  final EventStore _eventStore;
+
+  DepositStore(this.appConfiguration)
+      : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser),
+        _eventStore = EventStore(appConfiguration);
+
   DocumentReference ref({
     @required String proxyUniverse,
     @required String depositId,
@@ -20,17 +28,6 @@ class DepositStore with ProxyUtils, FirestoreUtils {
         .document(proxyUniverse)
         .collection('deposits')
         .document(depositId);
-  }
-
-  final FirebaseUser firebaseUser;
-  final DocumentReference root;
-  final EventStore _eventStore;
-
-  DepositStore({
-    @required this.firebaseUser,
-  })  : root = FirestoreUtils.rootRef(firebaseUser),
-        _eventStore = EventStore(firebaseUser: firebaseUser) {
-    assert(firebaseUser != null);
   }
 
   Future<DepositEntity> fetchDeposit({

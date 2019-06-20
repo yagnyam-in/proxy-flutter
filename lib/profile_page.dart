@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
@@ -13,19 +14,25 @@ import 'widgets/widget_helper.dart';
 
 class ProfilePage extends StatefulWidget {
   final AppConfiguration appConfiguration;
+  final ChangeHomePage changeHomePage;
 
-  const ProfilePage({Key key, @required this.appConfiguration}) : super(key: key);
+  const ProfilePage(
+    this.appConfiguration, {
+    @required this.changeHomePage,
+    Key key,
+  }) : super(key: key);
 
   @override
   ProfilePageState createState() {
-    return ProfilePageState(appConfiguration: appConfiguration);
+    return ProfilePageState(appConfiguration, changeHomePage);
   }
 }
 
-class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelper {
+class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelper, HomePageNavigation {
   final AppConfiguration appConfiguration;
+  final ChangeHomePage changeHomePage;
 
-  ProfilePageState({@required this.appConfiguration});
+  ProfilePageState(this.appConfiguration, this.changeHomePage);
 
   @override
   Widget build(BuildContext context) {
@@ -34,15 +41,6 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.profilePageTitle),
-        actions: [
-          new FlatButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: new Text(
-              localizations.okButtonLabel,
-              style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white),
-            ),
-          ),
-        ],
       ),
       body: BusyChildWidget(
         loading: loading,
@@ -50,6 +48,11 @@ class ProfilePageState extends LoadingSupportState<ProfilePage> with WidgetHelpe
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: body(context, localizations),
         ),
+      ),
+      bottomNavigationBar: navigationBar(
+        context,
+        HomePage.ProfilePage,
+        changeHomePage: changeHomePage,
       ),
     );
   }

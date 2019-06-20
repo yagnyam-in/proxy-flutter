@@ -44,8 +44,7 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
   @override
   void initState() {
     super.initState();
-    _paymentAuthorizationStream =
-        PaymentAuthorizationStore(firebaseUser: appConfiguration.firebaseUser).subscribeForPaymentAuthorization(
+    _paymentAuthorizationStream = PaymentAuthorizationStore(appConfiguration).subscribeForPaymentAuthorization(
       proxyUniverse: proxyUniverse,
       paymentAuthorizationId: paymentAuthorizationId,
     );

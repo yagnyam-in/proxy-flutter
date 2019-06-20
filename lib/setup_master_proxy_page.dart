@@ -21,9 +21,9 @@ class SetupMasterProxyPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final SetupMasterProxyCallback setupMasterProxyCallback;
 
-  SetupMasterProxyPage({
+  SetupMasterProxyPage(
+    this.appConfiguration, {
     Key key,
-    @required this.appConfiguration,
     @required this.setupMasterProxyCallback,
   }) : super(key: key) {
     print("Constructing SetupMasterProxyPage");
@@ -84,8 +84,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     String revocationPassPhrase,
   ) async {
     ProxyKey proxyKey = await createProxyKey(proxyId);
-    ProxyRequest proxyRequest =
-        await createProxyRequest(proxyKey, revocationPassPhrase);
+    ProxyRequest proxyRequest = await createProxyRequest(proxyKey, revocationPassPhrase);
     Proxy proxy = await createProxy(proxyRequest);
     return saveProxy(proxyKey.copyWith(id: proxy.id), proxy);
   }
@@ -148,22 +147,19 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
   }
 }
 
-typedef SetupProxyCallback = void Function(
-    String proxyId, String revocationPassPhrase);
+typedef SetupProxyCallback = void Function(String proxyId, String revocationPassPhrase);
 
 class SetupProxyForm extends StatefulWidget {
   final SetupProxyCallback setupProxyCallback;
   final AppConfiguration appConfiguration;
 
-  SetupProxyForm({@required this.setupProxyCallback, @required this.appConfiguration, Key key})
-      : super(key: key);
+  SetupProxyForm({@required this.setupProxyCallback, @required this.appConfiguration, Key key}) : super(key: key);
 
   @override
-  _SetupProxyFormState createState() =>
-      _SetupProxyFormState(appConfiguration.firebaseUser.uid);
+  _SetupProxyFormState createState() => _SetupProxyFormState(appConfiguration.firebaseUser.uid);
 }
 
-class _SetupProxyFormState extends State<SetupProxyForm>  {
+class _SetupProxyFormState extends State<SetupProxyForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final FocusNode revocationPassPhraseFocusNode = FocusNode();
@@ -173,8 +169,7 @@ class _SetupProxyFormState extends State<SetupProxyForm>  {
 
   _SetupProxyFormState(String suggestedProxyId)
       : this.proxyIdController = TextEditingController(text: suggestedProxyId),
-        this.revocationPassPhraseController =
-            TextEditingController(text: RandomUtils.randomSecret(16));
+        this.revocationPassPhraseController = TextEditingController(text: RandomUtils.randomSecret(16));
 
   @override
   Widget build(BuildContext context) {
@@ -199,8 +194,7 @@ class _SetupProxyFormState extends State<SetupProxyForm>  {
             ),
             keyboardType: TextInputType.emailAddress,
             validator: (value) => _proxyIdValidator(localizations, value),
-            onFieldSubmitted: (s) => FocusScope.of(context)
-                .requestFocus(revocationPassPhraseFocusNode),
+            onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(revocationPassPhraseFocusNode),
           ),
           const SizedBox(height: 8.0),
           Text(
@@ -235,26 +229,19 @@ class _SetupProxyFormState extends State<SetupProxyForm>  {
 
   void _submit() {
     if (_formKey.currentState.validate()) {
-      print(
-          "Requesting proxy with ${proxyIdController.text}/${revocationPassPhraseController.text}");
-      widget.setupProxyCallback(
-          proxyIdController.text, revocationPassPhraseController.text);
+      print("Requesting proxy with ${proxyIdController.text}/${revocationPassPhraseController.text}");
+      widget.setupProxyCallback(proxyIdController.text, revocationPassPhraseController.text);
     } else {
       print("Validation failure");
     }
   }
 
   bool _isValidProxyId(String proxyId) {
-    return proxyId != null &&
-        proxyId.trim().length >= 8 &&
-        proxyId.trim().length <= 36 &&
-        ProxyId.isValidId(proxyId);
+    return proxyId != null && proxyId.trim().length >= 8 && proxyId.trim().length <= 36 && ProxyId.isValidId(proxyId);
   }
 
   bool _isValidPassphrase(String passphrase) {
-    return passphrase != null &&
-        passphrase.length >= 8 &&
-        passphrase.length <= 64;
+    return passphrase != null && passphrase.length >= 8 && passphrase.length <= 64;
   }
 
   String _proxyIdValidator(ProxyLocalizations localizations, String proxyId) {
@@ -266,8 +253,7 @@ class _SetupProxyFormState extends State<SetupProxyForm>  {
     return null;
   }
 
-  String _passphraseIdValidator(
-      ProxyLocalizations localizations, String passphrase) {
+  String _passphraseIdValidator(ProxyLocalizations localizations, String passphrase) {
     if (passphrase.isEmpty) {
       return localizations.fieldIsMandatory(localizations.revocationPassPhrase);
     } else if (!_isValidPassphrase(passphrase)) {

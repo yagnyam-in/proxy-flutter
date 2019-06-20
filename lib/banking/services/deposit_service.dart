@@ -33,7 +33,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _depositStore = DepositStore(firebaseUser: appConfiguration.firebaseUser) {
+        _depositStore = DepositStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
   }

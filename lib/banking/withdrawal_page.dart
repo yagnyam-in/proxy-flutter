@@ -44,7 +44,7 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
   @override
   void initState() {
     super.initState();
-    _withdrawalStream = WithdrawalStore(firebaseUser: appConfiguration.firebaseUser).subscribeForWithdrawal(
+    _withdrawalStream = WithdrawalStore(appConfiguration).subscribeForWithdrawal(
       proxyUniverse: proxyUniverse,
       withdrawalId: withdrawalId,
     );

@@ -14,7 +14,6 @@ import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
-
 class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
   final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
@@ -25,7 +24,8 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
   final ProxyKeyRepo proxyKeyRepo;
   final WithdrawalStore _withdrawalStore;
 
-  WithdrawalService(this.appConfiguration, {
+  WithdrawalService(
+    this.appConfiguration, {
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
     @required this.messageFactory,
@@ -33,7 +33,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _withdrawalStore = WithdrawalStore(firebaseUser: appConfiguration.firebaseUser) {
+        _withdrawalStore = WithdrawalStore(appConfiguration) {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
