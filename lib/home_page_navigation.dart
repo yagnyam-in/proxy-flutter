@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:proxy_flutter/localizations.dart';
 
 enum HomePage {
-  AccountsPage,
+  ProxyAccountsPage,
   EventsPage,
+  BankAccountsPage,
   ProfilePage,
 }
 
@@ -30,14 +31,17 @@ class _BottomNavigationBarState extends State<_BottomNavigationBar> {
 
   _BottomNavigationBarState(this.changeHomePage, this.homePage) {
     switch (homePage) {
-      case HomePage.AccountsPage:
+      case HomePage.ProxyAccountsPage:
         _selectedIndex = 0;
         break;
       case HomePage.EventsPage:
         _selectedIndex = 1;
         break;
-      case HomePage.ProfilePage:
+      case HomePage.BankAccountsPage:
         _selectedIndex = 2;
+        break;
+      case HomePage.ProfilePage:
+        _selectedIndex = 3;
         break;
       default:
         _selectedIndex = 0;
@@ -52,17 +56,20 @@ class _BottomNavigationBarState extends State<_BottomNavigationBar> {
     });
     switch (_selectedIndex) {
       case 0:
-        changeHomePage(HomePage.AccountsPage);
+        changeHomePage(HomePage.ProxyAccountsPage);
         break;
       case 1:
         changeHomePage(HomePage.EventsPage);
         break;
       case 2:
+        changeHomePage(HomePage.BankAccountsPage);
+        break;
+      case 3:
         changeHomePage(HomePage.ProfilePage);
         break;
       default:
         print("HomePage for $_selectedIndex is not handled");
-        changeHomePage(HomePage.AccountsPage);
+        changeHomePage(HomePage.ProxyAccountsPage);
         break;
     }
   }
@@ -75,17 +82,22 @@ class _BottomNavigationBarState extends State<_BottomNavigationBar> {
       items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
           icon: Icon(Icons.account_balance_wallet),
-          title: Text(localizations.accountsPageTitle),
+          title: Text(localizations.proxyAccountsPageTitle),
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.event),
           title: Text(localizations.eventsPageTitle),
         ),
         BottomNavigationBarItem(
+          icon: Icon(Icons.account_balance),
+          title: Text(localizations.receivingAccountsTitle),
+        ),
+        BottomNavigationBarItem(
           icon: Icon(Icons.account_box),
           title: Text(localizations.profilePageTitle),
         ),
       ],
+      type: BottomNavigationBarType.fixed,
       currentIndex: _selectedIndex,
       selectedItemColor: Colors.amber[800],
       onTap: (index) {

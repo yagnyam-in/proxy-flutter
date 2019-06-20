@@ -9,7 +9,7 @@ class TestReceivingAccounts {
   static ReceivingAccountEntity get immediateSuccessfulAccountForInr {
     return new ReceivingAccountEntity(
       proxyUniverse: ProxyUniverse.TEST,
-      accountId: uuidFactory.v4(),
+      accountId: "inr-immediate-success",
       currency: Currency.INR,
       accountName: 'Success',
       accountNumber: '026291800001191',
@@ -25,7 +25,7 @@ class TestReceivingAccounts {
   static ReceivingAccountEntity get immediateFailureAccountForInr {
     return new ReceivingAccountEntity(
       proxyUniverse: ProxyUniverse.TEST,
-      accountId: uuidFactory.v4(),
+      accountId: "inr-immediate-failure",
       currency: Currency.INR,
       accountName: 'Immediate Failure',
       accountNumber: '026291800001190',
@@ -41,7 +41,7 @@ class TestReceivingAccounts {
   static ReceivingAccountEntity get eventualSuccessfulAccountForInr {
     return new ReceivingAccountEntity(
       proxyUniverse: ProxyUniverse.TEST,
-      accountId: uuidFactory.v4(),
+      accountId: "inr-eventual-success",
       currency: Currency.INR,
       accountName: 'Eventually Success',
       accountNumber: '00224412311300',
@@ -57,7 +57,7 @@ class TestReceivingAccounts {
   static ReceivingAccountEntity get eventualFailureAccountForInr {
     return new ReceivingAccountEntity(
       proxyUniverse: ProxyUniverse.TEST,
-      accountId: uuidFactory.v4(),
+      accountId: "inr-eventual-failure",
       currency: Currency.INR,
       accountName: 'Eventually Failure',
       accountNumber: '7766666351000',
@@ -74,7 +74,7 @@ class TestReceivingAccounts {
     return new ReceivingAccountEntity(
       proxyUniverse: ProxyUniverse.TEST,
       currency: Currency.EUR,
-      accountId: uuidFactory.v4(),
+      accountId: "eur-bunq",
       accountName: 'Bunq Account',
       accountNumber: 'NL07BUNQ9900247515',
       accountHolder: 'Laura Hardy',

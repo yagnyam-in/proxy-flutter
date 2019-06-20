@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/widgets/receiving_account_card.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/store/receiving_account_store.dart';
+import 'package:proxy_flutter/banking/widgets/receiving_account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,54 +15,62 @@ enum PageMode { choose, manage }
 
 class ReceivingAccountsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
+  final ChangeHomePage changeHomePage;
+
   final PageMode pageMode;
-  final String proxyUniverse;
   final String currency;
 
   ReceivingAccountsPage(
-      {Key key, @required this.appConfiguration, @required this.pageMode, this.proxyUniverse, this.currency})
-      : super(key: key) {
+    this.appConfiguration, {
+    Key key,
+    @required this.changeHomePage,
+    @required this.pageMode,
+    this.currency,
+  }) : super(key: key) {
     print("Constructing ReceivingAccounts");
   }
 
-  factory ReceivingAccountsPage.choose({
+  factory ReceivingAccountsPage.choose(
+    AppConfiguration appConfiguration, {
     Key key,
-    @required AppConfiguration appConfiguration,
-    @required String proxyUniverse,
     @required String currency,
   }) {
     return ReceivingAccountsPage(
-      appConfiguration: appConfiguration,
+      appConfiguration,
+      changeHomePage: null,
       pageMode: PageMode.choose,
-      proxyUniverse: proxyUniverse,
       currency: currency,
     );
   }
 
-  factory ReceivingAccountsPage.manage({
+  factory ReceivingAccountsPage.manage(
+    AppConfiguration appConfiguration, {
+    @required ChangeHomePage changeHomePage,
     Key key,
-    @required AppConfiguration appConfiguration,
   }) {
     return ReceivingAccountsPage(
-      appConfiguration: appConfiguration,
+      appConfiguration,
+      changeHomePage: changeHomePage,
       pageMode: PageMode.manage,
     );
   }
 
   @override
   _ReceivingAccountsPageState createState() {
-    return _ReceivingAccountsPageState(appConfiguration, pageMode);
+    return _ReceivingAccountsPageState(appConfiguration, changeHomePage, pageMode);
   }
 }
 
-class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
+class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> with HomePageNavigation {
   final AppConfiguration appConfiguration;
+  final ChangeHomePage changeHomePage;
+
   final PageMode pageMode;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ReceivingAccountStore _receivingAccountStore;
   Stream<List<ReceivingAccountEntity>> _receivingAccountsStream;
 
-  _ReceivingAccountsPageState(this.appConfiguration, this.pageMode)
+  _ReceivingAccountsPageState(this.appConfiguration, this.changeHomePage, this.pageMode)
       : _receivingAccountStore = ReceivingAccountStore(appConfiguration);
 
   @override
@@ -81,7 +90,7 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
     if (pageMode == PageMode.manage) {
       return true;
     } else {
-      return account.proxyUniverse == widget.proxyUniverse && account.currency == widget.currency;
+      return account.proxyUniverse == appConfiguration.proxyUniverse && account.currency == widget.currency;
     }
   }
 
@@ -108,7 +117,15 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
               return accountsWidget(context, snapshot);
             }),
       ),
+      bottomNavigationBar: _bottomNavigationBar(context),
     );
+  }
+
+  Widget _bottomNavigationBar(BuildContext context) {
+    if (changeHomePage == null || pageMode == PageMode.choose) {
+      return null;
+    }
+    return navigationBar(context, HomePage.BankAccountsPage, changeHomePage: changeHomePage);
   }
 
   Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ReceivingAccountEntity>> accounts) {
@@ -161,7 +178,7 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> {
         builder: (context) => ReceivingAccountDialog(
               appConfiguration,
               receivingAccount: ReceivingAccountEntity(
-                proxyUniverse: widget.proxyUniverse,
+                proxyUniverse: appConfiguration.proxyUniverse,
                 accountId: uuidFactory.v4(),
                 currency: widget.currency,
               ),

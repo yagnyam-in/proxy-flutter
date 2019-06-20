@@ -107,11 +107,6 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         title: Text(localizations.bankingTitle),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.account_balance),
-            tooltip: localizations.receivingAccountsButtonHint,
-            onPressed: () => _manageReceivingAccounts(context),
-          ),
-          IconButton(
             icon: Icon(Icons.contacts),
             tooltip: localizations.manageContactsPageTitle,
             onPressed: () => _launchContacts(context),
@@ -140,7 +135,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
           },
         ),
       ),
-      bottomNavigationBar: navigationBar(context, HomePage.AccountsPage, changeHomePage: changeHomePage),
+      bottomNavigationBar: navigationBar(context, HomePage.ProxyAccountsPage, changeHomePage: changeHomePage),
     );
   }
 
@@ -347,15 +342,6 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     ProxyAccountStore(appConfiguration).deleteAccount(proxyAccount);
   }
 
-  void _manageReceivingAccounts(BuildContext context) {
-    Navigator.push(
-      context,
-      new MaterialPageRoute(
-        builder: (context) => ReceivingAccountsPage.manage(appConfiguration: widget.appConfiguration),
-      ),
-    );
-  }
-
   void _launchContacts(BuildContext context) {
     Navigator.push(
       context,
@@ -370,8 +356,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       context,
       new MaterialPageRoute<ReceivingAccountEntity>(
         builder: (context) => ReceivingAccountsPage.choose(
-              appConfiguration: widget.appConfiguration,
-              proxyUniverse: proxyAccount.proxyUniverse,
+              appConfiguration,
               currency: proxyAccount.balance.currency,
             ),
       ),
