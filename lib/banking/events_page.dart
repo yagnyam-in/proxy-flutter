@@ -70,7 +70,12 @@ class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavi
         stream: _eventStream,
         builder: (context, events) => _events(context, events),
       ),
-      bottomNavigationBar: navigationBar(context, HomePage.EventsPage, changeHomePage: changeHomePage),
+      bottomNavigationBar: navigationBar(
+        context,
+        HomePage.EventsPage,
+        changeHomePage: changeHomePage,
+        busy: loading,
+      ),
     );
   }
 

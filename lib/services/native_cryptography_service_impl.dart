@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 
-class CryptographyServiceImpl extends CryptographyService {
+class NativeCryptographyServiceImpl extends CryptographyService {
   static const platform = const MethodChannel('proxy.yagnyam.in/CryptographyService');
 
   @override

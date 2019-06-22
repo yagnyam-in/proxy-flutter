@@ -6,7 +6,7 @@ import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 
-class ProxyKeyStoreImpl implements ProxyRequestFactory, ProxyKeyFactory {
+class NativeProxyKeyStoreImpl implements ProxyRequestFactory, ProxyKeyFactory {
   static const platform = const MethodChannel('proxy.yagnyam.in/ProxyKeyStore');
 
   @override

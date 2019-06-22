@@ -988,6 +988,10 @@ class ProxyLocalizations {
   String get proxyAccountsPageTitle => Intl.message('Money');
 
   String get receivingAccountsTitle => Intl.message('Accounts');
+
+  String get authorizePhoneNumber => Intl.message('Verify Phone');
+
+  String get authorizeEmail => Intl.message('Verify Email');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

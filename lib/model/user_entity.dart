@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:proxy_core/core.dart';
 
 part 'user_entity.g.dart';
 
@@ -8,20 +9,24 @@ class UserEntity {
   @JsonKey(nullable: false)
   final String id;
 
-  @JsonKey(nullable: false)
+  @JsonKey(nullable: true)
+  final ProxyId masterProxyId;
+
+  @JsonKey(nullable: true)
   final String name;
 
-  @JsonKey(nullable: false)
+  @JsonKey(nullable: true)
   final String phone;
 
-  @JsonKey(nullable: false)
+  @JsonKey(nullable: true)
   final String email;
 
-  @JsonKey(nullable: false)
+  @JsonKey(nullable: true)
   final String address;
 
   UserEntity({
     @required this.id,
+    this.masterProxyId,
     this.name,
     this.phone,
     this.email,
@@ -31,6 +36,7 @@ class UserEntity {
   }
 
   UserEntity copy({
+    ProxyId masterProxyId,
     String name,
     String phone,
     String email,
@@ -38,6 +44,7 @@ class UserEntity {
   }) {
     return UserEntity(
       id: id,
+      masterProxyId: masterProxyId ?? this.masterProxyId,
       name: name ?? this.name,
       phone: phone ?? this.phone,
       email: email ?? this.email,

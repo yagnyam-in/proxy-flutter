@@ -9,7 +9,7 @@ import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/services/proxy_key_store_impl.dart';
+import 'package:proxy_flutter/services/native_proxy_key_store_impl.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
@@ -35,7 +35,7 @@ class SetupMasterProxyPage extends StatefulWidget {
 
 class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  final ProxyKeyStoreImpl proxyKeyStore = ProxyKeyStoreImpl();
+  final NativeProxyKeyStoreImpl proxyKeyStore = NativeProxyKeyStoreImpl();
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final ProxyFactory proxyFactory = ProxyFactory();
 

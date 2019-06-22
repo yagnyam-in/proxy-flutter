@@ -7,6 +7,7 @@ import 'package:proxy_flutter/banking/widgets/receiving_account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:uuid/uuid.dart';
 
 final Uuid uuidFactory = Uuid();
@@ -61,7 +62,7 @@ class ReceivingAccountsPage extends StatefulWidget {
   }
 }
 
-class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> with HomePageNavigation {
+class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsPage> with HomePageNavigation {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
 
@@ -125,7 +126,12 @@ class _ReceivingAccountsPageState extends State<ReceivingAccountsPage> with Home
     if (changeHomePage == null || pageMode == PageMode.choose) {
       return null;
     }
-    return navigationBar(context, HomePage.BankAccountsPage, changeHomePage: changeHomePage);
+    return navigationBar(
+      context,
+      HomePage.BankAccountsPage,
+      changeHomePage: changeHomePage,
+      busy: loading,
+    );
   }
 
   Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ReceivingAccountEntity>> accounts) {

@@ -1,12 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
-  static const String MasterProxyId = "masterProxyId";
-  static const String CustomerName = "customerName";
   static const String PROXY_UNIVERSE = "proxyUniverse";
 
   static AppConfiguration _instance;
@@ -20,6 +19,7 @@ class AppConfiguration {
 
   final SharedPreferences preferences;
   final FirebaseUser firebaseUser;
+  UserEntity appUser;
 
   AppConfiguration({
     @required this.preferences,
@@ -39,24 +39,7 @@ class AppConfiguration {
   }
 
   ProxyId get masterProxyId {
-    String proxyId = preferences.getString(MasterProxyId);
-    if (proxyId != null && proxyId.isNotEmpty) {
-      return ProxyId.fromUniqueId(proxyId);
-    } else {
-      return null;
-    }
-  }
-
-  set masterProxyId(ProxyId proxyId) {
-    preferences.setString(MasterProxyId, proxyId.uniqueId);
-  }
-
-  String get customerName {
-    return preferences.getString(CustomerName);
-  }
-
-  set customerName(String value) {
-    preferences.setString(CustomerName, value);
+    return appUser?.masterProxyId;
   }
 
   String get proxyUniverse {
@@ -67,7 +50,25 @@ class AppConfiguration {
     return val;
   }
 
+  set proxyUniverse(String value) {
+    preferences.setString(PROXY_UNIVERSE, value);
+  }
+
+
   bool get isProductionUniverse {
     return proxyUniverse == ProxyUniverse.PRODUCTION;
   }
+
+  String get displayName {
+    return appUser?.name ?? firebaseUser?.displayName;
+  }
+
+  String get phoneNumber {
+    return appUser?.phone ?? firebaseUser?.phoneNumber;
+  }
+
+  String get email {
+    return appUser?.email ?? firebaseUser?.email;
+  }
+
 }

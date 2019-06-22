@@ -26,9 +26,7 @@ import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/enticement_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
-import 'package:proxy_messages/banking.dart';
 import 'package:share/share.dart';
-import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
@@ -135,11 +133,19 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
           },
         ),
       ),
-      bottomNavigationBar: navigationBar(context, HomePage.ProxyAccountsPage, changeHomePage: changeHomePage),
+      bottomNavigationBar: navigationBar(
+        context,
+        HomePage.ProxyAccountsPage,
+        busy: loading,
+        changeHomePage: changeHomePage,
+      ),
     );
   }
 
-  Widget _accounts(BuildContext context, List<ProxyAccountEntity> accounts) {
+  Widget _accounts(
+    BuildContext context,
+    List<ProxyAccountEntity> accounts,
+  ) {
     print("accounts : $accounts");
     return ListView(
       shrinkWrap: true,
@@ -153,7 +159,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     );
   }
 
-  Widget _enticements(BuildContext context, List<Enticement> enticements) {
+  Widget _enticements(
+    BuildContext context,
+    List<Enticement> enticements,
+  ) {
     print("enticements : $enticements");
     return ListView(
       shrinkWrap: true,
@@ -214,15 +223,15 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         proxyUniverse: paymentInput.proxyUniverse,
         currency: paymentInput.currency,
       );
-      String customerName = widget.appConfiguration.customerName;
+      String customerName = widget.appConfiguration?.appUser?.name;
       Uri paymentLink = await _paymentAuthorizationService.createPaymentAuthorization(
         localizations,
         proxyAccount,
         paymentInput,
       );
       if (paymentLink != null) {
-        var message =
-            localizations.acceptPayment(paymentLink.toString()) + (isNotEmpty(customerName) ? ' - $customerName' : '');
+        var from = isNotEmpty(customerName) ? ' - $customerName' : '';
+        var message = localizations.acceptPayment(paymentLink.toString() + from);
         await Share.share(message);
       }
       return paymentLink;
@@ -230,39 +239,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     return null;
   }
 
-  Widget proxyUniverseAndCurrencyDialog(BuildContext context) {
-    return SimpleDialog(
-      title: Text('Choose Currency'),
-      children: <Widget>[
-        SimpleDialogOption(
-          child: new Text('${ProxyUniverse.PRODUCTION} ${Currency.INR}'),
-          onPressed: () {
-            Navigator.pop(context, Tuple2(ProxyUniverse.PRODUCTION, Currency.INR));
-          },
-        ),
-        SimpleDialogOption(
-          child: new Text('${ProxyUniverse.PRODUCTION} ${Currency.EUR}'),
-          onPressed: () {
-            Navigator.pop(context, Tuple2(ProxyUniverse.PRODUCTION, Currency.EUR));
-          },
-        ),
-        SimpleDialogOption(
-          child: new Text('${ProxyUniverse.TEST} ${Currency.INR}'),
-          onPressed: () {
-            Navigator.pop(context, Tuple2(ProxyUniverse.TEST, Currency.INR));
-          },
-        ),
-        SimpleDialogOption(
-          child: new Text('${ProxyUniverse.TEST} ${Currency.EUR}'),
-          onPressed: () {
-            Navigator.pop(context, Tuple2(ProxyUniverse.TEST, Currency.EUR));
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget accountCard(BuildContext context, ProxyAccountEntity account) {
+  Widget accountCard(
+    BuildContext context,
+    ProxyAccountEntity account,
+  ) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
@@ -299,7 +279,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     );
   }
 
-  Future<void> _depositToAccount(BuildContext context, ProxyAccountEntity proxyAccount) async {
+  Future<void> _depositToAccount(
+    BuildContext context,
+    ProxyAccountEntity proxyAccount,
+  ) async {
     DepositRequestInput input = await _acceptDepositRequestInput(context, proxyAccount);
     if (input != null) {
       String depositLink = await invoke(
@@ -314,7 +297,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     }
   }
 
-  Future<void> _withdraw(BuildContext context, ProxyAccountEntity proxyAccount) async {
+  Future<void> _withdraw(
+    BuildContext context,
+    ProxyAccountEntity proxyAccount,
+  ) async {
     print("_withdraw from $proxyAccount");
     ReceivingAccountEntity receivingAccountEntity = await _chooseReceivingAccountDialog(context, proxyAccount);
     if (receivingAccountEntity != null) {
@@ -351,7 +337,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     );
   }
 
-  Future<ReceivingAccountEntity> _chooseReceivingAccountDialog(BuildContext context, ProxyAccountEntity proxyAccount) {
+  Future<ReceivingAccountEntity> _chooseReceivingAccountDialog(
+    BuildContext context,
+    ProxyAccountEntity proxyAccount,
+  ) {
     return Navigator.push(
       context,
       new MaterialPageRoute<ReceivingAccountEntity>(
@@ -404,10 +393,12 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         ),
       ],
     );
-    PaymentAuthorizationInput result = await Navigator.of(context).push(MaterialPageRoute<PaymentAuthorizationInput>(
-      builder: (context) => PaymentAuthorizationInputDialog(paymentAuthorizationInput: paymentAuthorizationInput),
-      fullscreenDialog: true,
-    ));
+    PaymentAuthorizationInput result = await Navigator.of(context).push(
+      MaterialPageRoute<PaymentAuthorizationInput>(
+        builder: (context) => PaymentAuthorizationInputDialog(paymentAuthorizationInput: paymentAuthorizationInput),
+        fullscreenDialog: true,
+      ),
+    );
     return result;
   }
 

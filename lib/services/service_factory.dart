@@ -5,7 +5,7 @@ import 'package:proxy_flutter/db/db.dart';
 import 'package:proxy_flutter/db/proxy_key_repo.dart';
 import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
-import 'package:proxy_flutter/services/cryptography_service_impl.dart';
+import 'package:proxy_flutter/services/native_cryptography_service_impl.dart';
 import 'package:proxy_flutter/services/local_proxy_resolver.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
 
@@ -27,7 +27,7 @@ class ServiceFactory {
   static ProxyResolver proxyResolver() => _proxyResolverInstance;
 
   static CryptographyService cryptographyService() {
-    return CryptographyServiceImpl();
+    return NativeCryptographyServiceImpl();
   }
 
   static MessageVerificationService messageVerificationService() {

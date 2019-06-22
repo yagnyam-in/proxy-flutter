@@ -6,7 +6,7 @@ enum HomePage {
   ProxyAccountsPage,
   EventsPage,
   BankAccountsPage,
-  ProfilePage,
+  SettingsPage,
 }
 
 typedef void ChangeHomePage(HomePage homePage);
@@ -14,22 +14,24 @@ typedef void ChangeHomePage(HomePage homePage);
 class _BottomNavigationBar extends StatefulWidget {
   final ChangeHomePage changeHomePage;
   final HomePage homePage;
+  final bool busy;
 
-  const _BottomNavigationBar(this.changeHomePage, this.homePage, {Key key}) : super(key: key);
+  const _BottomNavigationBar(this.changeHomePage, this.homePage, this.busy, {Key key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _BottomNavigationBarState(changeHomePage, homePage);
+    return _BottomNavigationBarState(changeHomePage, homePage, busy);
   }
 }
 
 class _BottomNavigationBarState extends State<_BottomNavigationBar> {
   final ChangeHomePage changeHomePage;
   final HomePage homePage;
+  final bool busy;
 
   int _selectedIndex;
 
-  _BottomNavigationBarState(this.changeHomePage, this.homePage) {
+  _BottomNavigationBarState(this.changeHomePage, this.homePage, this.busy) {
     switch (homePage) {
       case HomePage.ProxyAccountsPage:
         _selectedIndex = 0;
@@ -40,7 +42,7 @@ class _BottomNavigationBarState extends State<_BottomNavigationBar> {
       case HomePage.BankAccountsPage:
         _selectedIndex = 2;
         break;
-      case HomePage.ProfilePage:
+      case HomePage.SettingsPage:
         _selectedIndex = 3;
         break;
       default:
@@ -65,7 +67,7 @@ class _BottomNavigationBarState extends State<_BottomNavigationBar> {
         changeHomePage(HomePage.BankAccountsPage);
         break;
       case 3:
-        changeHomePage(HomePage.ProfilePage);
+        changeHomePage(HomePage.SettingsPage);
         break;
       default:
         print("HomePage for $_selectedIndex is not handled");
@@ -101,14 +103,16 @@ class _BottomNavigationBarState extends State<_BottomNavigationBar> {
       currentIndex: _selectedIndex,
       selectedItemColor: Colors.amber[800],
       onTap: (index) {
-        _onItemTapped(index);
+        if (!busy) {
+          _onItemTapped(index);
+        }
       },
     );
   }
 }
 
 mixin HomePageNavigation {
-  Widget navigationBar(BuildContext context, HomePage homePage, {@required ChangeHomePage changeHomePage}) {
-    return _BottomNavigationBar(changeHomePage, homePage);
+  Widget navigationBar(BuildContext context, HomePage homePage, {@required ChangeHomePage changeHomePage, @required bool busy}) {
+    return _BottomNavigationBar(changeHomePage, homePage, busy);
   }
 }

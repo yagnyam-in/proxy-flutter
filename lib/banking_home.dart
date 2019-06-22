@@ -3,7 +3,7 @@ import 'package:proxy_flutter/banking/events_page.dart';
 import 'package:proxy_flutter/banking/proxy_accounts_page.dart';
 import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/profile_page.dart';
+import 'package:proxy_flutter/settings_page.dart';
 
 import 'home_page_navigation.dart';
 
@@ -43,8 +43,8 @@ class _BankingHomeState extends State<BankingHome> {
           appConfiguration,
           changeHomePage: changeHomePage,
         );
-      case HomePage.ProfilePage:
-        return ProfilePage(
+      case HomePage.SettingsPage:
+        return SettingsPage(
           appConfiguration,
           changeHomePage: changeHomePage,
         );
