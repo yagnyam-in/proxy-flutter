@@ -5,14 +5,14 @@ import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking_home.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
-import 'package:proxy_flutter/banking/store/deposit_store.dart';
+import 'package:proxy_flutter/banking/db/deposit_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/contact_store.dart';
 import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
-import 'package:proxy_flutter/setup_master_proxy_page.dart';
+import 'package:proxy_flutter/register_user_page.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 
 import 'modify_proxy_page.dart';
@@ -136,9 +136,9 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
   Widget build(BuildContext context) {
     return futureBuilder(
       future: _appUserFuture,
-      emptyWidget: SetupMasterProxyPage(
+      emptyWidget: RegisterUserPage(
         appConfiguration,
-        setupMasterProxyCallback: setupMasterProxyCallback,
+        registerUserCallback: signUpUser,
       ),
       builder: _bankingHome,
     );
@@ -156,10 +156,11 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
     });
   }
 
-  void setupMasterProxyCallback(ProxyId proxyId) {
-    print("setupMasterProxyCallback($proxyId)");
+  void signUpUser(UserEntity user) {
+    print("setupUser($user)");
     setState(() {
-      widget.appConfiguration.appUser = widget.appConfiguration.appUser.copy(masterProxyId: proxyId);
+      widget.appConfiguration.appUser = user;
+      _appUserFuture = Future.value(user);
     });
     ServiceFactory.notificationService().refreshToken();
   }

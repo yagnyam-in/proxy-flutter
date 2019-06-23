@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
@@ -225,7 +225,7 @@ class _AcceptPaymentPageBodyState extends State<_AcceptPaymentPageBody> {
   Future<bool> _canPaymentBeAccepted() async {
     for (var payee in paymentAuthorization.message.payees) {
       if (payee.payeeType == PayeeTypeEnum.ProxyId) {
-        return await ServiceFactory.proxyKeyRepo().hashProxyKey(payee.proxyId);
+        return ProxyKeyStore(appConfiguration).hasProxyKey(payee.proxyId);
       }
     }
     return true;

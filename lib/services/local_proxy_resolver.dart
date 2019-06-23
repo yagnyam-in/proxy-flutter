@@ -1,24 +1,28 @@
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/db/proxy_repo.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/db/proxy_store.dart';
 
 class LocalProxyResolver extends ProxyResolver {
+  final AppConfiguration appConfiguration;
   final RemoteProxyResolver remoteProxyResolver;
 
-  final ProxyRepo proxyRepo;
+  final ProxyStore _proxyStore;
 
-  LocalProxyResolver({
+  LocalProxyResolver(
+    this.appConfiguration, {
     @required this.remoteProxyResolver,
-    @required this.proxyRepo,
-  });
+  }) : _proxyStore = ProxyStore(appConfiguration);
 
   @override
   Future<Proxy> resolveProxy(ProxyId proxyId) async {
-    Proxy proxy = await proxyRepo.fetchProxy(proxyId);
+    Proxy proxy = await _proxyStore.fetchProxy(proxyId);
     if (proxy == null) {
       proxy = await remoteProxyResolver.resolveProxy(proxyId);
-      await proxyRepo.insert(proxy);
+      if (proxy != null) {
+        await _proxyStore.insertProxy(proxy);
+      }
     }
     return proxy;
   }

@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/banking/db/withdrawal_store.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
-import 'package:proxy_flutter/banking/store/withdrawal_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/proxy_key_repo.dart';
+import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -21,8 +21,8 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
-  final ProxyKeyRepo proxyKeyRepo;
   final WithdrawalStore _withdrawalStore;
+  final ProxyKeyStore _proxyKeyStore;
 
   WithdrawalService(
     this.appConfiguration, {
@@ -30,9 +30,9 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     HttpClientFactory httpClientFactory,
     @required this.messageFactory,
     @required this.messageSigningService,
-    @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        _proxyKeyStore = ProxyKeyStore(appConfiguration),
         _withdrawalStore = WithdrawalStore(appConfiguration) {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
@@ -40,7 +40,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
   Future<WithdrawalEntity> withdraw(ProxyAccountEntity proxyAccount, ReceivingAccountEntity receivingAccount) async {
     String withdrawalId = uuidFactory.v4();
     ProxyId ownerProxyId = proxyAccount.ownerProxyId;
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(ownerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(ownerProxyId);
     Withdrawal request = new Withdrawal(
       withdrawalId: withdrawalId,
       proxyAccount: proxyAccount.signedProxyAccount,
@@ -106,7 +106,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
       proxyUniverse: proxyUniverse,
       withdrawalId: withdrawalId,
     );
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(withdrawalEntity.payerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(withdrawalEntity.payerProxyId);
     WithdrawalStatusRequest request = WithdrawalStatusRequest(
       requestId: uuidFactory.v4(),
       request: withdrawalEntity.signedWithdrawal,
@@ -126,7 +126,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
   }
 
   Future<WithdrawalEntity> _refreshWithdrawalStatus(WithdrawalEntity withdrawalEntity) async {
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(withdrawalEntity.payerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(withdrawalEntity.payerProxyId);
     WithdrawalStatusRequest request = WithdrawalStatusRequest(
       requestId: uuidFactory.v4(),
       request: withdrawalEntity.signedWithdrawal,

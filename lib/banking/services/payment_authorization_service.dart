@@ -9,9 +9,9 @@ import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/payment_authorization_input_dialog.dart';
-import 'package:proxy_flutter/banking/store/payment_authorization_store.dart';
+import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/proxy_key_repo.dart';
+import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
@@ -27,7 +27,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
-  final ProxyKeyRepo proxyKeyRepo;
+  final ProxyKeyStore _proxyKeyStore;
   final CryptographyService cryptographyService;
   final PaymentAuthorizationStore _paymentAuthorizationStore;
 
@@ -37,10 +37,10 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     HttpClientFactory httpClientFactory,
     @required this.messageFactory,
     @required this.messageSigningService,
-    @required this.proxyKeyRepo,
     @required this.cryptographyService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        _proxyKeyStore = ProxyKeyStore(appConfiguration),
         _paymentAuthorizationStore = PaymentAuthorizationStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
@@ -95,7 +95,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     PaymentAuthorizationInput input,
   ) async {
     ProxyId ownerProxyId = proxyAccount.ownerProxyId;
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(ownerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(ownerProxyId);
     String paymentAuthorizationId = uuidFactory.v4();
     String proxyUniverse = proxyAccount.proxyUniverse;
 
@@ -154,7 +154,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
   ) async {
     print('Refreshing $authorizationEntity');
 
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(authorizationEntity.payerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(authorizationEntity.payerProxyId);
     PaymentAuthorizationStatusRequest request = PaymentAuthorizationStatusRequest(
       requestId: uuidFactory.v4(),
       paymentAuthorization: authorizationEntity.signedPaymentAuthorization,

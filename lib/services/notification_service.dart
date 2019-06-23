@@ -7,7 +7,7 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -53,14 +53,15 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   void tokenRefresh(String newToken) async {
     print("New FCM Token $newToken");
-    if (newToken != null) {
-      List<ProxyKey> outdatedProxies = await ServiceFactory.proxyKeyRepo().fetchProxiesWithoutFcmToken(newToken);
+    if (newToken != null && AppConfiguration.instance() != null && AppConfiguration.instance().isComplete) {
+      ProxyKeyStore proxyKeyStore = ProxyKeyStore(AppConfiguration.instance());
+      List<ProxyKey> outdatedProxies = await proxyKeyStore.fetchProxiesWithoutFcmToken(newToken);
       print('Got ${outdatedProxies.length} proxies to update');
-      outdatedProxies.forEach((key) => updateToken(key, newToken));
+      outdatedProxies.forEach((key) => _updateToken(proxyKeyStore, key, newToken));
     }
   }
 
-  void updateToken(ProxyKey proxyKey, String newToken) async {
+  void _updateToken(ProxyKeyStore proxyKeyStore, ProxyKey proxyKey, String newToken) async {
     print("Updating FCM Token for ${proxyKey.id}");
     ProxyCustomerUpdateRequest request = new ProxyCustomerUpdateRequest(
       requestId: uuidFactory.v4(),
@@ -77,7 +78,7 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
       signedRequestJson,
     );
     print("Received $jsonResponse from $appBackendUrl");
-    ServiceFactory.proxyKeyRepo().updateFcmToken(proxyKey.id, newToken);
+    proxyKeyStore.updateFcmToken(proxyKey, newToken);
   }
 
   void tokenRefreshFailure(error) {
@@ -90,8 +91,8 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     print('data: $data');
     String type = data != null ? data['alertType'] : null;
     print('type: $type');
-    if (AppConfiguration.instance() == null) {
-      print("Ignoring $message as App Config is null");
+    if (AppConfiguration.instance() == null || !AppConfiguration.instance().isComplete) {
+      print("Ignoring $message as App Config is null or not complete");
       return null;
     }
     if (type == AccountUpdatedAlert.ALERT_TYPE) {

@@ -7,13 +7,12 @@ import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/banking/store/deposit_store.dart';
+import 'package:proxy_flutter/banking/db/deposit_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/proxy_key_repo.dart';
+import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
-
 
 class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   final AppConfiguration appConfiguration;
@@ -22,17 +21,18 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
-  final ProxyKeyRepo proxyKeyRepo;
+  final ProxyKeyStore _proxyKeyStore;
   final DepositStore _depositStore;
 
-  DepositService(this.appConfiguration, {
+  DepositService(
+    this.appConfiguration, {
     String proxyBankingUrl,
     HttpClientFactory httpClientFactory,
     @required this.messageFactory,
     @required this.messageSigningService,
-    @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        _proxyKeyStore = ProxyKeyStore(appConfiguration),
         _depositStore = DepositStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
@@ -43,7 +43,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     DepositRequestInput input,
   ) async {
     ProxyId ownerProxyId = proxyAccount.ownerProxyId;
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(ownerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(ownerProxyId);
     String depositId = uuidFactory.v4();
     DepositRequestCreationRequest request = DepositRequestCreationRequest(
       depositId: depositId,
@@ -107,7 +107,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
       proxyUniverse: proxyUniverse,
       depositId: depositId,
     );
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(depositEntity.destinationProxyAccountOwnerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(depositEntity.destinationProxyAccountOwnerProxyId);
     DepositRequestCancelRequest request = DepositRequestCancelRequest(
       requestId: uuidFactory.v4(),
       depositRequest: depositEntity.signedDepositRequest,
@@ -130,7 +130,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   Future<void> _refreshDepositStatus(DepositEntity depositEntity) async {
     print('Refreshing $depositEntity');
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(depositEntity.destinationProxyAccountOwnerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(depositEntity.destinationProxyAccountOwnerProxyId);
     DepositRequestStatusRequest request = DepositRequestStatusRequest(
       requestId: uuidFactory.v4(),
       depositRequest: depositEntity.signedDepositRequest,

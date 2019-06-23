@@ -54,7 +54,6 @@ class AppConfiguration {
     preferences.setString(PROXY_UNIVERSE, value);
   }
 
-
   bool get isProductionUniverse {
     return proxyUniverse == ProxyUniverse.PRODUCTION;
   }
@@ -71,4 +70,7 @@ class AppConfiguration {
     return appUser?.email ?? firebaseUser?.email;
   }
 
+  bool get isComplete {
+    return firebaseUser != null && appUser != null;
+  }
 }

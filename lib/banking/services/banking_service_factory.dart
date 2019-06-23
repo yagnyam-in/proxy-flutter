@@ -11,36 +11,32 @@ class BankingServiceFactory {
   static BankingService bankingService(AppConfiguration appConfiguration) {
     return BankingService(
       appConfiguration,
-      messageFactory: ServiceFactory.messageFactory(),
+      messageFactory: ServiceFactory.messageFactory(appConfiguration),
       messageSigningService: ServiceFactory.messageSigningService(),
-      proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
     );
   }
 
   static WithdrawalService withdrawalService(AppConfiguration appConfiguration) {
     return WithdrawalService(
       appConfiguration,
-      messageFactory: ServiceFactory.messageFactory(),
+      messageFactory: ServiceFactory.messageFactory(appConfiguration),
       messageSigningService: ServiceFactory.messageSigningService(),
-      proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
     );
   }
 
   static DepositService depositService(AppConfiguration appConfiguration) {
     return DepositService(
       appConfiguration,
-      messageFactory: ServiceFactory.messageFactory(),
+      messageFactory: ServiceFactory.messageFactory(appConfiguration),
       messageSigningService: ServiceFactory.messageSigningService(),
-      proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
     );
   }
 
   static PaymentAuthorizationService paymentAuthorizationService(AppConfiguration appConfiguration) {
     return PaymentAuthorizationService(
       appConfiguration,
-      messageFactory: ServiceFactory.messageFactory(),
+      messageFactory: ServiceFactory.messageFactory(appConfiguration),
       messageSigningService: ServiceFactory.messageSigningService(),
-      proxyKeyRepo: ServiceFactory.proxyKeyRepo(),
       cryptographyService: ServiceFactory.cryptographyService(),
     );
   }

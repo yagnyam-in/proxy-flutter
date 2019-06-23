@@ -8,7 +8,6 @@ part of 'user_entity.dart';
 
 UserEntity _$UserEntityFromJson(Map json) {
   return UserEntity(
-      id: json['id'] as String,
       masterProxyId: json['masterProxyId'] == null
           ? null
           : ProxyId.fromJson(json['masterProxyId'] as Map),
@@ -19,9 +18,7 @@ UserEntity _$UserEntityFromJson(Map json) {
 }
 
 Map<String, dynamic> _$UserEntityToJson(UserEntity instance) {
-  final val = <String, dynamic>{
-    'id': instance.id,
-  };
+  final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {

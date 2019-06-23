@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
-import 'package:proxy_flutter/banking/store/deposit_store.dart';
+import 'package:proxy_flutter/banking/db/deposit_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';

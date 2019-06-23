@@ -7,10 +7,9 @@ import 'package:proxy_flutter/db/firestore_utils.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 
 class UserStore with ProxyUtils, FirestoreUtils {
-  final AppConfiguration appConfiguration;
   final DocumentReference root;
 
-  UserStore(this.appConfiguration) : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser);
+  UserStore(AppConfiguration appConfiguration) : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser);
 
   Future<UserEntity> fetchUser() async {
     DocumentSnapshot snapshot = await root.get();

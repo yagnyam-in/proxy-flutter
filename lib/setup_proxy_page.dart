@@ -5,45 +5,43 @@ import 'package:flutter/services.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/db.dart';
-import 'package:proxy_flutter/db/proxy_key_repo.dart';
-import 'package:proxy_flutter/db/proxy_repo.dart';
+import 'package:proxy_flutter/db/proxy_key_store.dart';
+import 'package:proxy_flutter/db/proxy_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/native_proxy_key_store_impl.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
+import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
-import 'package:tuple/tuple.dart';
 
-typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
-
-class SetupMasterProxyPage extends StatefulWidget {
+class SetupProxyPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final SetupMasterProxyCallback setupMasterProxyCallback;
 
-  SetupMasterProxyPage(
+  SetupProxyPage(
     this.appConfiguration, {
     Key key,
-    @required this.setupMasterProxyCallback,
   }) : super(key: key) {
-    print("Constructing SetupMasterProxyPage");
+    print("Constructing SetupProxyPage");
   }
 
   @override
-  _SetupMasterProxyPageState createState() => _SetupMasterProxyPageState();
+  _SetupProxyPageState createState() => _SetupProxyPageState(appConfiguration);
 }
 
-class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
+class _SetupProxyPageState extends LoadingSupportState<SetupProxyPage> {
+  final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  final NativeProxyKeyStoreImpl proxyKeyStore = NativeProxyKeyStoreImpl();
+  final NativeProxyKeyFactoryImpl _proxyKeyFactoryImpl = NativeProxyKeyFactoryImpl();
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final ProxyFactory proxyFactory = ProxyFactory();
 
   bool loading = false;
 
+  _SetupProxyPageState(this.appConfiguration);
+
   Future<ProxyKey> createProxyKey(String proxyId) {
     print("createProxyKey");
-    return proxyKeyStore.createProxyKey(
+    return _proxyKeyFactoryImpl.createProxyKey(
       id: proxyId,
       keyGenerationAlgorithm: proxyVersion.keyGenerationAlgorithm,
       keySize: proxyVersion.keySize,
@@ -55,7 +53,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     String revocationPassPhrase,
   ) {
     print("createProxyRequest");
-    return proxyKeyStore.createProxyRequest(
+    return _proxyKeyFactoryImpl.createProxyRequest(
       proxyKey: proxyKey,
       signatureAlgorithm: proxyVersion.certificateSignatureAlgorithm,
       revocationPassPhrase: revocationPassPhrase,
@@ -67,29 +65,26 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     return proxy;
   }
 
-  Future<Tuple2<ProxyKey, Proxy>> saveProxy(
+  Future<void> saveProxy(
     ProxyKey proxyKey,
     Proxy proxy,
   ) async {
-    await proxyKeyStore.saveProxy(proxyKey: proxyKey, proxy: proxy);
-    DB.instance().transaction((t) async {
-      await ProxyRepo.insertInTransaction(t, proxy);
-      await ProxyKeyRepo.insertInTransaction(t, proxyKey);
-    });
-    return Tuple2(proxyKey, proxy);
+    await _proxyKeyFactoryImpl.saveProxy(proxyKey: proxyKey, proxy: proxy);
+    await ProxyKeyStore(appConfiguration).insertProxyKey(proxyKey);
+    await ProxyStore(appConfiguration).insertProxy(proxy);
   }
 
-  Future<Tuple2<ProxyKey, Proxy>> setup(
+  Future<ProxyKey> _setup(
     String proxyId,
     String revocationPassPhrase,
   ) async {
     ProxyKey proxyKey = await createProxyKey(proxyId);
     ProxyRequest proxyRequest = await createProxyRequest(proxyKey, revocationPassPhrase);
-    Proxy proxy = await createProxy(proxyRequest);
-    return saveProxy(proxyKey.copyWith(id: proxy.id), proxy);
+    await createProxy(proxyRequest);
+    return proxyKey;
   }
 
-  void setupMasterProxy(
+  void setupProxy(
     BuildContext context,
     String proxyId,
     String revocationPassPhrase,
@@ -97,19 +92,17 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     setState(() {
       loading = true;
     });
-    setup(proxyId, revocationPassPhrase).then((Tuple2<ProxyKey, Proxy> r) {
-      setState(() {
-        print("Success!! ${r.item1} => ${r.item2.isValid()}");
-        loading = false;
-      });
-      widget.setupMasterProxyCallback(r.item1.id);
-    }).catchError((e) {
-      setState(() {
-        print("Failure!! $e");
-        loading = false;
-      });
+    try {
+      ProxyKey proxyKey = await _setup(proxyId, revocationPassPhrase);
+      Navigator.of(context).pop(proxyKey);
+    } catch (e) {
+      print("Error creating Proxy: $e");
       showError(ProxyLocalizations.of(context).failedProxyCreation);
-    });
+    } finally {
+      setState(() {
+        loading = false;
+      });
+    }
   }
 
   void showError(String message) {
@@ -130,7 +123,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(ProxyLocalizations.of(context).setupMasterProxyTitle),
+        title: Text(ProxyLocalizations.of(context).setupProxyTitle),
       ),
       body: BusyChildWidget(
         loading: loading,
@@ -138,7 +131,7 @@ class _SetupMasterProxyPageState extends State<SetupMasterProxyPage> {
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: SetupProxyForm(
             setupProxyCallback: (String proxyId, String revocationPassPhrase) =>
-                setupMasterProxy(context, proxyId, revocationPassPhrase),
+                setupProxy(context, proxyId, revocationPassPhrase),
             appConfiguration: widget.appConfiguration,
           ),
         ),
@@ -181,7 +174,7 @@ class _SetupProxyFormState extends State<SetupProxyForm> {
         children: <Widget>[
           const SizedBox(height: 8.0),
           Text(
-            localizations.masterProxyDescription,
+            localizations.proxyKeyDescription,
           ),
           const SizedBox(height: 8.0),
           TextFormField(

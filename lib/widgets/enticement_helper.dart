@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/store/receiving_account_store.dart';
-import 'package:proxy_flutter/banking/store/test_receiving_accounts.dart';
+import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
+import 'package:proxy_flutter/banking/db/test_receiving_accounts.dart';
 import 'package:proxy_flutter/banking/widgets/enticement_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/model/enticement.dart';
@@ -65,8 +65,8 @@ mixin EnticementHelper {
       if (uri != null) {
         dismissEnticement(context, enticement);
       }
-    } catch (e) {
-      print("Error creating Payment: $e");
+    } catch (e, s) {
+      print("Error creating Payment: $e, $s");
     }
   }
 

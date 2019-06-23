@@ -154,8 +154,7 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
       loading: _loading,
       child: Form(
         key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: <Widget>[
             const SizedBox(height: 16.0),
             Text(

@@ -6,7 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_event.dart';
-import 'package:proxy_flutter/banking/store/event_store.dart';
+import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 

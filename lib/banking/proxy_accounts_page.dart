@@ -11,15 +11,13 @@ import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/services/deposit_service.dart';
 import 'package:proxy_flutter/banking/services/payment_authorization_service.dart';
 import 'package:proxy_flutter/banking/services/withdrawal_service.dart';
-import 'package:proxy_flutter/banking/store/proxy_account_store.dart';
+import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/widgets/account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/contacts_page.dart';
-import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/enticement.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_flutter/services/enticement_service.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
@@ -352,35 +350,14 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     );
   }
 
-  Future<DepositRequestInput> _acceptDepositRequestInput(BuildContext context,
-      [ProxyAccountEntity proxyAccount]) async {
-    UserStore userStore = UserStore(appConfiguration);
-    UserEntity user = await userStore.fetchUser();
+  Future<DepositRequestInput> _acceptDepositRequestInput(BuildContext context, [ProxyAccountEntity proxyAccount]) {
     DepositRequestInput depositRequestInput = proxyAccount == null
-        ? DepositRequestInput.fromCustomer(user)
-        : DepositRequestInput.forAccount(proxyAccount, user);
-    DepositRequestInput result = await Navigator.of(context).push(MaterialPageRoute<DepositRequestInput>(
+        ? DepositRequestInput.fromCustomer(appConfiguration.appUser)
+        : DepositRequestInput.forAccount(proxyAccount, appConfiguration.appUser);
+    return Navigator.of(context).push(MaterialPageRoute<DepositRequestInput>(
       builder: (context) => DepositRequestInputDialog(depositRequestInput: depositRequestInput),
       fullscreenDialog: true,
     ));
-    if (result != null) {
-      if (user != null) {
-        user = user.copy(
-          name: result.customerName,
-          phone: result.customerPhone,
-          email: result.customerEmail,
-        );
-      } else {
-        user = UserEntity(
-          id: uuidFactory.v4(),
-          name: result.customerName,
-          phone: result.customerPhone,
-          email: result.customerEmail,
-        );
-      }
-      await userStore.saveUser(user);
-    }
-    return result;
   }
 
   Future<PaymentAuthorizationInput> _acceptPaymentInput(BuildContext context, [ProxyAccountEntity proxyAccount]) async {

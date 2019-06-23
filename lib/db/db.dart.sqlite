@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
-import 'package:proxy_flutter/db/proxy_key_repo.dart';
-import 'package:proxy_flutter/db/proxy_repo.dart';
 import 'package:sqflite/sqflite.dart';
 
 Database _database;
@@ -87,15 +85,11 @@ class DB {
   }
 
   static Future<void> onCreate(Database database, int version) async {
-    DB db = DB._internal(Future.value(database));
-    await ProxyRepo.onCreate(db, version);
-    await ProxyKeyRepo.onCreate(db, version);
+    // await ProxyKeyRepo.onCreate(DB._internal(Future.value(database)), version);
   }
 
   static Future<void> onUpgrade(Database database, int oldVersion, int newVersion) async {
-    DB db = DB._internal(Future.value(database));
-    await ProxyRepo.onUpgrade(db, oldVersion, newVersion);
-    await ProxyKeyRepo.onUpgrade(db, oldVersion, newVersion);
+    // await ProxyKeyRepo.onUpgrade(DB._internal(Future.value(database)), oldVersion, newVersion);
   }
 
   Future<void> addColumns({

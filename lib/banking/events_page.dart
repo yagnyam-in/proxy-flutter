@@ -6,7 +6,7 @@ import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/banking/payment_authorization_page.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
-import 'package:proxy_flutter/banking/store/event_store.dart';
+import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/banking/widgets/event_card.dart';
 import 'package:proxy_flutter/banking/withdrawal_page.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';

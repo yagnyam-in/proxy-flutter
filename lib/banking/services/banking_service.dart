@@ -5,9 +5,9 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/banking/store/proxy_account_store.dart';
+import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/proxy_key_repo.dart';
+import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -20,7 +20,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
   final ProxyAccountStore _proxyAccountStore;
-  final ProxyKeyRepo proxyKeyRepo;
+  final ProxyKeyStore _proxyKeyStore;
 
   BankingService(
     this.appConfiguration, {
@@ -28,9 +28,9 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     HttpClientFactory httpClientFactory,
     @required this.messageFactory,
     @required this.messageSigningService,
-    @required this.proxyKeyRepo,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        _proxyKeyStore = ProxyKeyStore(appConfiguration),
         _proxyAccountStore = ProxyAccountStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
@@ -46,7 +46,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   Future<ProxyAccountEntity> createProxyWallet(
       {@required ProxyId ownerProxyId, @required String proxyUniverse, @required String currency}) async {
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(ownerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyUniverse: proxyUniverse,
@@ -96,7 +96,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       print("Account $proxyAccount not found");
       return null;
     }
-    ProxyKey proxyKey = await proxyKeyRepo.fetchProxyKey(proxyAccount.ownerProxyId);
+    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(proxyAccount.ownerProxyId);
     AccountBalanceRequest request = AccountBalanceRequest(
       requestId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,

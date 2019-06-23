@@ -992,6 +992,14 @@ class ProxyLocalizations {
   String get authorizePhoneNumber => Intl.message('Verify Phone');
 
   String get authorizeEmail => Intl.message('Verify Email');
+
+  String get setupProxyTitle => Intl.message('Setup Proxy');
+
+  String get proxyKeyDescription => Intl.message('Proxy Key is used for signing all your messages.');
+
+  String get registerUserTitle => Intl.message('Register');
+
+  String get registerUserDescription => Intl.message('Register');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {
