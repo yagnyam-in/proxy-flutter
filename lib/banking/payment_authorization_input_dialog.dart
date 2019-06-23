@@ -52,14 +52,12 @@ class PaymentAuthorizationPayeeInput with ProxyUtils {
 }
 
 class PaymentAuthorizationInput with ProxyUtils {
-  final String proxyUniverse;
   final String currency;
   final double amount;
   final String message;
   final List<PaymentAuthorizationPayeeInput> payees;
 
   PaymentAuthorizationInput({
-    this.proxyUniverse,
     this.currency,
     this.amount,
     this.message,
@@ -67,7 +65,6 @@ class PaymentAuthorizationInput with ProxyUtils {
   });
 
   void assertValid() {
-    assert(isNotEmpty(proxyUniverse));
     assert(currency != null);
     assert(Currency.isValidCurrency(currency));
     assert(isNotEmpty(message));
@@ -99,15 +96,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   final TextEditingController amountController;
   final TextEditingController secretController;
 
-  String _proxyUniverse;
   String _currency;
-
-  List<String> get validProxyUniverses {
-    if (isNotEmpty(paymentAuthorizationInput?.proxyUniverse)) {
-      return [paymentAuthorizationInput.proxyUniverse];
-    }
-    return [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
-  }
 
   List<String> get validCurrencies {
     if (isNotEmpty(paymentAuthorizationInput?.currency)) {
@@ -120,8 +109,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       : amountController = TextEditingController(),
         messageController = TextEditingController(text: paymentAuthorizationInput?.message),
         secretController = TextEditingController(text: paymentAuthorizationInput?.payees?.first?.secret),
-        _currency = paymentAuthorizationInput?.currency,
-        _proxyUniverse = paymentAuthorizationInput?.proxyUniverse;
+        _currency = paymentAuthorizationInput?.currency;
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -156,40 +144,6 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
     List<Widget> children = [];
-
-    if (paymentAuthorizationInput?.proxyUniverse != ProxyUniverse.PRODUCTION) {
-      children.addAll([
-        const SizedBox(height: 16.0),
-        new FormField(
-          builder: (FormFieldState state) {
-            return InputDecorator(
-              decoration: InputDecoration(
-                labelText: localizations.proxyUniverse,
-              ),
-              isEmpty: _proxyUniverse == '',
-              child: new DropdownButtonHideUnderline(
-                child: new DropdownButton(
-                  value: _proxyUniverse,
-                  isDense: true,
-                  onChanged: (String newValue) {
-                    setState(() {
-                      _proxyUniverse = newValue;
-                      state.didChange(newValue);
-                    });
-                  },
-                  items: validProxyUniverses.map((String value) {
-                    return new DropdownMenuItem(
-                      value: value,
-                      child: new Text(value),
-                    );
-                  }).toList(),
-                ),
-              ),
-            );
-          },
-        ),
-      ]);
-    }
 
     children.addAll([
       const SizedBox(height: 16.0),
@@ -267,13 +221,10 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   }
 
   void _submit(ProxyLocalizations localizations) {
-    if (_proxyUniverse == null) {
-      showError(localizations.fieldIsMandatory(localizations.proxyUniverse));
-    } else if (_currency == null) {
+    if (_currency == null) {
       showError(localizations.fieldIsMandatory(localizations.currency));
     } else if (_formKey.currentState.validate()) {
       PaymentAuthorizationInput result = PaymentAuthorizationInput(
-        proxyUniverse: _proxyUniverse,
         currency: _currency,
         amount: double.parse(amountController.text),
         message: messageController.text,

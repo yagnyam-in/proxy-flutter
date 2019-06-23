@@ -43,12 +43,6 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   final TextEditingController addressController;
 
   final List<String> validCurrencies = [Currency.INR, Currency.EUR];
-  final List<String> validProxyUniverses = [
-    ProxyUniverse.PRODUCTION,
-    ProxyUniverse.TEST
-  ];
-
-  String _proxyUniverse;
   String _currency;
 
   _ReceivingAccountDialogState(this.appConfiguration, this.receivingAccount)
@@ -67,7 +61,6 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
         phoneController = TextEditingController(text: receivingAccount?.phone),
         addressController =
             TextEditingController(text: receivingAccount?.address) {
-    _proxyUniverse = receivingAccount?.proxyUniverse;
     _currency = receivingAccount?.currency;
   }
 
@@ -109,36 +102,6 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
     List<Widget> children = [
-      new FormField(
-        builder: (FormFieldState state) {
-          return InputDecorator(
-            decoration: InputDecoration(
-              labelText: localizations.proxyUniverse,
-              // helperText: localizations.currencyHint,
-            ),
-            isEmpty: _proxyUniverse == '',
-            child: new DropdownButtonHideUnderline(
-              child: new DropdownButton(
-                value: _proxyUniverse,
-                isDense: true,
-                onChanged: (String newValue) {
-                  setState(() {
-                    _proxyUniverse = newValue;
-                    state.didChange(newValue);
-                  });
-                },
-                items: validProxyUniverses.map((String value) {
-                  return new DropdownMenuItem(
-                    value: value,
-                    child: new Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
-          );
-        },
-      ),
-      const SizedBox(height: 8.0),
       new FormField(
         builder: (FormFieldState state) {
           return InputDecorator(
@@ -260,10 +223,7 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   }
 
   void _submit(ProxyLocalizations localizations) async {
-    if (_proxyUniverse == null || _proxyUniverse.isEmpty) {
-      print("Invalid Proxy Universe");
-      showError(localizations.fieldIsMandatory(localizations.proxyUniverse));
-    } else if (_currency == null || _currency.isEmpty) {
+    if (_currency == null || _currency.isEmpty) {
       print("Invalid currency");
       showError(localizations.fieldIsMandatory(localizations.currency));
     } else if (!_formKey.currentState.validate()) {
@@ -271,7 +231,7 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
     } else {
       ReceivingAccountEntity result = await _receivingAccountStore.saveAccount(
         ReceivingAccountEntity(
-          proxyUniverse: _proxyUniverse,
+          proxyUniverse: appConfiguration.proxyUniverse,
           accountId: receivingAccount?.accountId ?? uuidFactory.v4(),
           currency: _currency,
           accountName: accountNameController.text,

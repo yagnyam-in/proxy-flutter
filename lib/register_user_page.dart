@@ -73,15 +73,6 @@ class _RegisterUserPageState extends LoadingSupportState<RegisterUserPage> {
     return proxy;
   }
 
-  Future<void> saveProxy(
-    ProxyKey proxyKey,
-    Proxy proxy,
-  ) async {
-    await _proxyKeyFactoryImpl.saveProxy(proxyKey: proxyKey, proxy: proxy);
-    await ProxyKeyStore(appConfiguration).insertProxyKey(proxyKey);
-    await ProxyStore(appConfiguration).insertProxy(proxy);
-  }
-
   Future<UserEntity> _setup(
     String proxyId,
     String revocationPassPhrase,
@@ -89,6 +80,9 @@ class _RegisterUserPageState extends LoadingSupportState<RegisterUserPage> {
     ProxyKey proxyKey = await createProxyKey(proxyId);
     ProxyRequest proxyRequest = await createProxyRequest(proxyKey, revocationPassPhrase);
     Proxy proxy = await createProxy(proxyRequest);
+    await _proxyKeyFactoryImpl.saveProxy(proxyKey: proxyKey, proxy: proxy);
+    await ProxyKeyStore(appConfiguration).insertProxyKey(proxyKey);
+    await ProxyStore(appConfiguration).insertProxy(proxy);
     UserEntity userEntity = await UserStore(appConfiguration).saveUser(
       UserEntity(
         masterProxyId: proxy.id,

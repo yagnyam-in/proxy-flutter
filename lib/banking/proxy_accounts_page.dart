@@ -199,7 +199,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       showToast(ProxyLocalizations.of(context).creatingAnonymousAccount(depositInput.currency));
       ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
-        proxyUniverse: depositInput.proxyUniverse,
+        proxyUniverse: widget.appConfiguration.proxyUniverse,
         currency: depositInput.currency,
       );
       String depositLink = await _depositService.depositLink(proxyAccount, depositInput);
@@ -218,10 +218,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       showToast(localizations.creatingAnonymousAccount(paymentInput.currency));
       ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
         ownerProxyId: widget.appConfiguration.masterProxyId,
-        proxyUniverse: paymentInput.proxyUniverse,
+        proxyUniverse: widget.appConfiguration.proxyUniverse,
         currency: paymentInput.currency,
       );
-      String customerName = widget.appConfiguration?.appUser?.name;
+      String customerName = widget.appConfiguration.displayName;
       Uri paymentLink = await _paymentAuthorizationService.createPaymentAuthorization(
         localizations,
         proxyAccount,
@@ -362,7 +362,6 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
 
   Future<PaymentAuthorizationInput> _acceptPaymentInput(BuildContext context, [ProxyAccountEntity proxyAccount]) async {
     PaymentAuthorizationInput paymentAuthorizationInput = PaymentAuthorizationInput(
-      proxyUniverse: proxyAccount?.proxyUniverse,
       currency: proxyAccount?.currency,
       payees: [
         PaymentAuthorizationPayeeInput(
