@@ -13,7 +13,7 @@ class LocalProxyResolver extends ProxyResolver {
   LocalProxyResolver(
     this.appConfiguration, {
     @required this.remoteProxyResolver,
-  }) : _proxyStore = ProxyStore(appConfiguration);
+  }) : _proxyStore = ProxyStore(appConfiguration.account);
 
   @override
   Future<Proxy> resolveProxy(ProxyId proxyId) async {

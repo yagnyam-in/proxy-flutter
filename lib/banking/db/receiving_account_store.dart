@@ -12,7 +12,7 @@ class ReceivingAccountStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;
   final DocumentReference root;
 
-  ReceivingAccountStore(this.appConfiguration) : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser) {
+  ReceivingAccountStore(this.appConfiguration) : root = FirestoreUtils.accountRootRef(appConfiguration.accountId) {
     assert(appConfiguration != null);
   }
 

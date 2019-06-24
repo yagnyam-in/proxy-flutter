@@ -17,7 +17,7 @@ class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
   final EventStore _eventStore;
 
   PaymentAuthorizationStore(this.appConfiguration)
-      : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser),
+      : root = FirestoreUtils.accountRootRef(appConfiguration.accountId),
         _eventStore = EventStore(appConfiguration);
 
   DocumentReference ref({

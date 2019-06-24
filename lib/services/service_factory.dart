@@ -4,7 +4,6 @@ import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
 import 'package:proxy_flutter/services/local_proxy_resolver.dart';
-import 'package:proxy_flutter/services/native_cryptography_service_impl.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
 
 import 'deep_link_service.dart';
@@ -22,13 +21,15 @@ class ServiceFactory {
         ),
       );
 
-  static CryptographyService cryptographyService() {
-    return NativeCryptographyServiceImpl();
-  }
+
+  static get cryptographyService => PointyCastleCryptographyService();
+  static get proxyKeyFactory => PointyCastleProxyKeyFactory();
+  static get proxyRequestFactory => PointyCastleProxyRequestFactory(cryptographyService);
+
 
   static MessageVerificationService messageVerificationService(AppConfiguration appConfiguration) {
     return new MessageVerificationService(
-      cryptographyService: cryptographyService(),
+      cryptographyService: cryptographyService,
       proxyResolver: proxyResolver(appConfiguration),
     );
   }
@@ -45,7 +46,7 @@ class ServiceFactory {
   }
 
   static MessageSigningService messageSigningService() {
-    return MessageSigningService(cryptographyService: cryptographyService());
+    return MessageSigningService(cryptographyService: cryptographyService);
   }
 
   static ProxyIdFactory proxyIdFactory() => ProxyIdFactory.instance();

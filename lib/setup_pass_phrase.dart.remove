@@ -9,7 +9,7 @@ import 'package:proxy_flutter/db/proxy_store.dart';
 import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
-import 'package:proxy_flutter/services/native_proxy_key_store_impl.dart';
+import 'package:proxy_flutter/services/native_proxy_key_factory_impl.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -17,23 +17,23 @@ import 'package:proxy_flutter/widgets/loading.dart';
 
 typedef RegisterUserCallback = void Function(UserEntity user);
 
-class RegisterUserPage extends StatefulWidget {
+class SetupPassPhrasePage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final RegisterUserCallback registerUserCallback;
 
-  RegisterUserPage(
+  SetupPassPhrasePage(
     this.appConfiguration, {
     Key key,
     @required this.registerUserCallback,
   }) : super(key: key) {
-    print("Constructing RegisterUserPage");
+    print("Constructing SetupPassPhrasePage");
   }
 
   @override
-  _RegisterUserPageState createState() => _RegisterUserPageState(appConfiguration);
+  _SetupPassPhrasePageState createState() => _SetupPassPhrasePageState(appConfiguration);
 }
 
-class _RegisterUserPageState extends LoadingSupportState<RegisterUserPage> {
+class _SetupPassPhrasePageState extends LoadingSupportState<SetupPassPhrasePage> {
   final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -45,7 +45,7 @@ class _RegisterUserPageState extends LoadingSupportState<RegisterUserPage> {
 
   bool loading = false;
 
-  _RegisterUserPageState(this.appConfiguration);
+  _SetupPassPhrasePageState(this.appConfiguration);
 
   Future<ProxyKey> createProxyKey(String proxyId) {
     print("createProxyKey");
@@ -80,11 +80,13 @@ class _RegisterUserPageState extends LoadingSupportState<RegisterUserPage> {
     ProxyKey proxyKey = await createProxyKey(proxyId);
     ProxyRequest proxyRequest = await createProxyRequest(proxyKey, revocationPassPhrase);
     Proxy proxy = await createProxy(proxyRequest);
+    proxyKey = proxyKey.copyWith(id: proxy.id);
     await _proxyKeyFactoryImpl.saveProxy(proxyKey: proxyKey, proxy: proxy);
     await ProxyKeyStore(appConfiguration).insertProxyKey(proxyKey);
     await ProxyStore(appConfiguration).insertProxy(proxy);
     UserEntity userEntity = await UserStore(appConfiguration).saveUser(
       UserEntity(
+        uid: appConfiguration.firebaseUser.uid,
         masterProxyId: proxy.id,
       ),
     );
@@ -146,14 +148,14 @@ class _RegisterUserPageState extends LoadingSupportState<RegisterUserPage> {
               children: <Widget>[
                 const SizedBox(height: 8.0),
                 Text(
-                  localizations.registerUserDescription,
+                  localizations.passPhraseDescription,
                 ),
                 const SizedBox(height: 8.0),
                 TextFormField(
                   controller: passPhraseController,
                   decoration: InputDecoration(
-                    labelText: localizations.revocationPassPhrase,
-                    helperText: localizations.revocationPassPhraseHint,
+                    labelText: localizations.passPhrase,
+                    helperText: localizations.passPhraseHint,
                   ),
                   validator: (value) => _passphraseIdValidator(localizations, value),
                 ),
@@ -185,14 +187,14 @@ class _RegisterUserPageState extends LoadingSupportState<RegisterUserPage> {
   }
 
   bool _isValidPassphrase(String passphrase) {
-    return passphrase != null && passphrase.length >= 16 && passphrase.length <= 64;
+    return passphrase != null && passphrase.length >= 8 && passphrase.length <= 64;
   }
 
   String _passphraseIdValidator(ProxyLocalizations localizations, String passphrase) {
     if (passphrase.isEmpty) {
-      return localizations.fieldIsMandatory(localizations.revocationPassPhrase);
+      return localizations.fieldIsMandatory(localizations.passPhrase);
     } else if (!_isValidPassphrase(passphrase)) {
-      return localizations.revocationPassPhrase;
+      return localizations.passPhrase;
     }
     return null;
   }

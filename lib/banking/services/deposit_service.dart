@@ -32,7 +32,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.messageSigningService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _proxyKeyStore = ProxyKeyStore(appConfiguration),
+        _proxyKeyStore = ProxyKeyStore(appConfiguration.account),
         _depositStore = DepositStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
@@ -63,7 +63,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     // print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositRequestCreationResponse> signedResponse =
@@ -120,7 +120,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositRequestCancelResponse> signedResponse =
@@ -143,7 +143,7 @@ class DepositService with ProxyUtils, HttpClientUtils, DebugUtils {
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<DepositRequestStatusResponse> signedResponse =

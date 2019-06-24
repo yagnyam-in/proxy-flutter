@@ -10,23 +10,51 @@ part 'proxy_key_entity.g.dart';
 @JsonSerializable()
 class ProxyKeyEntity {
   @JsonKey(nullable: false)
-  final ProxyKey proxyKey;
+  final ProxyId id;
+
+  @JsonKey(nullable: true, includeIfNull: false)
+  final String name;
+
+  @JsonKey(nullable: false)
+  final String localAlias;
+
+  @JsonKey(nullable: false)
+  final String encryptionAlgorithm;
+
+  @JsonKey(nullable: false)
+  final String encryptedPrivateKeyEncoded;
+
+  @JsonKey(nullable: true)
+  final String privateKeySha256Thumbprint;
+
+  @JsonKey(nullable: false)
+  final String publicKeyEncoded;
+
+  @JsonKey(nullable: false)
+  final String publicKeySha256Thumbprint;
 
   @JsonKey(nullable: true)
   final String fcmToken;
 
   ProxyKeyEntity({
-    @required this.proxyKey,
+    @required this.id,
+    this.name,
+    @required this.localAlias,
+    @required this.encryptionAlgorithm,
+    @required this.encryptedPrivateKeyEncoded,
+    @required this.privateKeySha256Thumbprint,
+    @required this.publicKeyEncoded,
+    @required this.publicKeySha256Thumbprint,
     this.fcmToken,
   });
 
-  ProxyKeyEntity copy({
-    String fcmToken,
-  }) {
-    return ProxyKeyEntity(proxyKey: proxyKey, fcmToken: fcmToken);
+  String toString() {
+    return {
+      "id": id,
+      "name": name,
+      "localAlias": localAlias,
+    }.toString();
   }
-
-  ProxyId get proxyId => proxyKey?.id;
 
   Map<String, dynamic> toJson() => _$ProxyKeyEntityToJson(this);
 

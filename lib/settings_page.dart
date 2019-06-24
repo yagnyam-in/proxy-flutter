@@ -36,7 +36,8 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
   final UserStore _userStore;
   Stream<UserEntity> _userStream;
 
-  SettingsPageState(this.appConfiguration, this.changeHomePage) : _userStore = UserStore(appConfiguration);
+  SettingsPageState(this.appConfiguration, this.changeHomePage)
+      : _userStore = UserStore.forUser(appConfiguration.firebaseUser);
 
   @override
   void initState() {
@@ -223,7 +224,7 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
     );
     if (isNotEmpty(newName)) {
       UserEntity newUser = userEntity.copy(name: newName);
-      await UserStore(appConfiguration).saveUser(newUser);
+      await UserStore.forUser(appConfiguration.firebaseUser).saveUser(newUser);
       appConfiguration.appUser = newUser;
       setState(() {
         userEntity = newUser;

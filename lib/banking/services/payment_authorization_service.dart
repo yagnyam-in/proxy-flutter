@@ -40,7 +40,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     @required this.cryptographyService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _proxyKeyStore = ProxyKeyStore(appConfiguration),
+        _proxyKeyStore = ProxyKeyStore(appConfiguration.account),
         _paymentAuthorizationStore = PaymentAuthorizationStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
@@ -135,7 +135,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
       String jsonResponse = await post(
         httpClientFactory(),
         proxyBankingUrl,
-        signedRequestJson,
+        body: signedRequestJson,
       );
       print("Received $jsonResponse from $proxyBankingUrl");
       SignedMessage<PaymentAuthorizationRegistered> signedResponse =
@@ -167,7 +167,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<PaymentAuthorizationStatusResponse> signedResponse =

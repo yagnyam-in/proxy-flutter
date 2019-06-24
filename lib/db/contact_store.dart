@@ -11,7 +11,7 @@ class ContactStore with ProxyUtils, FirestoreUtils {
   final DocumentReference root;
 
   ContactStore(this.appConfiguration)
-      : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser);
+      : root = FirestoreUtils.accountRootRef(appConfiguration.accountId);
 
   CollectionReference accountsRef() {
     return root

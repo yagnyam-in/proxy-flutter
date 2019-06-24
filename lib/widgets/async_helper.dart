@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/widgets/basic_types.dart';
@@ -7,6 +8,7 @@ typedef DataToWidgetBuilder<T> = Widget Function(BuildContext context, T data);
 
 abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
   bool loading = false;
+
 
   Future<T> invoke<T>(
     FutureCallback<T> callback, {
@@ -21,9 +23,8 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
     }
     try {
       return await callback();
-    } catch (e) {
-      print("Error invoking ($name): $e");
-      return null;
+    } catch (e, t) {
+      print("Error invoking ($name): $e => $t");
     } finally {
       if (!silent) {
         print("LoadingSupportState($name) Clearing loading flag");
@@ -32,6 +33,7 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
         });
       }
     }
+    return null;
   }
 
   StreamBuilder streamBuilder<T>({

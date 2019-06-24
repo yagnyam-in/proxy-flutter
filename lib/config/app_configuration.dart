@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,13 +21,32 @@ class AppConfiguration {
   final SharedPreferences preferences;
   final FirebaseUser firebaseUser;
   UserEntity appUser;
+  AccountEntity account;
 
   AppConfiguration({
     @required this.preferences,
-    @required this.firebaseUser,
+    this.firebaseUser,
+    this.appUser,
+    this.account,
   }) {
     assert(preferences != null);
-    assert(firebaseUser != null);
+  }
+
+  AppConfiguration copy({
+    FirebaseUser firebaseUser,
+    UserEntity appUser,
+    AccountEntity account,
+  }) {
+    return AppConfiguration(
+      preferences: preferences,
+      firebaseUser: firebaseUser ?? this.firebaseUser,
+      appUser: appUser ?? this.appUser,
+      account: account ?? this.account,
+    );
+  }
+
+  String get accountId {
+    return appUser?.accountId;
   }
 
   bool get showWelcomePages {
@@ -39,7 +59,7 @@ class AppConfiguration {
   }
 
   ProxyId get masterProxyId {
-    return appUser?.masterProxyId;
+    return account?.masterProxyId;
   }
 
   String get proxyUniverse {
@@ -71,6 +91,9 @@ class AppConfiguration {
   }
 
   bool get isComplete {
-    return firebaseUser != null && appUser != null;
+    return firebaseUser != null && appUser != null && account != null;
   }
+
+  static String passPhrase;
+
 }

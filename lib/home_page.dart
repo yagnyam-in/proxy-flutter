@@ -2,17 +2,14 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/accept_payment_page.dart';
-import 'package:proxy_flutter/banking_home.dart';
+import 'package:proxy_flutter/banking/db/deposit_store.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
-import 'package:proxy_flutter/banking/db/deposit_store.dart';
+import 'package:proxy_flutter/banking_home.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/contact_store.dart';
-import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
-import 'package:proxy_flutter/register_user_page.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 
 import 'modify_proxy_page.dart';
@@ -30,19 +27,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingObserver {
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final AppConfiguration appConfiguration;
-  Future<UserEntity> _appUserFuture;
 
-  bool _showWelcomePages = true;
-
-  _HomePageState(this.appConfiguration) {
-    _showWelcomePages = appConfiguration.showWelcomePages;
-  }
+  _HomePageState(this.appConfiguration);
 
   @override
   void initState() {
     super.initState();
-    _appUserFuture = UserStore(appConfiguration).fetchUser();
     ServiceFactory.notificationService().start();
+    ServiceFactory.notificationService().refreshToken();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -134,34 +126,6 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
-    return futureBuilder(
-      future: _appUserFuture,
-      emptyWidget: RegisterUserPage(
-        appConfiguration,
-        registerUserCallback: signUpUser,
-      ),
-      builder: _bankingHome,
-    );
-  }
-
-  Widget _bankingHome(BuildContext context, UserEntity appUser) {
-    appConfiguration.appUser = appUser;
     return BankingHome(appConfiguration);
-  }
-
-  void onWelcomeOver() {
-    setState(() {
-      _showWelcomePages = false;
-      widget.appConfiguration.showWelcomePages = _showWelcomePages;
-    });
-  }
-
-  void signUpUser(UserEntity user) {
-    print("setupUser($user)");
-    setState(() {
-      widget.appConfiguration.appUser = user;
-      _appUserFuture = Future.value(user);
-    });
-    ServiceFactory.notificationService().refreshToken();
   }
 }

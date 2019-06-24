@@ -16,7 +16,9 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 
+import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -37,6 +39,15 @@ public class AndroidCryptographyService implements CryptographyService {
         MessageDigest digest = MessageDigest.getInstance(hashAlgorithm);
         byte[] hash = digest.digest(message.getBytes(StandardCharsets.UTF_8));
         return Base64.toBase64String(hash);
+    }
+
+    @Override
+    public String getHmac(String hmacAlgorithm, String key, String message) throws GeneralSecurityException {
+        Mac mac = Mac.getInstance(hmacAlgorithm);
+        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), hmacAlgorithm);
+        mac.init(secretKey);
+        byte[] hmac = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
+        return Base64.toBase64String(hmac);
     }
 
     @Override

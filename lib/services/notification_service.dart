@@ -54,7 +54,7 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
   void tokenRefresh(String newToken) async {
     print("New FCM Token $newToken");
     if (newToken != null && AppConfiguration.instance() != null && AppConfiguration.instance().isComplete) {
-      ProxyKeyStore proxyKeyStore = ProxyKeyStore(AppConfiguration.instance());
+      ProxyKeyStore proxyKeyStore = ProxyKeyStore(AppConfiguration.instance().account);
       List<ProxyKey> outdatedProxies = await proxyKeyStore.fetchProxiesWithoutFcmToken(newToken);
       print('Got ${outdatedProxies.length} proxies to update');
       outdatedProxies.forEach((key) => _updateToken(proxyKeyStore, key, newToken));
@@ -75,7 +75,7 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     String jsonResponse = await post(
       httpClientFactory(),
       appBackendUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     print("Received $jsonResponse from $appBackendUrl");
     proxyKeyStore.updateFcmToken(proxyKey, newToken);

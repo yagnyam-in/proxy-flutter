@@ -10,7 +10,7 @@ class DismissedEnticementStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;
   final DocumentReference root;
 
-  DismissedEnticementStore(this.appConfiguration) : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser);
+  DismissedEnticementStore(this.appConfiguration) : root = FirestoreUtils.accountRootRef(appConfiguration.accountId);
 
   CollectionReference enticementsRef() {
     return root

@@ -32,7 +32,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.messageSigningService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _proxyKeyStore = ProxyKeyStore(appConfiguration),
+        _proxyKeyStore = ProxyKeyStore(appConfiguration.account),
         _withdrawalStore = WithdrawalStore(appConfiguration) {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
@@ -72,7 +72,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
       String jsonResponse = await post(
         httpClientFactory(),
         proxyBankingUrl,
-        signedRequestJson,
+        body: signedRequestJson,
       );
       print("Received $jsonResponse from $proxyBankingUrl");
       SignedMessage<WithdrawalResponse> signedResponse =
@@ -117,7 +117,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<WithdrawalStatusResponse> signedResponse =
@@ -137,7 +137,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, DebugUtils {
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<WithdrawalStatusResponse> signedResponse =

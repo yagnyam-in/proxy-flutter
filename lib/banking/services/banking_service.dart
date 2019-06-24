@@ -30,7 +30,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.messageSigningService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _proxyKeyStore = ProxyKeyStore(appConfiguration),
+        _proxyKeyStore = ProxyKeyStore(appConfiguration.account),
         _proxyAccountStore = ProxyAccountStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
@@ -61,7 +61,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<ProxyWalletCreationResponse> signedResponse =
@@ -107,7 +107,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     String jsonResponse = await post(
       httpClientFactory(),
       proxyBankingUrl,
-      signedRequestJson,
+      body: signedRequestJson,
     );
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<AccountBalanceResponse> signedResponse =

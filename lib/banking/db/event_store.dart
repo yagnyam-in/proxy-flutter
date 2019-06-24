@@ -15,7 +15,7 @@ class EventStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;
   final DocumentReference root;
 
-  EventStore(this.appConfiguration) : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser);
+  EventStore(this.appConfiguration) : root = FirestoreUtils.accountRootRef(appConfiguration.accountId);
 
   CollectionReference eventsRef({
     @required String proxyUniverse,

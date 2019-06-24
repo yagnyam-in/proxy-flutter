@@ -92,26 +92,26 @@ class ProxyLocalizations {
     );
   }
 
-  String get revocationPassPhrase {
+  String get passPhrase {
     return Intl.message(
       'Pass Phrase',
-      name: 'revocationPassPhrase',
+      name: 'passPhrase',
       desc: 'Pass Phrase to use for revoking the Proxy Id',
     );
   }
 
-  String get revocationPassPhraseHint {
+  String get passPhraseHint {
     return Intl.message(
       'Alpha Numerics, spaces and Special Symbols',
-      name: 'revocationPassPhraseHint',
+      name: 'passPhraseHint',
       desc: 'Pass Phrase hint like characters allowed',
     );
   }
 
-  String get invalidRevocationPassPhrase {
+  String get invalidPassPhrase {
     return Intl.message(
       'Should be of length 8-64',
-      name: 'invalidRevocationPassPhrase',
+      name: 'invalidPassPhrase',
       desc: 'Revocation Pass Phrase entered by user is invalid',
     );
   }
@@ -999,7 +999,17 @@ class ProxyLocalizations {
 
   String get registerUserTitle => Intl.message('Register');
 
-  String get registerUserDescription => Intl.message('Register');
+  String get newPassPhraseDescription => Intl.message('Setup strong pass phrase to encrypt all your sensitive data. Note that, it is not possible to recover this pass phrase.');
+
+  String get recoverPassPhraseDescription => Intl.message('You already have a account. Enter your pass phrase to proceed.');
+
+  String get wrongPassPhraseDescription => Intl.message('Wrong Pass Phrase');
+
+  String get createNewAccountButtonLabel => Intl.message('Create another account');
+
+  String get newAccountTitle => Intl.message('Create Account');
+
+  String get recoverAccountTitle => Intl.message('Recover Account');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

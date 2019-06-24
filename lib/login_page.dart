@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/constants.dart';
+import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -12,28 +15,35 @@ import 'package:proxy_flutter/widgets/link_text_span.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-typedef LoginCallback = void Function(FirebaseUser firebaseUser);
+typedef LoginCallback = void Function(AppConfiguration appConfiguration);
 
 class LoginPage extends StatefulWidget {
+  final AppConfiguration appConfiguration;
   final LoginCallback loginCallback;
-  final SharedPreferences sharedPreferences;
 
   LoginPage({
     Key key,
     @required this.loginCallback,
-    @required this.sharedPreferences,
+    @required this.appConfiguration,
   }) : super(key: key) {
     print("Constructing LoginPage");
   }
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _LoginPageState createState() =>
+      _LoginPageState(appConfiguration, loginCallback);
 }
 
-class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
+class _LoginPageState extends LoadingSupportState<LoginPage>
+    with WidgetsBindingObserver {
+  final AppConfiguration appConfiguration;
+  final LoginCallback loginCallback;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   String loginFailedMessage;
   String status;
+  bool _loading = false;
+
+  _LoginPageState(this.appConfiguration, this.loginCallback);
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -64,11 +74,13 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   Future<void> _handleDynamicLinks() async {
-    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
+    final PendingDynamicLinkData data =
+        await FirebaseDynamicLinks.instance.retrieveDynamicLink();
     Uri link = data?.link;
     if (link == null) return;
     print('link = $link');
-    bool isLoginLink = await FirebaseAuth.instance.isSignInWithEmailLink(link.toString());
+    bool isLoginLink =
+        await FirebaseAuth.instance.isSignInWithEmailLink(link.toString());
     if (isLoginLink) {
       _login(link);
     }
@@ -83,11 +95,14 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       appBar: AppBar(
         title: Text(localizations.loginPageTitle),
       ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-        child: _SignUpForm(
-          sharedPreferences: widget.sharedPreferences,
-          status: status,
+      body: BusyChildWidget(
+        loading: _loading,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+          child: _SignUpForm(
+            sharedPreferences: appConfiguration.preferences,
+            status: status,
+          ),
         ),
       ),
     );
@@ -95,14 +110,24 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
   void _login(Uri loginLink) async {
     try {
-      var preferences = await SharedPreferences.getInstance();
-      FirebaseUser user = await FirebaseAuth.instance.signInWithEmailAndLink(
-        email: preferences.getString('email'),
-        link: loginLink.toString(),
-      );
-      if (user != null) {
-        widget.loginCallback(user);
-      }
+      invoke(() async {
+        FirebaseUser firebaseUser =
+            await FirebaseAuth.instance.signInWithEmailAndLink(
+          email: appConfiguration.preferences.getString('email'),
+          link: loginLink.toString(),
+        );
+        if (firebaseUser != null) {
+          UserStore userStore = UserStore.forUser(firebaseUser);
+          UserEntity appUser = await userStore.fetchUser();
+          if (appUser == null) {
+            appUser = await userStore.saveUser(UserEntity.from(firebaseUser));
+          }
+          loginCallback(appConfiguration.copy(
+            firebaseUser: firebaseUser,
+            appUser: appUser,
+          ));
+        }
+      });
     } catch (e) {
       setState(() {
         status = loginFailedMessage ?? 'Login Failed';
@@ -136,9 +161,9 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
   final SharedPreferences sharedPreferences;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController;
+  bool _loading = false;
   bool _agreedToTOS = true;
   String status;
-  bool _loading = false;
 
   _SignUpFormState({
     @required this.sharedPreferences,
@@ -164,10 +189,12 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(labelText: localizations.emailInputLabel),
+              decoration:
+                  InputDecoration(labelText: localizations.emailInputLabel),
               validator: (String value) {
                 if (value == null || value.isEmpty) {
-                  return localizations.fieldIsMandatory(localizations.thisField);
+                  return localizations
+                      .fieldIsMandatory(localizations.thisField);
                 }
                 return null;
               },
@@ -218,7 +245,8 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     final ThemeData themeData = Theme.of(context);
     final TextStyle aboutTextStyle = themeData.textTheme.body1;
-    final TextStyle linkStyle = themeData.textTheme.body1.copyWith(color: themeData.accentColor);
+    final TextStyle linkStyle =
+        themeData.textTheme.body1.copyWith(color: themeData.accentColor);
 
     return RichText(
       text: TextSpan(
@@ -253,22 +281,30 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
       print('T&C not agreed');
       return;
     }
-    var preferences = await SharedPreferences.getInstance();
-    preferences.setString(EMAIL_PREFERENCE_NAME, _emailController.text);
 
-    await FirebaseAuth.instance.sendSignInWithEmailLink(
-      email: _emailController.text,
-      url: '${UrlConfig.APP_BACKEND}/actions/auth',
-      handleCodeInApp: true,
-      iOSBundleID: 'in.yagnyam.proxy',
-      androidPackageName: Constants.ANDROID_PACKAGE_NAME,
-      androidInstallIfNotAvailable: true,
-      androidMinimumVersion: "12",
-    );
+    try {
+      invoke(() async {
+        var preferences = await SharedPreferences.getInstance();
+        preferences.setString(EMAIL_PREFERENCE_NAME, _emailController.text);
 
-    setState(() {
-      status = ProxyLocalizations.of(context).checkYourMailForLoginLink;
+        await FirebaseAuth.instance.sendSignInWithEmailLink(
+          email: _emailController.text,
+          url: '${UrlConfig.APP_BACKEND}/actions/auth',
+          handleCodeInApp: true,
+          iOSBundleID: 'in.yagnyam.proxy',
+          androidPackageName: Constants.ANDROID_PACKAGE_NAME,
+          androidInstallIfNotAvailable: true,
+          androidMinimumVersion: "12",
+        );
+      });
+
+      setState(() {
+        status = ProxyLocalizations.of(context).checkYourMailForLoginLink;
+        print('Setting status to $status');
+      });
+    } catch (e) {
+      status = ProxyLocalizations.of(context).somethingWentWrong;
       print('Setting status to $status');
-    });
+    }
   }
 }

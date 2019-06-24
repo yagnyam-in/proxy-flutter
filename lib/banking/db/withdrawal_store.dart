@@ -16,7 +16,7 @@ class WithdrawalStore with ProxyUtils, FirestoreUtils {
   final EventStore _eventStore;
 
   WithdrawalStore(this.appConfiguration)
-      : root = FirestoreUtils.rootRef(appConfiguration.firebaseUser),
+      : root = FirestoreUtils.accountRootRef(appConfiguration.accountId),
         _eventStore = EventStore(appConfiguration);
 
   DocumentReference ref({

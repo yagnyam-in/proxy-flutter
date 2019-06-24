@@ -37,7 +37,7 @@ class BankingServiceFactory {
       appConfiguration,
       messageFactory: ServiceFactory.messageFactory(appConfiguration),
       messageSigningService: ServiceFactory.messageSigningService(),
-      cryptographyService: ServiceFactory.cryptographyService(),
+      cryptographyService: ServiceFactory.cryptographyService,
     );
   }
 
