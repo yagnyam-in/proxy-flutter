@@ -35,6 +35,8 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController passPhraseController = TextEditingController(text: AppConfiguration.passPhrase);
 
+  FocusNode actionButtonFocusNode;
+
   bool _showNewAccountOption = false;
   bool loading = false;
   int retryCount = 0;
@@ -59,10 +61,24 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     ));
   }
 
+  void showInfo(String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 3),
+    ));
+  }
+
   @override
   void initState() {
     super.initState();
     ServiceFactory.bootService().start();
+    actionButtonFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    actionButtonFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -92,11 +108,14 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
                 ),
                 const SizedBox(height: 8.0),
                 TextFormField(
+                  autofocus: true,
                   controller: passPhraseController,
                   decoration: InputDecoration(
                     labelText: localizations.passPhrase,
                     helperText: localizations.passPhraseHint,
                   ),
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(actionButtonFocusNode),
                   validator: (value) => _passphraseIdValidator(localizations, value),
                 ),
                 const SizedBox(height: 8.0),
@@ -105,6 +124,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
                   children: <Widget>[
                     // const Spacer(),
                     RaisedButton(
+                      focusNode: actionButtonFocusNode,
                       onPressed: () => _submit(context),
                       child: Text(localizations.setupProxyButtonLabel),
                     ),
@@ -142,7 +162,8 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     if (_formKey.currentState.validate()) {
       try {
         AppConfiguration.passPhrase = passPhraseController.text;
-        invoke(() async => _createAccount(context));
+        invoke(() async => _createAccount(context),
+            name: 'Create Another Account', onError: () => _somethingWentWrong(context));
       } catch (e) {
         print("Error Creating new Account: $e");
         showError(ProxyLocalizations.of(context).somethingWentWrong);
@@ -153,21 +174,26 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
   }
 
   void _submit(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
     if (_formKey.currentState.validate()) {
-      try {
-        AppConfiguration.passPhrase = passPhraseController.text;
-        if (appConfiguration.account != null) {
-          invoke(() async => _recoverAccount(context));
-        } else {
-          invoke(() async => _createAccount(context));
-        }
-      } catch (e) {
-        print("Error Creating/Recovering Account: $e");
-        showError(ProxyLocalizations.of(context).somethingWentWrong);
+      FocusScope.of(context).requestFocus(actionButtonFocusNode);
+      showError(localizations.heavyOperation);
+      AppConfiguration.passPhrase = passPhraseController.text;
+      if (appConfiguration.account != null) {
+        invoke(() async => _recoverAccount(context),
+            name: 'Recover Account', onError: () => _somethingWentWrong(context));
+      } else {
+        invoke(() async => _createAccount(context),
+            name: 'Create Account', onError: () => _somethingWentWrong(context));
       }
     } else {
       print("Validation failure");
     }
+  }
+
+  void _somethingWentWrong(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    showError(localizations.somethingWentWrong);
   }
 
   void _recoverAccount(BuildContext context) async {

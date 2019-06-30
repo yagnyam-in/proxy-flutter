@@ -30,12 +30,10 @@ class LoginPage extends StatefulWidget {
   }
 
   @override
-  _LoginPageState createState() =>
-      _LoginPageState(appConfiguration, loginCallback);
+  _LoginPageState createState() => _LoginPageState(appConfiguration, loginCallback);
 }
 
-class _LoginPageState extends LoadingSupportState<LoginPage>
-    with WidgetsBindingObserver {
+class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBindingObserver {
   final AppConfiguration appConfiguration;
   final LoginCallback loginCallback;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -74,13 +72,11 @@ class _LoginPageState extends LoadingSupportState<LoginPage>
   }
 
   Future<void> _handleDynamicLinks() async {
-    final PendingDynamicLinkData data =
-        await FirebaseDynamicLinks.instance.retrieveDynamicLink();
+    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
     Uri link = data?.link;
     if (link == null) return;
     print('link = $link');
-    bool isLoginLink =
-        await FirebaseAuth.instance.isSignInWithEmailLink(link.toString());
+    bool isLoginLink = await FirebaseAuth.instance.isSignInWithEmailLink(link.toString());
     if (isLoginLink) {
       _login(link);
     }
@@ -111,8 +107,7 @@ class _LoginPageState extends LoadingSupportState<LoginPage>
   void _login(Uri loginLink) async {
     try {
       invoke(() async {
-        FirebaseUser firebaseUser =
-            await FirebaseAuth.instance.signInWithEmailAndLink(
+        FirebaseUser firebaseUser = await FirebaseAuth.instance.signInWithEmailAndLink(
           email: appConfiguration.preferences.getString('email'),
           link: loginLink.toString(),
         );
@@ -127,7 +122,7 @@ class _LoginPageState extends LoadingSupportState<LoginPage>
             appUser: appUser,
           ));
         }
-      });
+      }, name: 'Login With Link', onError: () => somethingWentWrong(context));
     } catch (e) {
       setState(() {
         status = loginFailedMessage ?? 'Login Failed';
@@ -162,8 +157,11 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController;
   bool _loading = false;
-  bool _agreedToTOS = true;
+  bool _agreedToTOS = false;
   String status;
+
+  FocusNode _tcFocusNode;
+  FocusNode _loginFocusNode;
 
   _SignUpFormState({
     @required this.sharedPreferences,
@@ -171,6 +169,13 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
   }) : _emailController = TextEditingController(
           text: sharedPreferences.getString(EMAIL_PREFERENCE_NAME),
         );
+
+  @override
+  void initState() {
+    super.initState();
+    _tcFocusNode = FocusNode();
+    _loginFocusNode = FocusNode();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,16 +193,17 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
             const SizedBox(height: 16.0),
             TextFormField(
               controller: _emailController,
+              autofocus: true,
               keyboardType: TextInputType.emailAddress,
-              decoration:
-                  InputDecoration(labelText: localizations.emailInputLabel),
+              decoration: InputDecoration(labelText: localizations.emailInputLabel),
               validator: (String value) {
                 if (value == null || value.isEmpty) {
-                  return localizations
-                      .fieldIsMandatory(localizations.thisField);
+                  return localizations.fieldIsMandatory(localizations.thisField);
                 }
                 return null;
               },
+              onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(_tcFocusNode),
+              textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 32.0),
             termsAndConditions(context),
@@ -220,12 +226,13 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               alignment: Alignment.center,
               child: RaisedButton(
+                focusNode: _loginFocusNode,
                 onPressed: () async {
                   if (_formKey.currentState.validate()) {
-                    invoke(() => _register(context), name: "Register");
+                    _register(context);
                   }
                 },
-                child: Text(localizations.loginButtonLabel),
+                child: Text(localizations.verifyButtonLabel),
               ),
             ),
             Container(
@@ -245,8 +252,7 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     final ThemeData themeData = Theme.of(context);
     final TextStyle aboutTextStyle = themeData.textTheme.body1;
-    final TextStyle linkStyle =
-        themeData.textTheme.body1.copyWith(color: themeData.accentColor);
+    final TextStyle linkStyle = themeData.textTheme.body1.copyWith(color: themeData.accentColor);
 
     return RichText(
       text: TextSpan(
@@ -273,11 +279,19 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
   @override
   void dispose() {
     _emailController.dispose();
+    _tcFocusNode.dispose();
+    _loginFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _register(BuildContext context) async {
+    FocusScope.of(context).requestFocus(_loginFocusNode);
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
     if (!_agreedToTOS) {
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text(localizations.youMustAgreeTermsAndConditions),
+        duration: Duration(seconds: 3),
+      ));
       print('T&C not agreed');
       return;
     }
@@ -296,7 +310,7 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
           androidInstallIfNotAvailable: true,
           androidMinimumVersion: "12",
         );
-      });
+      }, name: 'Send Login Link', onError: () => somethingWentWrong(context));
 
       setState(() {
         status = ProxyLocalizations.of(context).checkYourMailForLoginLink;

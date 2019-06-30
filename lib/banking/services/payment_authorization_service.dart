@@ -281,7 +281,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
       return Future.value(null);
     }
     return cryptographyService.getHash(
-      hashAlgorithm: "SHA-256",
+      hashAlgorithm: "SHA256",
       input: "$proxyUniverse#$paymentAuthorizationId#$paymentEncashmentId#${input.toUpperCase()}",
     );
   }

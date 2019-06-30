@@ -382,7 +382,7 @@ class ProxyLocalizations {
 
   String get manageReceivingAccountsPageTitle {
     return Intl.message(
-      'Receiving Accounts',
+      'Accounts',
       name: 'manageReceivingAccountsPageTitle',
       desc: 'Receiving Accounts Page Hint',
     );
@@ -971,7 +971,7 @@ class ProxyLocalizations {
 
   String get addReceivingAccountTitle => Intl.message('Add Bank Account');
 
-  String get addReceivingAccountDescription => Intl.message('By adding your Bank Account, you get your money to your Bank Account');
+  String get addReceivingAccountDescription => Intl.message('By adding your Bank Account, you can withdraw money to your Bank Account');
 
   String get addTestReceivingAccountsTitle => Intl.message('Add Test Bank Accounts');
 
@@ -1010,6 +1010,12 @@ class ProxyLocalizations {
   String get newAccountTitle => Intl.message('Create Account');
 
   String get recoverAccountTitle => Intl.message('Recover Account');
+
+  String get heavyOperation => Intl.message('Please be patient, heavy operation...');
+
+  String get youMustAgreeTermsAndConditions => Intl.message('You need to agree Terms & Conditions');
+
+  String get verifyButtonLabel => Intl.message('Verify');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

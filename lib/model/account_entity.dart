@@ -30,6 +30,8 @@ class AccountEntity {
     String name,
   }) {
     return AccountEntity(
+      accountId: this.accountId,
+      accountIdHmac: this.accountIdHmac,
       masterProxyId: masterProxyId ?? this.masterProxyId,
       name: name ?? this.name,
     );

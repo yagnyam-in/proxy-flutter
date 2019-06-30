@@ -9,11 +9,22 @@ typedef DataToWidgetBuilder<T> = Widget Function(BuildContext context, T data);
 abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
   bool loading = false;
 
+  void somethingWentWrong(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    ScaffoldState scaffoldState = Scaffold.of(context);
+    if (scaffoldState != null) {
+      scaffoldState.showSnackBar(SnackBar(
+        content: Text(localizations.somethingWentWrong),
+        duration: Duration(seconds: 3),
+      ));
+    }
+  }
 
   Future<T> invoke<T>(
     FutureCallback<T> callback, {
     String name,
     bool silent = false,
+    VoidCallback onError,
   }) async {
     if (!silent) {
       print("LoadingSupportState($name) Setting loading flag for");
@@ -25,6 +36,9 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
       return await callback();
     } catch (e, t) {
       print("Error invoking ($name): $e => $t");
+      if (onError != null) {
+        onError();
+      }
     } finally {
       if (!silent) {
         print("LoadingSupportState($name) Clearing loading flag");

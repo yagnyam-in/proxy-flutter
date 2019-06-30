@@ -114,8 +114,19 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     return true;
   }
 
+  Future<bool> _hasValidMasterProxyId(AccountEntity account) async {
+    if (account.masterProxyId == null) {
+      return false;
+    }
+    return await ProxyKeyStore(account).hasProxyKey(account.masterProxyId);
+  }
+
   Future<AccountEntity> setupMasterProxy(AccountEntity account) async {
-    print("_setupMasterProxy");
+    print("_setupMasterProxy for $account");
+    if (await _hasValidMasterProxyId(account)) {
+      print('Already has Proxy setup. Re-using');
+      return account;
+    }
     String proxyId = ProxyIdFactory.instance().proxyId();
     ProxyKey proxyKey = await _createProxyKey(proxyId);
     ProxyRequest proxyRequest = await _createProxyRequest(
