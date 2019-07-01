@@ -38,7 +38,7 @@ class EnticementCard extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 0.0),
       title: Text(
-        enticement.getTitle(localizations),
+        '💡 ' +enticement.getTitle(localizations),
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Padding(

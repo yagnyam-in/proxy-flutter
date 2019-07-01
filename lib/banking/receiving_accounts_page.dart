@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
-import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
 import 'package:proxy_flutter/banking/widgets/receiving_account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/home_page_navigation.dart';
@@ -109,14 +109,15 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
       appBar: AppBar(
         title: Text(_getTitle(localizations)),
       ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-        child: StreamBuilder<List<ReceivingAccountEntity>>(
-            stream: _receivingAccountsStream,
-            initialData: [],
-            builder: (BuildContext context, AsyncSnapshot<List<ReceivingAccountEntity>> snapshot) {
-              return accountsWidget(context, snapshot);
-            }),
+      body: streamBuilder(
+        name: "Accounts Loading",
+        stream: _receivingAccountsStream,
+        loadingWidget: SizedBox.shrink(),
+        builder: (context, accounts) => _accountsWidget(context, accounts),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => createReceivingAccount(context),
+        child: Icon(Icons.add),
       ),
       bottomNavigationBar: _bottomNavigationBar(context),
     );
@@ -134,47 +135,17 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
     );
   }
 
-  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ReceivingAccountEntity>> accounts) {
-    List<Widget> rows = [
-      actionBar(context),
-    ];
-    if (!accounts.hasData) {
-      rows.add(
-        Center(
-          child: Text("Loading"),
-        ),
-      );
-    } else if (accounts.data.isEmpty) {
-      rows.add(
-        Center(
-          child: Text("No Accounts"),
-        ),
-      );
-    } else {
-      print("adding ${accounts.data.length} accounts");
-      accounts.data.where(_showAccount).forEach((account) {
-        rows.addAll([
-          const SizedBox(height: 8.0),
-          accountCard(context, account),
-        ]);
-      });
-    }
+  Widget _accountsWidget(BuildContext context, List<ReceivingAccountEntity> accounts) {
+    print("adding ${accounts.length} accounts");
     return ListView(
-      children: rows,
-    );
-  }
-
-  Widget actionBar(BuildContext context) {
-    ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    return ButtonBar(
-      alignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        RaisedButton.icon(
-          onPressed: () => createReceivingAccount(context),
-          icon: Icon(Icons.add),
-          label: Text(localizations.newReceivingAccountsButtonHint),
-        ),
-      ],
+      shrinkWrap: true,
+      physics: ClampingScrollPhysics(),
+      children: accounts.expand((account) {
+        return [
+          const SizedBox(height: 4.0),
+          accountCard(context, account),
+        ];
+      }).toList(),
     );
   }
 
@@ -185,7 +156,6 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
               appConfiguration,
               receivingAccount: ReceivingAccountEntity(
                 proxyUniverse: appConfiguration.proxyUniverse,
-                accountId: uuidFactory.v4(),
                 currency: widget.currency,
               ),
             ),

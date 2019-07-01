@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
@@ -24,12 +24,14 @@ class AppConfiguration {
   final FirebaseUser firebaseUser;
   UserEntity appUser;
   AccountEntity account;
+  String passPhrase;
 
   AppConfiguration({
     @required this.preferences,
     this.firebaseUser,
     this.appUser,
     this.account,
+    this.passPhrase,
   }) {
     assert(preferences != null);
   }
@@ -38,12 +40,14 @@ class AppConfiguration {
     FirebaseUser firebaseUser,
     UserEntity appUser,
     AccountEntity account,
+    String passPhrase,
   }) {
     return AppConfiguration(
       preferences: preferences,
       firebaseUser: firebaseUser ?? this.firebaseUser,
       appUser: appUser ?? this.appUser,
       account: account ?? this.account,
+      passPhrase: passPhrase ?? this.passPhrase,
     );
   }
 
@@ -93,25 +97,18 @@ class AppConfiguration {
   }
 
   bool get isComplete {
-    return firebaseUser != null && appUser != null && account != null;
+    return firebaseUser != null && appUser != null && account != null && passPhrase != null;
   }
 
-  static String _passPhrase;
-
-  static Future<String> get passPhrase async {
-    if (_passPhrase == null) {
-      _passPhrase = await FlutterSecureStorage().read(key: PASSPHRASE_KEY);
-    }
-    return _passPhrase;
+  static Future<String> fetchPassPhrase() {
+    return FlutterSecureStorage().read(key: PASSPHRASE_KEY);
   }
 
-  static set passPhrase(String value) {
-    _passPhrase = value;
-    if (_passPhrase != null) {
-      FlutterSecureStorage().write(key: PASSPHRASE_KEY, value: value);
+  static Future<void> storePassPhrase(String value) {
+    if (value != null) {
+      return FlutterSecureStorage().write(key: PASSPHRASE_KEY, value: value);
     } else {
-      FlutterSecureStorage().delete(key: PASSPHRASE_KEY);
+      return FlutterSecureStorage().delete(key: PASSPHRASE_KEY);
     }
   }
-
 }

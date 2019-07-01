@@ -161,8 +161,6 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     print("Create Another Account");
     if (_formKey.currentState.validate()) {
       try {
-        AppConfiguration.passPhrase = passPhraseController.text;
-
         invoke(() async => _createAccount(context),
             name: 'Create Another Account', onError: () => _somethingWentWrong(context));
       } catch (e) {
@@ -174,12 +172,13 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     }
   }
 
+  String get passPhrase => passPhraseController.text;
+
   void _submit(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     if (_formKey.currentState.validate()) {
       FocusScope.of(context).requestFocus(actionButtonFocusNode);
       showError(localizations.heavyOperation);
-      AppConfiguration.passPhrase = passPhraseController.text;
 
       if (appConfiguration.account != null) {
         invoke(() async => _recoverAccount(context),
@@ -202,7 +201,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     print("Recover Account");
     bool valid = await accountService.validateEncryptionKey(
       account: appConfiguration.account,
-      encryptionKey: await AppConfiguration.passPhrase,
+      encryptionKey: passPhrase,
     );
     if (!valid) {
       retryCount++;
@@ -215,9 +214,12 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
         });
       }
     } else {
-      AccountEntity account = await accountService.setupMasterProxy(appConfiguration.account);
+      await AppConfiguration.storePassPhrase(passPhrase);
+
+      AccountEntity account = await accountService.setupMasterProxy(appConfiguration.account, passPhrase);
       appConfiguration = appConfiguration.copy(
         account: account,
+        passPhrase: passPhrase,
       );
       manageAccountCallback(appConfiguration);
     }
@@ -225,14 +227,17 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
 
   void _createAccount(BuildContext context) async {
     print("Create Account");
-    AccountEntity account = await accountService.createAccount(encryptionKey: await AppConfiguration.passPhrase);
+    await AppConfiguration.storePassPhrase(passPhrase);
+
+    AccountEntity account = await accountService.createAccount(encryptionKey: passPhrase);
     UserEntity appUser = await UserStore.forUser(appConfiguration.firebaseUser).saveUser(
       appConfiguration.appUser.copy(accountId: account.accountId),
     );
-    account = await accountService.setupMasterProxy(account);
+    account = await accountService.setupMasterProxy(account, passPhrase);
     appConfiguration = appConfiguration.copy(
       account: account,
       appUser: appUser,
+      passPhrase: passPhrase,
     );
     manageAccountCallback(appConfiguration);
   }

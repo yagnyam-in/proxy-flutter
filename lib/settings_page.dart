@@ -55,13 +55,10 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
       ),
       body: BusyChildWidget(
         loading: loading,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: streamBuilder(
+        child: streamBuilder(
             name: "Profile Loading",
             stream: _userStream,
             builder: (context, user) => _SettingsWidget(appConfiguration, user),
-          ),
         ),
       ),
       bottomNavigationBar: navigationBar(
@@ -117,23 +114,23 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       const Divider(),
       _profileWidget(context),
       const Divider(),
-      _proxyUniverseWidget(context),
+      _emailWidget(context),
       const Divider(),
       _phoneNumberWidget(context),
       const Divider(),
-      _emailWidget(context),
+      _PassPhraseWidget(appConfiguration: appConfiguration),
       const Divider(),
+      _proxyUniverseWidget(context),
     ]);
   }
 
   Widget _profileWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 0.0),
       title: GestureDetector(
         onTap: () => _changeName(context),
         child: Text(
-          displayName?.toUpperCase() ?? localizations.changeNameTitle,
+          displayName?.toUpperCase() ?? '🖊️️ ' + localizations.changeNameTitle,
         ),
       ),
       subtitle: GestureDetector(
@@ -154,7 +151,6 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
   Widget _proxyUniverseWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
       title: Text(
         appConfiguration.proxyUniverse.toUpperCase(),
         overflow: TextOverflow.ellipsis,
@@ -177,7 +173,6 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
   Widget _phoneNumberWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
       title: Text(
         phoneNumber ?? localizations.authorizePhoneNumber,
         overflow: TextOverflow.ellipsis,
@@ -197,7 +192,6 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
   Widget _emailWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
       title: Text(
         email ?? localizations.authorizeEmail,
         overflow: TextOverflow.ellipsis,
@@ -213,6 +207,7 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       ),
     );
   }
+
 
   void _changeName(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
@@ -257,4 +252,47 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       }
     });
   }
+}
+
+class _PassPhraseWidget extends StatefulWidget {
+  final AppConfiguration appConfiguration;
+
+  const _PassPhraseWidget({Key key, this.appConfiguration}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _PassPhraseWidgetState(appConfiguration);
+  }
+
+}
+
+class _PassPhraseWidgetState extends State<_PassPhraseWidget> {
+  final AppConfiguration appConfiguration;
+  bool _showPassPhrase = false;
+
+  _PassPhraseWidgetState(this.appConfiguration);
+
+  @override
+  Widget build(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+
+    return ListTile(
+      title: Text(
+        _showPassPhrase ? appConfiguration.passPhrase : '*' * appConfiguration.passPhrase.length,
+      ),
+      subtitle: Padding(
+        padding: EdgeInsets.only(top: 8.0),
+        child: Text(
+          localizations.passPhrase,
+        ),
+      ),
+      trailing: GestureDetector(
+        onTap: () => setState(() => _showPassPhrase = !_showPassPhrase),
+        child: Icon(
+          _showPassPhrase ? Icons.visibility_off : Icons.visibility,
+        ),
+      ),
+    );
+  }
+
 }

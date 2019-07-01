@@ -225,7 +225,7 @@ class _AcceptPaymentPageBodyState extends State<_AcceptPaymentPageBody> {
   Future<bool> _canPaymentBeAccepted() async {
     for (var payee in paymentAuthorization.message.payees) {
       if (payee.payeeType == PayeeTypeEnum.ProxyId) {
-        return ProxyKeyStore(appConfiguration.account).hasProxyKey(payee.proxyId);
+        return ProxyKeyStore(appConfiguration).hasProxyKey(payee.proxyId);
       }
     }
     return true;

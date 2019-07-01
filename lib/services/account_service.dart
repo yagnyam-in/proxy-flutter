@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/account_store.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/db/proxy_store.dart';
@@ -114,16 +113,16 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     return true;
   }
 
-  Future<bool> _hasValidMasterProxyId(AccountEntity account) async {
+  Future<bool> _hasValidMasterProxyId(AccountEntity account, String passPhrase) async {
     if (account.masterProxyId == null) {
       return false;
     }
-    return await ProxyKeyStore(account).hasProxyKey(account.masterProxyId);
+    return await ProxyKeyStore.forAccount(account, passPhrase).hasProxyKey(account.masterProxyId);
   }
 
-  Future<AccountEntity> setupMasterProxy(AccountEntity account) async {
+  Future<AccountEntity> setupMasterProxy(AccountEntity account, String passPhrase) async {
     print("_setupMasterProxy for $account");
-    if (await _hasValidMasterProxyId(account)) {
+    if (await _hasValidMasterProxyId(account, passPhrase)) {
       print('Already has Proxy setup. Re-using');
       return account;
     }
@@ -131,11 +130,11 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     ProxyKey proxyKey = await _createProxyKey(proxyId);
     ProxyRequest proxyRequest = await _createProxyRequest(
       proxyKey,
-      await AppConfiguration.passPhrase,
+      passPhrase,
     );
     Proxy proxy = await _createProxy(proxyRequest);
     proxyKey = proxyKey.copyWith(id: proxy.id);
-    await ProxyKeyStore(account).insertProxyKey(proxyKey);
+    await ProxyKeyStore.forAccount(account, passPhrase).insertProxyKey(proxyKey);
     await ProxyStore(account).insertProxy(proxy);
     account = await AccountStore().saveAccount(account.copy(masterProxyId: proxy.id));
     return account;

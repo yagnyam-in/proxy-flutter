@@ -45,7 +45,7 @@ class ReceivingAccountEntity {
   ReceivingAccountEntity({
     @required this.proxyUniverse,
     @required this.currency,
-    @required this.accountId,
+    this.accountId,
     this.accountName,
     this.accountNumber,
     this.accountHolder,

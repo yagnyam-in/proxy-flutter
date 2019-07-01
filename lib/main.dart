@@ -39,6 +39,7 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
     FirebaseUser firebaseUser = await FirebaseAuth.instance.currentUser();
     UserEntity appUser;
     AccountEntity account;
+    String passPhrase = await AppConfiguration.fetchPassPhrase();
     if (firebaseUser != null) {
       appUser = await UserStore.forUser(firebaseUser).fetchUser();
       print("Got App User => $appUser");
@@ -53,18 +54,18 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
         appUser: appUser,
       ).validateEncryptionKey(
         account: account,
-        encryptionKey: await AppConfiguration.passPhrase,
+        encryptionKey: passPhrase,
       );
       if (!isPassPhraseValid) {
-        AppConfiguration.passPhrase = null;
+        passPhrase = null;
       }
     }
     return AppConfiguration(
-      preferences: sharedPreferences,
-      firebaseUser: firebaseUser,
-      appUser: appUser,
-      account: account,
-    );
+        preferences: sharedPreferences,
+        firebaseUser: firebaseUser,
+        appUser: appUser,
+        account: account,
+        passPhrase: passPhrase);
   }
 
   @override
@@ -119,7 +120,7 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
       );
     } else if (appConfiguration.appUser == null ||
         appConfiguration.account == null ||
-        AppConfiguration.passPhrase == null) {
+        appConfiguration.passPhrase == null) {
       return ManageAccountPage(
         appConfiguration,
         manageAccountCallback: _updateAppConfiguration,

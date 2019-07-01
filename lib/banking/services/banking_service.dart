@@ -30,7 +30,7 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.messageSigningService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _proxyKeyStore = ProxyKeyStore(appConfiguration.account),
+        _proxyKeyStore = ProxyKeyStore(appConfiguration),
         _proxyAccountStore = ProxyAccountStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));

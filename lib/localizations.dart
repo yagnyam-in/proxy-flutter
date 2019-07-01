@@ -701,7 +701,7 @@ class ProxyLocalizations {
       );
 
   String get changeNameTitle => Intl.message(
-        'Change Name',
+        'Enter Name',
         name: 'changeNameTitle',
         desc: 'Change Name Alert Dialog Title',
       );

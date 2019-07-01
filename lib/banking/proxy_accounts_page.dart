@@ -131,6 +131,11 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
           },
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {},
+        icon: Icon(Icons.payment),
+        label: Text("Pay"),
+      ),
       bottomNavigationBar: navigationBar(
         context,
         HomePage.ProxyAccountsPage,
