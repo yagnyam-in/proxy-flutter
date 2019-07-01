@@ -6,13 +6,16 @@ class EnticementCard extends StatelessWidget {
   final Enticement enticement;
   final VoidCallback setup;
   final VoidCallback dismiss;
+  final bool dismissable;
 
   const EnticementCard({
     Key key,
     @required this.enticement,
     @required this.setup,
     @required this.dismiss,
-  }) : super(key: key);
+    bool dismissable,
+  })  : dismissable = dismissable ?? true,
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,7 @@ class EnticementCard extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 0.0),
       title: Text(
-        '💡 ' +enticement.getTitle(localizations),
+        '💡 ' + enticement.getTitle(localizations),
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Padding(
@@ -50,7 +53,7 @@ class EnticementCard extends StatelessWidget {
             ),
             ButtonBar(
               children: <Widget>[
-                FlatButton(
+                if (dismissable) FlatButton(
                   child: Text(localizations.dismissButtonLabel),
                   onPressed: dismiss,
                 ),

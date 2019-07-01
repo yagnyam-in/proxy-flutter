@@ -81,6 +81,11 @@ class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavi
 
   Widget _events(BuildContext context, List<EventEntity> events) {
     print("events : $events");
+    if (events.isEmpty) {
+      return Center(
+        child: Text(ProxyLocalizations.of(context).noEvents),
+      );
+    }
     return ListView(
       shrinkWrap: true,
       physics: ClampingScrollPhysics(),

@@ -7,7 +7,9 @@ import 'package:proxy_flutter/banking/widgets/receiving_account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/services/enticement_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
+import 'package:proxy_flutter/widgets/enticement_helper.dart';
 import 'package:uuid/uuid.dart';
 
 final Uuid uuidFactory = Uuid();
@@ -62,7 +64,8 @@ class ReceivingAccountsPage extends StatefulWidget {
   }
 }
 
-class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsPage> with HomePageNavigation {
+class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsPage>
+    with HomePageNavigation, EnticementHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
 
@@ -87,14 +90,6 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
     ));
   }
 
-  bool _showAccount(ReceivingAccountEntity account) {
-    if (pageMode == PageMode.manage) {
-      return true;
-    } else {
-      return account.proxyUniverse == appConfiguration.proxyUniverse && account.currency == widget.currency;
-    }
-  }
-
   String _getTitle(ProxyLocalizations localizations) {
     return pageMode == PageMode.manage
         ? localizations.manageReceivingAccountsPageTitle
@@ -115,9 +110,10 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
         loadingWidget: SizedBox.shrink(),
         builder: (context, accounts) => _accountsWidget(context, accounts),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => createReceivingAccount(context),
-        child: Icon(Icons.add),
+        icon: Icon(Icons.add),
+        label: Text(localizations.addAccountFabLabel),
       ),
       bottomNavigationBar: _bottomNavigationBar(context),
     );
@@ -137,6 +133,16 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
 
   Widget _accountsWidget(BuildContext context, List<ReceivingAccountEntity> accounts) {
     print("adding ${accounts.length} accounts");
+    if (accounts.isEmpty) {
+      return ListView(
+        shrinkWrap: true,
+        physics: ClampingScrollPhysics(),
+        children: [
+            const SizedBox(height: 4.0),
+            enticementCard(context, EnticementFactory.addReceivingAccount, dismissable: false),
+          ],
+      );
+    }
     return ListView(
       shrinkWrap: true,
       physics: ClampingScrollPhysics(),
@@ -146,21 +152,6 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
           accountCard(context, account),
         ];
       }).toList(),
-    );
-  }
-
-  void createReceivingAccount(BuildContext context) async {
-    await Navigator.of(context).push(
-      new MaterialPageRoute<ReceivingAccountEntity>(
-        builder: (context) => ReceivingAccountDialog(
-              appConfiguration,
-              receivingAccount: ReceivingAccountEntity(
-                proxyUniverse: appConfiguration.proxyUniverse,
-                currency: widget.currency,
-              ),
-            ),
-        fullscreenDialog: true,
-      ),
     );
   }
 
@@ -198,5 +189,11 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
 
   void _archiveAccount(BuildContext context, ReceivingAccountEntity receivingAccount) async {
     await _receivingAccountStore.archiveAccount(receivingAccount);
+  }
+
+  @override
+  Future<Uri> createAccountAndPay(BuildContext context) async {
+    print("This should never be invoked");
+    return null;
   }
 }

@@ -49,7 +49,7 @@ class ContactStore with ProxyUtils, FirestoreUtils {
     if (snapshot.documents != null) {
       return snapshot.documents
           .map(_documentSnapshotToContact)
-          .takeWhile((a) => a != null)
+          .where((a) => a != null)
           .toList();
     } else {
       return [];

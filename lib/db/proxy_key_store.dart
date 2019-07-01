@@ -69,7 +69,7 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
   Future<List<ProxyKey>> fetchProxiesWithoutFcmToken(String fcmToken) async {
     var snapshot = await _proxiesRef().where("fcmToken", isNull: true).getDocuments();
     List<Future<ProxyKey>> keys = _querySnapshotToProxyKeys(snapshot)
-        .takeWhile((e) => e.fcmToken != fcmToken)
+        .where((e) => e.fcmToken != fcmToken)
         .map((e) async => await _proxyKeyEntityToProxyKey(e))
         .toList();
     return Future.wait(keys);
@@ -85,7 +85,7 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
 
   List<ProxyKeyEntity> _querySnapshotToProxyKeys(QuerySnapshot snapshot) {
     if (snapshot.documents != null) {
-      return snapshot.documents.map(_documentSnapshotToProxyKey).takeWhile((a) => a != null).toList();
+      return snapshot.documents.map(_documentSnapshotToProxyKey).where((a) => a != null).toList();
     } else {
       return [];
     }

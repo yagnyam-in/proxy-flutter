@@ -43,7 +43,7 @@ class DismissedEnticementStore with ProxyUtils, FirestoreUtils {
 
   List<DismissedEnticementEntity> _querySnapshotToEntitys(QuerySnapshot snapshot) {
     if (snapshot.documents != null) {
-      return snapshot.documents.map(_documentSnapshotToEntity).takeWhile((a) => a != null).toList();
+      return snapshot.documents.map(_documentSnapshotToEntity).where((a) => a != null).toList();
     } else {
       return [];
     }

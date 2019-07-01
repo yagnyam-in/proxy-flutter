@@ -47,7 +47,7 @@ class EventStore with ProxyUtils, FirestoreUtils {
 
   List<EventEntity> _querySnapshotToAccounts(QuerySnapshot snapshot) {
     if (snapshot.documents != null) {
-      return snapshot.documents.map(_documentSnapshotToAccount).takeWhile((a) => a != null).toList();
+      return snapshot.documents.map(_documentSnapshotToAccount).where((a) => a != null).toList();
     } else {
       return [];
     }

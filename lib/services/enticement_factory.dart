@@ -14,7 +14,7 @@ class EnticementFactory {
     ];
     enticements.sort((e1, e2) => Comparable.compare(e1.priority, e2.priority));
     print("Enticements for proxyUniverse: $proxyUniverse => $enticements");
-    return enticements.takeWhile((e) => e.proxyUniverses.contains(proxyUniverse)).toList();
+    return enticements.where((e) => e.proxyUniverses.contains(proxyUniverse)).toList();
   }
 
 

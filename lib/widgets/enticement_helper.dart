@@ -1,26 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
 import 'package:proxy_flutter/banking/db/test_receiving_accounts.dart';
+import 'package:proxy_flutter/banking/payment_authorization_input_dialog.dart';
+import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/widgets/enticement_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/enticement.dart';
 import 'package:proxy_flutter/services/enticement_service.dart';
+import 'package:share/share.dart';
 
 mixin EnticementHelper {
   AppConfiguration get appConfiguration;
 
   Future<Uri> createAccountAndPay(BuildContext context);
 
-  Future<ReceivingAccountEntity> createReceivingAccount(BuildContext context);
+  Future<ReceivingAccountEntity> createReceivingAccount(BuildContext context) {
+    return Navigator.of(context).push(
+      new MaterialPageRoute<ReceivingAccountEntity>(
+        builder: (context) => ReceivingAccountDialog(
+          appConfiguration,
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
 
   void showToast(String message);
 
-  Widget enticementCard(BuildContext context, Enticement enticement) {
+  Widget enticementCard(BuildContext context, Enticement enticement, {bool dismissable = true}) {
     return EnticementCard(
       enticement: enticement,
       setup: () => launchEnticement(context, enticement),
       dismiss: () => dismissEnticement(context, enticement),
+      dismissable: dismissable,
     );
   }
 

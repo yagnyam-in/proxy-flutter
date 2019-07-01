@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
 import 'package:proxy_flutter/banking/services/banking_service.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/services/deposit_service.dart';
 import 'package:proxy_flutter/banking/services/payment_authorization_service.dart';
 import 'package:proxy_flutter/banking/services/withdrawal_service.dart';
-import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/widgets/account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/contacts_page.dart';
@@ -134,7 +133,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
         icon: Icon(Icons.payment),
-        label: Text("Pay"),
+        label: Text(localizations.payFabLabel),
       ),
       bottomNavigationBar: navigationBar(
         context,
@@ -222,11 +221,11 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     if (paymentInput != null) {
       showToast(localizations.creatingAnonymousAccount(paymentInput.currency));
       ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
-        ownerProxyId: widget.appConfiguration.masterProxyId,
-        proxyUniverse: widget.appConfiguration.proxyUniverse,
+        ownerProxyId: appConfiguration.masterProxyId,
+        proxyUniverse: appConfiguration.proxyUniverse,
         currency: paymentInput.currency,
       );
-      String customerName = widget.appConfiguration.displayName;
+      String customerName = appConfiguration.displayName;
       Uri paymentLink = await _paymentAuthorizationService.createPaymentAuthorization(
         localizations,
         proxyAccount,
@@ -381,16 +380,5 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       ),
     );
     return result;
-  }
-
-  Future<ReceivingAccountEntity> createReceivingAccount(BuildContext context) {
-    return Navigator.of(context).push(
-      new MaterialPageRoute<ReceivingAccountEntity>(
-        builder: (context) => ReceivingAccountDialog(
-              appConfiguration,
-            ),
-        fullscreenDialog: true,
-      ),
-    );
   }
 }

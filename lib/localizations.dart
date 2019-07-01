@@ -1016,6 +1016,12 @@ class ProxyLocalizations {
   String get youMustAgreeTermsAndConditions => Intl.message('You need to agree Terms & Conditions');
 
   String get verifyButtonLabel => Intl.message('Verify');
+
+  String get noEvents => Intl.message('No Events');
+
+  String get addAccountFabLabel => Intl.message('Add');
+
+  String get payFabLabel => Intl.message('Pay');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {
