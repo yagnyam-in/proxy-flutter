@@ -284,41 +284,41 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
     super.dispose();
   }
 
+  _showSnackBar(String message) {
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 3),
+    ));
+  }
+
   Future<void> _register(BuildContext context) async {
     FocusScope.of(context).requestFocus(_loginFocusNode);
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     if (!_agreedToTOS) {
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text(localizations.youMustAgreeTermsAndConditions),
-        duration: Duration(seconds: 3),
-      ));
+      _showSnackBar(localizations.youMustAgreeTermsAndConditions);
       print('T&C not agreed');
       return;
     }
 
-    try {
-      invoke(() async {
-        var preferences = await SharedPreferences.getInstance();
-        preferences.setString(EMAIL_PREFERENCE_NAME, _emailController.text);
+    invoke(() async {
+      var preferences = await SharedPreferences.getInstance();
+      preferences.setString(EMAIL_PREFERENCE_NAME, _emailController.text);
 
-        await FirebaseAuth.instance.sendSignInWithEmailLink(
-          email: _emailController.text,
-          url: '${UrlConfig.APP_BACKEND}/actions/auth',
-          handleCodeInApp: true,
-          iOSBundleID: 'in.yagnyam.proxy',
-          androidPackageName: Constants.ANDROID_PACKAGE_NAME,
-          androidInstallIfNotAvailable: true,
-          androidMinimumVersion: "12",
-        );
-      }, name: 'Send Login Link', onError: () => somethingWentWrong(context));
+      await FirebaseAuth.instance.sendSignInWithEmailLink(
+        email: _emailController.text,
+        url: '${UrlConfig.APP_BACKEND}/actions/auth',
+        handleCodeInApp: true,
+        iOSBundleID: 'in.yagnyam.proxy',
+        androidPackageName: Constants.ANDROID_PACKAGE_NAME,
+        androidInstallIfNotAvailable: true,
+        androidMinimumVersion: "12",
+      );
+    }, name: 'Send Login Link', onError: () => somethingWentWrong(context));
 
-      setState(() {
-        status = ProxyLocalizations.of(context).checkYourMailForLoginLink;
-        print('Setting status to $status');
-      });
-    } catch (e) {
-      status = ProxyLocalizations.of(context).somethingWentWrong;
+    _showSnackBar(localizations.checkYourMailForLoginLink);
+    setState(() {
+      status = localizations.checkYourMailForLoginLink;
       print('Setting status to $status');
-    }
+    });
   }
 }

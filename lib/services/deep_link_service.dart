@@ -22,6 +22,9 @@ class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
       androidParameters: AndroidParameters(
         packageName: Constants.ANDROID_PACKAGE_NAME,
       ),
+      iosParameters: IosParameters(
+        bundleId: Constants.IOS_BUNDLE_ID,
+      ),
       socialMetaTagParameters: SocialMetaTagParameters(
         title: title,
         description: description,
