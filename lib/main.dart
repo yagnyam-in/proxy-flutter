@@ -53,7 +53,7 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
         appUser: appUser,
       ).validateEncryptionKey(
         account: account,
-        encryptionKey: AppConfiguration.passPhrase,
+        encryptionKey: await AppConfiguration.passPhrase,
       );
       if (!isPassPhraseValid) {
         AppConfiguration.passPhrase = null;

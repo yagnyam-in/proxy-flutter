@@ -33,7 +33,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
   final ManageAccountCallback manageAccountCallback;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController passPhraseController = TextEditingController(text: AppConfiguration.passPhrase);
+  final TextEditingController passPhraseController = TextEditingController();
 
   FocusNode actionButtonFocusNode;
 
@@ -162,6 +162,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     if (_formKey.currentState.validate()) {
       try {
         AppConfiguration.passPhrase = passPhraseController.text;
+
         invoke(() async => _createAccount(context),
             name: 'Create Another Account', onError: () => _somethingWentWrong(context));
       } catch (e) {
@@ -179,6 +180,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
       FocusScope.of(context).requestFocus(actionButtonFocusNode);
       showError(localizations.heavyOperation);
       AppConfiguration.passPhrase = passPhraseController.text;
+
       if (appConfiguration.account != null) {
         invoke(() async => _recoverAccount(context),
             name: 'Recover Account', onError: () => _somethingWentWrong(context));
@@ -200,7 +202,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     print("Recover Account");
     bool valid = await accountService.validateEncryptionKey(
       account: appConfiguration.account,
-      encryptionKey: AppConfiguration.passPhrase,
+      encryptionKey: await AppConfiguration.passPhrase,
     );
     if (!valid) {
       retryCount++;
@@ -223,7 +225,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
 
   void _createAccount(BuildContext context) async {
     print("Create Account");
-    AccountEntity account = await accountService.createAccount(encryptionKey: AppConfiguration.passPhrase);
+    AccountEntity account = await accountService.createAccount(encryptionKey: await AppConfiguration.passPhrase);
     UserEntity appUser = await UserStore.forUser(appConfiguration.firebaseUser).saveUser(
       appConfiguration.appUser.copy(accountId: account.accountId),
     );

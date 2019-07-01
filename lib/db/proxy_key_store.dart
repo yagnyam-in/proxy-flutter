@@ -50,17 +50,18 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
     await _ref(proxyKeyEntity.id).setData(proxyKeyEntity.toJson());
   }
 
-  Future<void> insertProxyKey(ProxyKey proxyKey) {
+  Future<void> insertProxyKey(ProxyKey proxyKey) async {
     print('insert Proxy Key $proxyKey');
-    return _insertProxyKeyEntity(_proxyKeyToProxyKeyEntity(proxyKey));
+    return _insertProxyKeyEntity(await _proxyKeyToProxyKeyEntity(proxyKey));
   }
 
   Future<List<ProxyKey>> fetchProxiesWithoutFcmToken(String fcmToken) async {
     var snapshot = await _proxiesRef().where("fcmToken", isNull: true).getDocuments();
-    return _querySnapshotToProxyKeys(snapshot)
+    List<Future<ProxyKey>> keys = _querySnapshotToProxyKeys(snapshot)
         .takeWhile((e) => e.fcmToken != fcmToken)
-        .map((e) => _proxyKeyEntityToProxyKey(e))
+        .map((e) async => await _proxyKeyEntityToProxyKey(e))
         .toList();
+    return Future.wait(keys);
   }
 
   ProxyKeyEntity _documentSnapshotToProxyKey(DocumentSnapshot snapshot) {
@@ -79,12 +80,12 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
     }
   }
 
-  ProxyKey _proxyKeyEntityToProxyKey(ProxyKeyEntity keyEntity) {
+  Future<ProxyKey> _proxyKeyEntityToProxyKey(ProxyKeyEntity keyEntity) async {
     return ProxyKey(
       id: keyEntity.id,
       name: keyEntity.name,
       localAlias: keyEntity.localAlias,
-      privateKeyEncoded: _decrypt(
+      privateKeyEncoded: await _decrypt(
         encryptionAlgorithm: keyEntity.encryptionAlgorithm,
         cipherText: keyEntity.encryptedPrivateKeyEncoded,
       ),
@@ -94,13 +95,13 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
     );
   }
 
-  ProxyKeyEntity _proxyKeyToProxyKeyEntity(ProxyKey key) {
+  Future<ProxyKeyEntity> _proxyKeyToProxyKeyEntity(ProxyKey key) async {
     return ProxyKeyEntity(
       id: key.id,
       name: key.name,
       localAlias: key.localAlias,
       encryptionAlgorithm: ENCRYPTION_ALGORITHM,
-      encryptedPrivateKeyEncoded: _encrypt(
+      encryptedPrivateKeyEncoded: await _encrypt(
         encryptionAlgorithm: ENCRYPTION_ALGORITHM,
         plainText: key.privateKeyEncoded,
       ),
@@ -110,14 +111,14 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
     );
   }
 
-  String get _encryptionKey {
+  Future<String> get _encryptionKey {
     assert(AppConfiguration.passPhrase != null);
     return AppConfiguration.passPhrase;
   }
 
   // TODO: Revisit
-  Key get _adjustedKey {
-    String adjusted = _encryptionKey;
+  Future<Key> get _adjustedKey async {
+    String adjusted = await _encryptionKey;
     Key key = Key.fromUtf8(adjusted);
     int len = key.bytes.lengthInBytes;
     if ({16, 24, 32}.contains(len)) {
@@ -135,27 +136,29 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
   }
 
   // TODO: Revisit
-  Encrypter _cipher(String encryptionAlgorithm) {
+  Future<Encrypter> _cipher(String encryptionAlgorithm) async {
     if (encryptionAlgorithm == ENCRYPTION_ALGORITHM) {
-      return Encrypter(AES(_adjustedKey, mode: AESMode.ctr));
+      return Encrypter(AES(await _adjustedKey, mode: AESMode.ctr));
     }
     throw ArgumentError("Invalid encryptionAlgorithm $encryptionAlgorithm");
   }
 
-  String _encrypt({
+  Future<String> _encrypt({
     @required String encryptionAlgorithm,
     @required String plainText,
-  }) {
+  }) async {
     final iv = IV.fromLength(16);
-    return _cipher(encryptionAlgorithm).encrypt(plainText, iv: iv).base64;
+    Encrypter encrypter = await _cipher(encryptionAlgorithm);
+    return encrypter.encrypt(plainText, iv: iv).base64;
   }
 
-  String _decrypt({
+  Future<String> _decrypt({
     @required String encryptionAlgorithm,
     @required String cipherText,
-  }) {
+  }) async {
     final iv = IV.fromLength(16);
-    return _cipher(encryptionAlgorithm).decrypt64(cipherText, iv: iv);
+    Encrypter encrypter = await _cipher(encryptionAlgorithm);
+    return encrypter.decrypt64(cipherText, iv: iv);
   }
 
   static const String ENCRYPTION_ALGORITHM = 'AES/CTR/NoPadding';

@@ -4,10 +4,12 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
   static const String PROXY_UNIVERSE = "proxyUniverse";
+  static const String PASSPHRASE_KEY = "passPhrase";
 
   static AppConfiguration _instance;
 
@@ -94,6 +96,22 @@ class AppConfiguration {
     return firebaseUser != null && appUser != null && account != null;
   }
 
-  static String passPhrase;
+  static String _passPhrase;
+
+  static Future<String> get passPhrase async {
+    if (_passPhrase == null) {
+      _passPhrase = await FlutterSecureStorage().read(key: PASSPHRASE_KEY);
+    }
+    return _passPhrase;
+  }
+
+  static set passPhrase(String value) {
+    _passPhrase = value;
+    if (_passPhrase != null) {
+      FlutterSecureStorage().write(key: PASSPHRASE_KEY, value: value);
+    } else {
+      FlutterSecureStorage().delete(key: PASSPHRASE_KEY);
+    }
+  }
 
 }

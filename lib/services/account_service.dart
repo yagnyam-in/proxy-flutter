@@ -131,7 +131,7 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     ProxyKey proxyKey = await _createProxyKey(proxyId);
     ProxyRequest proxyRequest = await _createProxyRequest(
       proxyKey,
-      AppConfiguration.passPhrase,
+      await AppConfiguration.passPhrase,
     );
     Proxy proxy = await _createProxy(proxyRequest);
     proxyKey = proxyKey.copyWith(id: proxy.id);
