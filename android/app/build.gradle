@@ -74,6 +74,11 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
+            
+            minifyEnabled true
+            useProguard true
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
             signingConfig signingConfigs.release
@@ -98,11 +103,6 @@ flutter {
 
 dependencies {
     testImplementation 'junit:junit:4.12'
-    implementation "org.bouncycastle:bcpkix-jdk15on:1.60"
-    implementation "in.yagnyam.proxy:proxy-core-lib:1.0-SNAPSHOT"
-
-    implementation "org.projectlombok:lombok:1.16.20"
-    annotationProcessor "org.projectlombok:lombok:1.16.20"
 
     // annotationProcessor 'com.android.support:support-annotations:27.1.1'
     // androidTestImplementation 'com.android.support.test:runner:1.0.2'
