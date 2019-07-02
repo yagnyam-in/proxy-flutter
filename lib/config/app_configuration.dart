@@ -71,7 +71,7 @@ class AppConfiguration {
   String get proxyUniverse {
     String val = preferences.getString(PROXY_UNIVERSE);
     if (val == null || val.isEmpty) {
-      return ProxyUniverse.TEST;
+      return ProxyUniverse.PRODUCTION;
     }
     return val;
   }
@@ -100,8 +100,13 @@ class AppConfiguration {
     return firebaseUser != null && appUser != null && account != null && passPhrase != null;
   }
 
-  static Future<String> fetchPassPhrase() {
-    return FlutterSecureStorage().read(key: PASSPHRASE_KEY);
+  static Future<String> fetchPassPhrase() async {
+    try {
+      return await FlutterSecureStorage().read(key: PASSPHRASE_KEY);
+    } catch (e, t) {
+      print('Error getting $PASSPHRASE_KEY: $t');
+    }
+    return null;
   }
 
   static Future<void> storePassPhrase(String value) {

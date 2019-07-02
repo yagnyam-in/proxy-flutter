@@ -100,6 +100,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(localizations.bankingTitle),
+/*
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.contacts),
@@ -107,6 +108,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
             onPressed: () => _launchContacts(context),
           ),
         ],
+ */
       ),
       body: BusyChildWidget(
         loading: loading,
@@ -131,7 +133,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => createAccountAndPay(context),
         icon: Icon(Icons.payment),
         label: Text(localizations.payFabLabel),
       ),
@@ -178,7 +180,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     );
   }
 
-  Widget actionBar(BuildContext context) {
+  Widget _actionBar(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ButtonBar(
       alignment: MainAxisAlignment.spaceAround,

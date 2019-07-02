@@ -61,10 +61,10 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     ));
   }
 
-  void showInfo(String message) {
+  void showLongInfo(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text(message),
-      duration: Duration(seconds: 3),
+      duration: Duration(seconds: 6),
     ));
   }
 
@@ -178,7 +178,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     if (_formKey.currentState.validate()) {
       FocusScope.of(context).requestFocus(actionButtonFocusNode);
-      showError(localizations.heavyOperation);
+      showLongInfo(localizations.heavyOperation);
 
       if (appConfiguration.account != null) {
         invoke(() async => _recoverAccount(context),

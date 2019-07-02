@@ -1022,6 +1022,10 @@ class ProxyLocalizations {
   String get addAccountFabLabel => Intl.message('Add');
 
   String get payFabLabel => Intl.message('Pay');
+
+  String get unexpectedError => Intl.message('Unexpected Error');
+
+  String get retry => Intl.message('Retry');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

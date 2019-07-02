@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:proxy_flutter/app_state_container.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/account_store.dart';
@@ -90,26 +91,41 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
   }
 
   Widget _errorWidget(BuildContext context) {
+    // This can be null
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text("Unexpected Error"),
+        title: Text(localizations?.unexpectedError ?? 'Unexpected Error'),
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
         child: ListView(
           children: <Widget>[
             const SizedBox(height: 32.0),
-            Center(child: Text("Something went wrong")),
+            Center(child: Text(localizations?.somethingWentWrong ?? 'Something went wrong')),
             const SizedBox(height: 32.0),
             FlatButtonWithIcon(
               icon: Icon(Icons.refresh),
-              label: Text("Retry"),
-              onPressed: () => setState(() => _appConfigurationFuture = _fetchAppConfiguration()),
+              label: Text(localizations?.retry ?? 'Retry'),
+              onPressed: _recoverFromFailure,
             )
           ],
         ),
       ),
     );
+  }
+
+  void _recoverFromFailure() async {
+    // Sometimes its possible shared preferences can't be loaded.
+    try {
+      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+      await sharedPreferences.clear();
+      await FlutterSecureStorage().deleteAll();
+    } catch (e) {
+      print("Failed to clear shared preferences");
+    }
+    AppConfiguration appConfiguration = await _fetchAppConfiguration();
+    setState(() => _appConfigurationFuture = Future.value(appConfiguration));
   }
 
   Widget _body(BuildContext context, AppConfiguration appConfiguration) {
