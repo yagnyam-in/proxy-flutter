@@ -1,4 +1,4 @@
-# proxy-flutter
+# Proxy Mobile App
 
 App for anonymizing Identity and Payments
 

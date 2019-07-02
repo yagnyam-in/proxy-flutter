@@ -9,17 +9,6 @@ typedef DataToWidgetBuilder<T> = Widget Function(BuildContext context, T data);
 abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
   bool loading = false;
 
-  void somethingWentWrong(BuildContext context) {
-    ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    ScaffoldState scaffoldState = Scaffold.of(context);
-    if (scaffoldState != null) {
-      scaffoldState.showSnackBar(SnackBar(
-        content: Text(localizations.somethingWentWrong),
-        duration: Duration(seconds: 3),
-      ));
-    }
-  }
-
   Future<T> invoke<T>(
     FutureCallback<T> callback, {
     String name,

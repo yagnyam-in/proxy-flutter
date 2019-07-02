@@ -56,8 +56,10 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     if (newToken != null && AppConfiguration.instance() != null && AppConfiguration.instance().isComplete) {
       ProxyKeyStore proxyKeyStore = ProxyKeyStore(AppConfiguration.instance());
       List<ProxyKey> outdatedProxies = await proxyKeyStore.fetchProxiesWithoutFcmToken(newToken);
-      print('Got ${outdatedProxies.length} proxies to update');
+      print("Got ${outdatedProxies.length} proxies to update");
       outdatedProxies.forEach((key) => _updateToken(proxyKeyStore, key, newToken));
+    } else {
+      print("Can't update FCM Token as AppConfiguration is incomplete");
     }
   }
 

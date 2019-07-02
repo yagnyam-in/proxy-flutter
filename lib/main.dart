@@ -129,14 +129,12 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
   }
 
   Widget _body(BuildContext context, AppConfiguration appConfiguration) {
-    if (appConfiguration.firebaseUser == null) {
+    if (appConfiguration.firebaseUser == null || appConfiguration.appUser == null) {
       return LoginPage(
         appConfiguration: appConfiguration,
         loginCallback: _updateAppConfiguration,
       );
-    } else if (appConfiguration.appUser == null ||
-        appConfiguration.account == null ||
-        appConfiguration.passPhrase == null) {
+    } else if (appConfiguration.account == null || appConfiguration.passPhrase == null) {
       return ManageAccountPage(
         appConfiguration,
         manageAccountCallback: _updateAppConfiguration,

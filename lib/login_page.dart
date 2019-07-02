@@ -122,7 +122,7 @@ class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBinding
             appUser: appUser,
           ));
         }
-      }, name: 'Login With Link', onError: () => somethingWentWrong(context));
+      }, name: 'Login With Link', onError: () => showError(loginFailedMessage));
     } catch (e) {
       setState(() {
         status = loginFailedMessage ?? 'Login Failed';
@@ -308,12 +308,12 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
         email: _emailController.text,
         url: '${UrlConfig.APP_BACKEND}/actions/auth',
         handleCodeInApp: true,
-        iOSBundleID: 'in.yagnyam.proxy',
+        iOSBundleID: Constants.IOS_BUNDLE_ID,
         androidPackageName: Constants.ANDROID_PACKAGE_NAME,
         androidInstallIfNotAvailable: true,
         androidMinimumVersion: "12",
       );
-    }, name: 'Send Login Link', onError: () => somethingWentWrong(context));
+    }, name: 'Send Login Link', onError: () => _showSnackBar(localizations.somethingWentWrong));
 
     _showSnackBar(localizations.checkYourMailForLoginLink);
     setState(() {

@@ -18,8 +18,13 @@ class AccountStore with ProxyUtils, FirestoreUtils {
   }
 
   Future<AccountEntity> fetchAccount(String accountId) async {
-    DocumentSnapshot snapshot = await _ref(accountId).get();
-    return _documentSnapshotToAccountEntity(snapshot);
+    try {
+      DocumentSnapshot snapshot = await _ref(accountId).get();
+      return _documentSnapshotToAccountEntity(snapshot);
+    } catch (e) {
+      print("Error accessing $accountId: $e");
+      return null;
+    }
   }
 
   Stream<AccountEntity> subscribeForAccount(String accountId) {

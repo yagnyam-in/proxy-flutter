@@ -67,11 +67,19 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
   }
 
   Future<List<ProxyKey>> fetchProxiesWithoutFcmToken(String fcmToken) async {
-    var snapshot = await _proxiesRef().where("fcmToken", isNull: true).getDocuments();
-    List<Future<ProxyKey>> keys = _querySnapshotToProxyKeys(snapshot)
-        .where((e) => e.fcmToken != fcmToken)
-        .map((e) async => await _proxyKeyEntityToProxyKey(e))
-        .toList();
+    print('fetchProxiesWithoutFcmToken $fcmToken');
+    List<Future<QuerySnapshot>> snapshotFutures = [
+      _proxiesRef().where("fcmToken", isNull: true).getDocuments(),
+      _proxiesRef().where("fcmToken", isLessThan: fcmToken).getDocuments(),
+      _proxiesRef().where("fcmToken", isGreaterThan: fcmToken).getDocuments(),
+    ];
+    List<QuerySnapshot> snapshots = await Future.wait(snapshotFutures);
+    List<Future<ProxyKey>> keys = snapshots.expand((snapshot) {
+      return _querySnapshotToProxyKeys(snapshot)
+          .where((e) => e.fcmToken != fcmToken)
+          .map((e) async => await _proxyKeyEntityToProxyKey(e))
+          .toList();
+    }).toList();
     return Future.wait(keys);
   }
 
@@ -119,6 +127,7 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
       privateKeySha256Thumbprint: key.privateKeySha256Thumbprint,
       publicKeyEncoded: key.publicKeyEncoded,
       publicKeySha256Thumbprint: key.publicKeySha256Thumbprint,
+      fcmToken: 'dummy', // Required for Querying
     );
   }
 
