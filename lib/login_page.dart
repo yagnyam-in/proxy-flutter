@@ -165,6 +165,10 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
   final TextEditingController _emailController;
   bool _loading = false;
   bool _agreedToTOS = false;
+  bool _loginEnabled = true;
+  bool _lockTOS = false;
+  Timer _timerToEnableLoginButton;
+
   String status;
 
   FocusNode _tcFocusNode;
@@ -219,10 +223,10 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
               children: <Widget>[
                 Checkbox(
                   value: _agreedToTOS,
-                  onChanged: _setAgreedToTOS,
+                  onChanged: _lockTOS ? null : _setAgreedToTOS,
                 ),
                 GestureDetector(
-                  onTap: () => _setAgreedToTOS(!_agreedToTOS),
+                  onTap: _lockTOS ? null : () => _setAgreedToTOS(!_agreedToTOS),
                   child: Text(
                     localizations.agreeTermsAndConditions,
                   ),
@@ -235,6 +239,10 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
               child: RaisedButton(
                 focusNode: _loginFocusNode,
                 onPressed: () async {
+                  if (!_loginEnabled) {
+                    _showSnackBar(localizations.youNeedToWaitForMinuteToRetry);
+                    return;
+                  }
                   if (_formKey.currentState.validate()) {
                     _register(context);
                   }
@@ -288,6 +296,9 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
     _emailController.dispose();
     _tcFocusNode.dispose();
     _loginFocusNode.dispose();
+    if (_timerToEnableLoginButton != null) {
+      _timerToEnableLoginButton.cancel();
+    }
     super.dispose();
   }
 
@@ -320,12 +331,20 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
         androidInstallIfNotAvailable: true,
         androidMinimumVersion: "12",
       );
+
+      _timerToEnableLoginButton = new Timer(const Duration(minutes: 1), () {
+        setState(() => _loginEnabled = true);
+      });
+      _showSnackBar(localizations.checkYourMailForLoginLink);
+      setState(() {
+        _lockTOS = true;
+        _loginEnabled = false;
+        status = localizations.checkYourMailForLoginLink;
+        print('Setting status to $status');
+      });
+
     }, name: 'Send Login Link', onError: () => _showSnackBar(localizations.somethingWentWrong));
 
-    _showSnackBar(localizations.checkYourMailForLoginLink);
-    setState(() {
-      status = localizations.checkYourMailForLoginLink;
-      print('Setting status to $status');
-    });
+
   }
 }

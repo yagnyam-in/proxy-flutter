@@ -1026,6 +1026,10 @@ class ProxyLocalizations {
   String get unexpectedError => Intl.message('Unexpected Error');
 
   String get retry => Intl.message('Retry');
+
+  String get youNeedToWaitForMinuteToRetry => Intl.message('Please wait for a minute to retry');
+
+  String get logout => Intl.message('Logout');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

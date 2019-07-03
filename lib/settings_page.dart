@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
@@ -53,6 +54,15 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.profilePageTitle),
+/*
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.power_settings_new),
+            tooltip: localizations.logout,
+            onPressed: () => _logout(context),
+          ),
+        ],
+ */
       ),
       body: BusyChildWidget(
         loading: loading,
@@ -69,6 +79,14 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
         busy: loading,
       ),
     );
+  }
+
+  void _logout(BuildContext context) {
+    AppConfiguration.storePassPhrase(null);
+    FirebaseAuth.instance.signOut();
+    setState(() {
+      AppConfiguration.setInstance(appConfiguration.copy(firebaseUser: null, appUser: null, account: null, passPhrase: null));
+    });
   }
 }
 
