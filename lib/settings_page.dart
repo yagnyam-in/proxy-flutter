@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/db/user_store.dart';
@@ -121,6 +122,8 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       _PassPhraseWidget(appConfiguration: appConfiguration),
       const Divider(),
       _proxyUniverseWidget(context),
+      if (appConfiguration.proxyUniverse != ProxyUniverse.PRODUCTION) const Divider(),
+      if (appConfiguration.proxyUniverse != ProxyUniverse.PRODUCTION) _crashWidget(context),
     ]);
   }
 
@@ -207,6 +210,27 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       ),
     );
   }
+
+  Widget _crashWidget(BuildContext context) {
+    return ListTile(
+      title: Text(
+        'Send a Crash',
+      ),
+      subtitle: Padding(
+        padding: EdgeInsets.only(top: 8.0),
+        child: Text(
+          'Only for testing',
+        ),
+      ),
+      trailing: GestureDetector(
+        onTap: () => Crashlytics.instance.crash(),
+        child: Icon(
+          Icons.error,
+        ),
+      ),
+    );
+  }
+
 
 
   void _changeName(BuildContext context) async {

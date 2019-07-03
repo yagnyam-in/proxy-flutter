@@ -24,6 +24,7 @@ class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
       ),
       iosParameters: IosParameters(
         bundleId: Constants.IOS_BUNDLE_ID,
+        appStoreId: Constants.IOS_APP_STORE_ID,
       ),
       socialMetaTagParameters: SocialMetaTagParameters(
         title: title,
@@ -32,5 +33,8 @@ class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     var shortLink = await parameters.buildShortLink();
     return shortLink.shortUrl;
+  }
+
+  void performDiagnostics() {
   }
 }

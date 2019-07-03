@@ -37,6 +37,7 @@ class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBinding
   final AppConfiguration appConfiguration;
   final LoginCallback loginCallback;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  Timer _timerLink;
   String loginFailedMessage;
   String status;
   bool _loading = false;
@@ -60,19 +61,25 @@ class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBinding
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (_timerLink != null) {
+      _timerLink.cancel();
+    }
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      print("didChangeAppLifecycleState (ProxyAppState)");
-      _handleDynamicLinks();
+      print("didChangeAppLifecycleState (_LoginPageState)");
+      _timerLink = new Timer(const Duration(milliseconds: 1000), () {
+        _handleDynamicLinks();
+      });
     }
   }
 
   Future<void> _handleDynamicLinks() async {
     final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
+    print('Handle Dynamic Links $data');
     Uri link = data?.link;
     if (link == null) return;
     print('link = $link');
