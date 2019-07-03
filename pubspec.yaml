@@ -29,7 +29,7 @@ dependencies:
   flutter_slidable: ^0.5.3
   firebase_messaging: ^5.0.1+1
   firebase_auth: ^0.11.1+6
-  rxdart: ^0.22.0
+  firebase_crashlytics: ^0.0.4+8
   share: ^0.6.1+1
   firebase_dynamic_links: ^0.4.0
   cloud_firestore: ^0.12.1

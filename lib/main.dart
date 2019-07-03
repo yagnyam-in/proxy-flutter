@@ -16,8 +16,15 @@ import 'package:proxy_flutter/services/account_service.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/flat_button_with_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
-void main() => runApp(ProxyApp());
+void main() {
+  Crashlytics.instance.enableInDevMode = true;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    Crashlytics.instance.onError(details);
+  };
+  runApp(ProxyApp());
+}
 
 class ProxyApp extends StatefulWidget {
   @override
@@ -62,11 +69,12 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
       }
     }
     return AppConfiguration(
-        preferences: sharedPreferences,
-        firebaseUser: firebaseUser,
-        appUser: appUser,
-        account: account,
-        passPhrase: passPhrase);
+      preferences: sharedPreferences,
+      firebaseUser: firebaseUser,
+      appUser: appUser,
+      account: account,
+      passPhrase: passPhrase,
+    );
   }
 
   @override
@@ -85,7 +93,11 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
         const Locale('te', 'IN'),
       ],
       home: new AppStateContainer(
-        child: futureBuilder(future: _appConfigurationFuture, builder: _body, errorWidget: _errorWidget(context)),
+        child: futureBuilder(
+          future: _appConfigurationFuture,
+          builder: _body,
+          errorWidget: _errorWidget(context),
+        ),
       ),
     );
   }
