@@ -14,8 +14,8 @@ class AcceptPaymentPage extends StatefulWidget {
   final String proxyUniverse;
   final String paymentAuthorizationId;
 
-  const AcceptPaymentPage({
-    @required this.appConfiguration,
+  const AcceptPaymentPage(
+    this.appConfiguration, {
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
     Key key,
@@ -75,10 +75,10 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
             future: _paymentAuthorization,
             emptyMessage: localizations.invalidPayment,
             builder: (context, authorization) => _AcceptPaymentPageBody(
-                  scaffoldKey: _scaffoldKey,
-                  appConfiguration: appConfiguration,
-                  paymentAuthorization: authorization,
-                ),
+              scaffoldKey: _scaffoldKey,
+              appConfiguration: appConfiguration,
+              paymentAuthorization: authorization,
+            ),
           ),
         ),
       ),

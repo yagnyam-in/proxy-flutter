@@ -6,6 +6,8 @@ import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+typedef AppConfigurationUpdater = void Function(AppConfiguration appConfiguration);
+
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
   static const String PROXY_UNIVERSE = "proxyUniverse";

@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:proxy_flutter/app_state_container.dart';
+import 'package:proxy_flutter/app_configuration_container.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/account_store.dart';
 import 'package:proxy_flutter/db/user_store.dart';
@@ -16,7 +17,6 @@ import 'package:proxy_flutter/services/account_service.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/flat_button_with_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 void main() {
   Crashlytics.instance.enableInDevMode = true;
@@ -92,12 +92,10 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
         const Locale('nl', 'NL'),
         const Locale('te', 'IN'),
       ],
-      home: new AppStateContainer(
-        child: futureBuilder(
-          future: _appConfigurationFuture,
-          builder: _body,
-          errorWidget: _errorWidget(context),
-        ),
+      home: futureBuilder(
+        future: _appConfigurationFuture,
+        builder: body,
+        errorWidget: _errorWidget(context),
       ),
     );
   }
@@ -140,29 +138,40 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
     setState(() => _appConfigurationFuture = Future.value(appConfiguration));
   }
 
-  Widget _body(BuildContext context, AppConfiguration appConfiguration) {
+  Widget bodyUsingInheritedWidget(BuildContext context, AppConfiguration appConfiguration) {
+    return AppConfigurationContainer(
+      appConfiguration: appConfiguration,
+      child: body(context, appConfiguration),
+    );
+  }
+
+  Widget body(BuildContext context, AppConfiguration appConfiguration) {
     if (appConfiguration.firebaseUser == null || appConfiguration.appUser == null) {
       return LoginPage(
         appConfiguration: appConfiguration,
-        loginCallback: _updateAppConfiguration,
+        appConfigurationUpdater: _updateAppConfiguration,
       );
-    } else if (appConfiguration.account == null || appConfiguration.passPhrase == null) {
+    } else if (appConfiguration.account == null ||
+        appConfiguration.passPhrase == null ||
+        appConfiguration.account.masterProxyId == null) {
       return ManageAccountPage(
         appConfiguration,
-        manageAccountCallback: _updateAppConfiguration,
+        appConfigurationUpdater: _updateAppConfiguration,
       );
     } else {
       AppConfiguration.setInstance(appConfiguration);
       return HomePage(
-        appConfiguration: AppConfiguration.instance(),
+        appConfiguration: appConfiguration,
+        appConfigurationUpdater: _updateAppConfiguration,
       );
     }
   }
 
   void _updateAppConfiguration(AppConfiguration appConfiguration) {
+    AppConfiguration.setInstance(appConfiguration);
+    Future<AppConfiguration> latestAppConfiguration = _fetchAppConfiguration();
     setState(() {
-      AppConfiguration.setInstance(appConfiguration);
-      _appConfigurationFuture = _fetchAppConfiguration();
+      _appConfigurationFuture = latestAppConfiguration;
     });
   }
 }

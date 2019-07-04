@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/db/deposit_store.dart';
+import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -13,9 +13,9 @@ class DepositPage extends StatefulWidget {
   final String proxyUniverse;
   final String depositId;
 
-  const DepositPage({
+  const DepositPage(
+    this.appConfiguration, {
     Key key,
-    @required this.appConfiguration,
     @required this.proxyUniverse,
     @required this.depositId,
   }) : super(key: key);

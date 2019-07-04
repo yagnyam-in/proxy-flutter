@@ -57,13 +57,22 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
     return _documentSnapshotToProxyKey(snapshot);
   }
 
-  Future<void> _insertProxyKeyEntity(ProxyKeyEntity proxyKeyEntity) async {
-    await _ref(proxyKeyEntity.id).setData(proxyKeyEntity.toJson());
+  Future<void> _insertProxyKeyEntity(ProxyKeyEntity proxyKeyEntity, {Transaction transaction}) {
+    var ref = _ref(proxyKeyEntity.id);
+    var data = proxyKeyEntity.toJson();
+    if (transaction != null) {
+      return transaction.set(ref, data);
+    } else {
+      return ref.setData(data);
+    }
   }
 
-  Future<void> insertProxyKey(ProxyKey proxyKey) async {
+  Future<void> insertProxyKey(ProxyKey proxyKey, {Transaction transaction}) async {
     print('insert Proxy Key $proxyKey');
-    return _insertProxyKeyEntity(await _proxyKeyToProxyKeyEntity(proxyKey));
+    return _insertProxyKeyEntity(
+      await _proxyKeyToProxyKeyEntity(proxyKey),
+      transaction: transaction,
+    );
   }
 
   Future<List<ProxyKey>> fetchProxiesWithoutFcmToken(String fcmToken) async {

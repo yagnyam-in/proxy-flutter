@@ -10,27 +10,25 @@ import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 
-typedef ManageAccountCallback = void Function(AppConfiguration appConfiguration);
-
 class ManageAccountPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final ManageAccountCallback manageAccountCallback;
+  final AppConfigurationUpdater appConfigurationUpdater;
 
   ManageAccountPage(
     this.appConfiguration, {
     Key key,
-    @required this.manageAccountCallback,
+    @required this.appConfigurationUpdater,
   }) : super(key: key) {
     print("Constructing ManageAccountPage");
   }
 
   @override
-  _ManageAccountPageState createState() => _ManageAccountPageState(appConfiguration, manageAccountCallback);
+  _ManageAccountPageState createState() => _ManageAccountPageState(appConfiguration, appConfigurationUpdater);
 }
 
 class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
   AppConfiguration appConfiguration;
-  final ManageAccountCallback manageAccountCallback;
+  final AppConfigurationUpdater appConfigurationUpdater;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController passPhraseController = TextEditingController();
@@ -41,7 +39,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
   bool loading = false;
   int retryCount = 0;
 
-  _ManageAccountPageState(this.appConfiguration, this.manageAccountCallback) {
+  _ManageAccountPageState(this.appConfiguration, this.appConfigurationUpdater) {
     assert(appConfiguration != null);
     assert(appConfiguration.firebaseUser != null);
     assert(appConfiguration.appUser != null);
@@ -221,7 +219,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
         account: account,
         passPhrase: passPhrase,
       );
-      manageAccountCallback(appConfiguration);
+      appConfigurationUpdater(appConfiguration);
     }
   }
 
@@ -239,6 +237,6 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
       appUser: appUser,
       passPhrase: passPhrase,
     );
-    manageAccountCallback(appConfiguration);
+    appConfigurationUpdater(appConfiguration);
   }
 }

@@ -141,7 +141,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavi
     switch (event.eventType) {
       case EventType.Deposit:
         return DepositPage(
-          appConfiguration: appConfiguration,
+          appConfiguration,
           proxyUniverse: event.proxyUniverse,
           depositId: event.eventId,
         );

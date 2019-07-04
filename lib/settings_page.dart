@@ -19,10 +19,12 @@ import 'widgets/widget_helper.dart';
 class SettingsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
+  final AppConfigurationUpdater appConfigurationUpdater;
 
   const SettingsPage(
     this.appConfiguration, {
     @required this.changeHomePage,
+    @required this.appConfigurationUpdater,
     Key key,
   }) : super(key: key);
 
@@ -54,7 +56,6 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.profilePageTitle),
-/*
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.power_settings_new),
@@ -62,14 +63,13 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
             onPressed: () => _logout(context),
           ),
         ],
- */
       ),
       body: BusyChildWidget(
         loading: loading,
         child: streamBuilder(
-            name: "Profile Loading",
-            stream: _userStream,
-            builder: (context, user) => _SettingsWidget(appConfiguration, user),
+          name: "Profile Loading",
+          stream: _userStream,
+          builder: (context, user) => _SettingsWidget(appConfiguration, user),
         ),
       ),
       bottomNavigationBar: navigationBar(
@@ -82,11 +82,14 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
   }
 
   void _logout(BuildContext context) {
-    AppConfiguration.storePassPhrase(null);
     FirebaseAuth.instance.signOut();
-    setState(() {
-      AppConfiguration.setInstance(appConfiguration.copy(firebaseUser: null, appUser: null, account: null, passPhrase: null));
-    });
+    AppConfiguration.storePassPhrase(null);
+    widget.appConfigurationUpdater(appConfiguration.copy(
+      firebaseUser: null,
+      appUser: null,
+      account: null,
+      passPhrase: null,
+    ));
   }
 }
 
@@ -249,8 +252,6 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
     );
   }
 
-
-
   void _changeName(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     String newName = await acceptStringDialog(
@@ -305,7 +306,6 @@ class _PassPhraseWidget extends StatefulWidget {
   State<StatefulWidget> createState() {
     return _PassPhraseWidgetState(appConfiguration);
   }
-
 }
 
 class _PassPhraseWidgetState extends State<_PassPhraseWidget> {
@@ -336,5 +336,4 @@ class _PassPhraseWidgetState extends State<_PassPhraseWidget> {
       ),
     );
   }
-
 }

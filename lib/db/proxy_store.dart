@@ -33,11 +33,20 @@ class ProxyStore with ProxyUtils, FirestoreUtils {
     return proxyEntity?.proxy;
   }
 
-  Future<void> _insertProxyEntity(ProxyEntity proxyEntity) async {
-    await _ref(proxyEntity.proxyId).setData(proxyEntity.toJson());
+  Future<void> _insertProxyEntity(ProxyEntity proxyEntity, {Transaction transaction}) {
+    var ref = _ref(proxyEntity.proxyId);
+    var data = proxyEntity.toJson();
+    if (transaction != null) {
+      return transaction.set(ref, data);
+    } else {
+      return ref.setData(data);
+    }
   }
 
-  Future<void> insertProxy(Proxy proxy) async {
-    await _insertProxyEntity(ProxyEntity(proxy: proxy));
+  Future<void> insertProxy(Proxy proxy, {Transaction transaction}) async {
+    await _insertProxyEntity(
+      ProxyEntity(proxy: proxy),
+      transaction: transaction,
+    );
   }
 }

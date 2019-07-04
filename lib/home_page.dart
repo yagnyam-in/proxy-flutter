@@ -17,18 +17,20 @@ import 'widgets/basic_types.dart';
 
 class HomePage extends StatefulWidget {
   final AppConfiguration appConfiguration;
+  final AppConfigurationUpdater appConfigurationUpdater;
 
-  HomePage({Key key, @required this.appConfiguration}) : super(key: key);
+  HomePage({Key key, @required this.appConfiguration, @required this.appConfigurationUpdater}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState(appConfiguration);
+  _HomePageState createState() => _HomePageState(appConfiguration, appConfigurationUpdater);
 }
 
 class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingObserver {
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final AppConfiguration appConfiguration;
+  final AppConfigurationUpdater appConfigurationUpdater;
 
-  _HomePageState(this.appConfiguration);
+  _HomePageState(this.appConfiguration, this.appConfigurationUpdater);
 
   @override
   void initState() {
@@ -98,10 +100,10 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
       context,
       new MaterialPageRoute(
         builder: (context) => DepositPage(
-              appConfiguration: appConfiguration,
-              proxyUniverse: proxyUniverse,
-              depositId: depositId,
-            ),
+          appConfiguration,
+          proxyUniverse: proxyUniverse,
+          depositId: depositId,
+        ),
         fullscreenDialog: true,
       ),
     );
@@ -115,10 +117,10 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
       context,
       new MaterialPageRoute(
         builder: (context) => AcceptPaymentPage(
-              appConfiguration: appConfiguration,
-              proxyUniverse: proxyUniverse,
-              paymentAuthorizationId: paymentAuthorizationId,
-            ),
+          appConfiguration,
+          proxyUniverse: proxyUniverse,
+          paymentAuthorizationId: paymentAuthorizationId,
+        ),
         fullscreenDialog: true,
       ),
     );
@@ -126,6 +128,9 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
-    return BankingHome(appConfiguration);
+    return BankingHome(
+      appConfiguration,
+      appConfigurationUpdater: appConfigurationUpdater,
+    );
   }
 }

@@ -15,34 +15,33 @@ import 'package:proxy_flutter/widgets/link_text_span.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-typedef LoginCallback = void Function(AppConfiguration appConfiguration);
 
 class LoginPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final LoginCallback loginCallback;
+  final AppConfigurationUpdater appConfigurationUpdater;
 
   LoginPage({
     Key key,
-    @required this.loginCallback,
+    @required this.appConfigurationUpdater,
     @required this.appConfiguration,
   }) : super(key: key) {
     print("Constructing LoginPage");
   }
 
   @override
-  _LoginPageState createState() => _LoginPageState(appConfiguration, loginCallback);
+  _LoginPageState createState() => _LoginPageState(appConfiguration, appConfigurationUpdater);
 }
 
 class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBindingObserver {
   final AppConfiguration appConfiguration;
-  final LoginCallback loginCallback;
+  final AppConfigurationUpdater appConfigurationUpdater;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   Timer _timerLink;
   String loginFailedMessage;
   String status;
   bool _loading = false;
 
-  _LoginPageState(this.appConfiguration, this.loginCallback);
+  _LoginPageState(this.appConfiguration, this.appConfigurationUpdater);
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -124,7 +123,7 @@ class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBinding
           if (appUser == null) {
             appUser = await userStore.saveUser(UserEntity.from(firebaseUser));
           }
-          loginCallback(appConfiguration.copy(
+          appConfigurationUpdater(appConfiguration.copy(
             firebaseUser: firebaseUser,
             appUser: appUser,
           ));

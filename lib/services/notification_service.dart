@@ -13,6 +13,7 @@ import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
 class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
+
   final Uuid uuidFactory = Uuid();
   final String appBackendUrl;
   final HttpClientFactory httpClientFactory;

@@ -31,12 +31,13 @@ class AccountStore with ProxyUtils, FirestoreUtils {
     return _ref(accountId).snapshots().map(_documentSnapshotToAccountEntity);
   }
 
-  Future<AccountEntity> saveAccount(AccountEntity account, {Transaction transaction}) async {
+  Future<void> saveAccount(AccountEntity account, {Transaction transaction}) async {
+    var ref = _ref(account.accountId);
+    var data = account.toJson();
     if (transaction == null) {
-      await _ref(account.accountId).setData(account.toJson());
+      return ref.setData(data);
     } else {
-      transaction.set(_ref(account.accountId), account.toJson());
+      return transaction.set(ref, data);
     }
-    return account;
   }
 }

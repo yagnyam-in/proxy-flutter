@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:proxy_core/bootstrap.dart';
@@ -134,9 +135,13 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     Proxy proxy = await _createProxy(proxyRequest);
     proxyKey = proxyKey.copyWith(id: proxy.id);
-    await ProxyKeyStore.forAccount(account, passPhrase).insertProxyKey(proxyKey);
-    await ProxyStore(account).insertProxy(proxy);
-    account = await AccountStore().saveAccount(account.copy(masterProxyId: proxy.id));
+    await Firestore.instance.runTransaction((transaction) async {
+      var keyFuture = ProxyKeyStore.forAccount(account, passPhrase).insertProxyKey(proxyKey, transaction: transaction);
+      var proxyFuture = ProxyStore(account).insertProxy(proxy, transaction: transaction);
+      var accountFuture = AccountStore().saveAccount(account.copy(masterProxyId: proxy.id), transaction: transaction);
+      await Future.wait([keyFuture, proxyFuture, accountFuture]);
+      return {};
+    });
     return account;
   }
 
@@ -167,7 +172,6 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   Future<Proxy> _createProxy(ProxyRequest proxyRequest) {
     print("createProxy");
-    Future<Proxy> proxy = proxyFactory.createProxy(proxyRequest);
-    return proxy;
+    return proxyFactory.createProxy(proxyRequest);
   }
 }
