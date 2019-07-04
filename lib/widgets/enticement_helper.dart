@@ -31,12 +31,12 @@ mixin EnticementHelper {
 
   void showToast(String message);
 
-  Widget enticementCard(BuildContext context, Enticement enticement, {bool dismissable = true}) {
+  Widget enticementCard(BuildContext context, Enticement enticement, {bool cancellable = true}) {
     return EnticementCard(
       enticement: enticement,
       setup: () => launchEnticement(context, enticement),
       dismiss: () => dismissEnticement(context, enticement),
-      dismissable: dismissable,
+      dismissable: cancellable,
     );
   }
 

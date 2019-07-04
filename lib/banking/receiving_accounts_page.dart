@@ -68,6 +68,7 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
     with HomePageNavigation, EnticementHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
+  bool loading = false;
 
   final PageMode pageMode;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -139,7 +140,7 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
         physics: ClampingScrollPhysics(),
         children: [
             const SizedBox(height: 4.0),
-            enticementCard(context, EnticementFactory.addReceivingAccount, dismissable: false),
+            enticementCard(context, EnticementFactory.addReceivingAccount, cancellable: false),
           ],
       );
     }

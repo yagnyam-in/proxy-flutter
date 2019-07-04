@@ -34,6 +34,7 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
   final String proxyUniverse;
   final String withdrawalId;
   Stream<WithdrawalEntity> _withdrawalStream;
+  bool loading = false;
 
   WithdrawalPageState({
     @required this.appConfiguration,

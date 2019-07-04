@@ -8,6 +8,7 @@ import 'package:proxy_messages/banking.dart';
 
 part 'payment_authorization_entity.g.dart';
 
+// TODO: Store Secrets encrypted
 @JsonSerializable()
 class PaymentAuthorizationEntity {
   static final Set<PaymentAuthorizationStatusEnum> cancelPossibleStatuses = {
@@ -111,6 +112,8 @@ class PaymentAuthorizationEntity {
         return localizations.expiredStatus;
       case PaymentAuthorizationStatusEnum.Error:
         return localizations.errorStatus;
+      case PaymentAuthorizationStatusEnum.Created:
+        return localizations.created;
       default:
         print("Unhandled Event state: $status");
         return localizations.inTransit;

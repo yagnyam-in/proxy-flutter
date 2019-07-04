@@ -96,6 +96,10 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   final TextEditingController amountController;
   final TextEditingController secretController;
 
+  FocusNode _amountFocusNode;
+  FocusNode _messageFocusNode;
+  FocusNode _submitFocusNode;
+
   String _currency;
 
   List<String> get validCurrencies {
@@ -118,6 +122,20 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     ));
   }
 
+  @override void initState() {
+    super.initState();
+    _amountFocusNode = FocusNode();
+    _messageFocusNode = FocusNode();
+    _submitFocusNode = FocusNode();
+  }
+
+  @override void dispose() {
+    super.dispose();
+    _amountFocusNode.dispose();
+    _messageFocusNode.dispose();
+    _submitFocusNode.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
@@ -126,12 +144,6 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(localizations.paymentAuthorizationInputTitle),
-        actions: [
-          new FlatButton(
-              onPressed: () => _submit(localizations),
-              child: new Text(localizations.okButtonLabel,
-                  style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white))),
-        ],
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -163,6 +175,9 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
                     _currency = newValue;
                     state.didChange(newValue);
                   });
+                  if (_currency != null) {
+                    FocusScope.of(context).requestFocus(_amountFocusNode);
+                  }
                 },
                 items: validCurrencies.map((String value) {
                   return new DropdownMenuItem(
@@ -177,12 +192,15 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       ),
       const SizedBox(height: 16.0),
       TextFormField(
+        focusNode: _amountFocusNode,
         controller: amountController,
         decoration: InputDecoration(
           labelText: localizations.amount,
         ),
         keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
         validator: (value) => _amountValidator(localizations, value),
+        onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(_messageFocusNode),
+        textInputAction: TextInputAction.next,
       ),
     ]);
 
@@ -190,11 +208,15 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     children.addAll([
       const SizedBox(height: 16.0),
       TextFormField(
+        focusNode: _messageFocusNode,
         controller: messageController,
         decoration: InputDecoration(
           labelText: localizations.message,
         ),
         keyboardType: TextInputType.text,
+        validator: (value) => _mandatoryFieldValidator(localizations, value),
+        textInputAction: TextInputAction.next,
+        onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(_submitFocusNode),
       ),
     ]);
 
@@ -208,6 +230,18 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
             labelText: localizations.secret,
           ),
           keyboardType: TextInputType.text,
+        ),
+      ),
+    ]);
+
+    children.addAll([
+      Container(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        alignment: Alignment.center,
+        child: RaisedButton(
+          focusNode: _submitFocusNode,
+          onPressed: ()  => _submit(localizations),
+          child: Text(localizations.createAndShareButtonLabel),
         ),
       ),
     ]);

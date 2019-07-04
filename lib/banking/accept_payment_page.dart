@@ -37,6 +37,7 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
   final String proxyUniverse;
   final String paymentAuthorizationId;
   Future<SignedMessage<PaymentAuthorization>> _paymentAuthorization;
+  bool loading = false;
 
   AcceptPaymentPageState({
     @required this.appConfiguration,
@@ -114,10 +115,11 @@ class _AcceptPaymentPageBody extends StatefulWidget {
   }
 }
 
-class _AcceptPaymentPageBodyState extends State<_AcceptPaymentPageBody> {
+class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPageBody> {
   final AppConfiguration appConfiguration;
   final SignedMessage<PaymentAuthorization> paymentAuthorization;
   final TextEditingController secretController;
+  bool loading = false;
   Future<bool> _paymentCanBeAcceptedFuture;
 
   _AcceptPaymentPageBodyState({Key key, @required this.appConfiguration, @required this.paymentAuthorization})
@@ -131,15 +133,9 @@ class _AcceptPaymentPageBodyState extends State<_AcceptPaymentPageBody> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
+    return futureBuilder(
       future: _paymentCanBeAcceptedFuture,
-      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return _builder(context, snapshot.data);
-        } else {
-          return new Center(child: new CircularProgressIndicator());
-        }
-      },
+      builder: _builder,
     );
   }
 

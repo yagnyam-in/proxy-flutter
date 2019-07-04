@@ -33,6 +33,8 @@ class _ModifyProxyPageState extends LoadingSupportState<ModifyProxyPage> with Pr
 
   final ContactEntity contactEntity;
 
+  bool loading = false;
+
   _ModifyProxyPageState(this.appConfiguration, this.contactEntity)
       : _contactStore = ContactStore(appConfiguration),
         nameController = TextEditingController(text: contactEntity?.name),

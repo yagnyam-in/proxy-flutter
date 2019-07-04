@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/utils/conversion_utils.dart';
-import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 
 part 'payment_authorization_payee_entity.g.dart';
@@ -46,5 +43,4 @@ class PaymentAuthorizationPayeeEntity {
   Map<String, dynamic> toJson() => _$PaymentAuthorizationPayeeEntityToJson(this);
 
   static PaymentAuthorizationPayeeEntity fromJson(Map json) => _$PaymentAuthorizationPayeeEntityFromJson(json);
-
 }

@@ -35,7 +35,7 @@ class ProxyApp extends StatefulWidget {
 
 class ProxyAppState extends LoadingSupportState<ProxyApp> {
   Future<AppConfiguration> _appConfigurationFuture;
-
+  bool loading = false;
   @override
   void initState() {
     super.initState();

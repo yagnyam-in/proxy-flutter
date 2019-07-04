@@ -35,6 +35,7 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
   final String proxyUniverse;
   final String depositId;
   Stream<DepositEntity> _depositStream;
+  bool loading = false;
 
   DepositPageState({
     @required this.appConfiguration,

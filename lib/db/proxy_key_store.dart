@@ -1,17 +1,17 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:encrypt/encrypt.dart';
-import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/proxy_key_entity.dart';
+import 'package:proxy_flutter/services/encryption_service.dart';
 
 class ProxyKeyStore with ProxyUtils, FirestoreUtils {
   final AccountEntity account;
   final String passPhrase;
+  final EncryptionService encryptionService = EncryptionService();
 
   ProxyKeyStore.forAccount(this.account, this.passPhrase) {
     assert(account != null);
@@ -113,9 +113,10 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
       id: keyEntity.id,
       name: keyEntity.name,
       localAlias: keyEntity.localAlias,
-      privateKeyEncoded: await _decrypt(
+      privateKeyEncoded: await encryptionService.decrypt(
         encryptionAlgorithm: keyEntity.encryptionAlgorithm,
         cipherText: keyEntity.encryptedPrivateKeyEncoded,
+        key: passPhrase,
       ),
       privateKeySha256Thumbprint: keyEntity.privateKeySha256Thumbprint,
       publicKeyEncoded: keyEntity.publicKeyEncoded,
@@ -128,10 +129,11 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
       id: key.id,
       name: key.name,
       localAlias: key.localAlias,
-      encryptionAlgorithm: ENCRYPTION_ALGORITHM,
-      encryptedPrivateKeyEncoded: await _encrypt(
-        encryptionAlgorithm: ENCRYPTION_ALGORITHM,
+      encryptionAlgorithm: EncryptionService.ENCRYPTION_ALGORITHM,
+      encryptedPrivateKeyEncoded: await encryptionService.encrypt(
+        encryptionAlgorithm: EncryptionService.ENCRYPTION_ALGORITHM,
         plainText: key.privateKeyEncoded,
+        key: passPhrase,
       ),
       privateKeySha256Thumbprint: key.privateKeySha256Thumbprint,
       publicKeyEncoded: key.publicKeyEncoded,
@@ -139,51 +141,4 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
       fcmToken: 'dummy', // Required for Querying
     );
   }
-
-  // TODO: Revisit
-  Key get _adjustedKey {
-    String adjusted = passPhrase;
-    Key key = Key.fromUtf8(adjusted);
-    int len = key.bytes.lengthInBytes;
-    if ({16, 24, 32}.contains(len)) {
-      return key;
-    } else if (len < 16) {
-      adjusted = adjusted.padRight(16, '0');
-    } else if (len < 24) {
-      adjusted = adjusted.padRight(24, '0');
-    } else if (len < 32) {
-      adjusted = adjusted.padRight(32, '0');
-    } else {
-      throw ArgumentError("Invalid length $len for pass phrase");
-    }
-    return Key.fromUtf8(adjusted);
-  }
-
-  // TODO: Revisit
-  Encrypter _cipher(String encryptionAlgorithm) {
-    if (encryptionAlgorithm == ENCRYPTION_ALGORITHM) {
-      return Encrypter(AES(_adjustedKey, mode: AESMode.ctr));
-    }
-    throw ArgumentError("Invalid encryptionAlgorithm $encryptionAlgorithm");
-  }
-
-  Future<String> _encrypt({
-    @required String encryptionAlgorithm,
-    @required String plainText,
-  }) async {
-    final iv = IV.fromLength(16);
-    Encrypter encrypter = _cipher(encryptionAlgorithm);
-    return encrypter.encrypt(plainText, iv: iv).base64;
-  }
-
-  Future<String> _decrypt({
-    @required String encryptionAlgorithm,
-    @required String cipherText,
-  }) async {
-    final iv = IV.fromLength(16);
-    Encrypter encrypter = _cipher(encryptionAlgorithm);
-    return encrypter.decrypt64(cipherText, iv: iv);
-  }
-
-  static const String ENCRYPTION_ALGORITHM = 'AES/CTR/NoPadding';
 }

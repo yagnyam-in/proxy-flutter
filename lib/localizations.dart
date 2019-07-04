@@ -1030,6 +1030,12 @@ class ProxyLocalizations {
   String get youNeedToWaitForMinuteToRetry => Intl.message('Please wait for a minute to retry');
 
   String get logout => Intl.message('Logout');
+
+  String get createAndShareButtonLabel => Intl.message('Create & Share');
+
+  String get payees => Intl.message('Payees');
+
+  String get anyoneWithSecret => Intl.message('Anyone');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

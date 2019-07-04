@@ -29,7 +29,7 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final AppConfiguration appConfiguration;
   final AppConfigurationUpdater appConfigurationUpdater;
-
+  bool loading = false;
   _HomePageState(this.appConfiguration, this.appConfigurationUpdater);
 
   @override

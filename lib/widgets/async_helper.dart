@@ -7,7 +7,9 @@ import 'package:proxy_flutter/widgets/loading.dart';
 typedef DataToWidgetBuilder<T> = Widget Function(BuildContext context, T data);
 
 abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
-  bool loading = false;
+  bool get loading;
+  set loading(bool value);
+
 
   Future<T> invoke<T>(
     FutureCallback<T> callback, {

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
+import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
+import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:proxy_messages/payments.dart';
 
 class PaymentAuthorizationPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
@@ -34,6 +36,7 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
   final String proxyUniverse;
   final String paymentAuthorizationId;
   Stream<PaymentAuthorizationEntity> _paymentAuthorizationStream;
+  bool loading = false;
 
   PaymentAuthorizationPageState({
     @required this.appConfiguration,
@@ -130,6 +133,19 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
           style: themeData.textTheme.title,
         ),
       ),
+      const SizedBox(height: 24.0),
+      Center(
+        child: Text(
+          localizations.payees,
+        ),
+      ),
+      const SizedBox(height: 8.0),
+      ...paymentAuthorizationEntity.payees
+          .expand((payee) => <Widget>[
+                Divider(),
+                _payeeWidget(localizations, payee),
+              ])
+          .toList(),
     ];
 
     List<Widget> actions = [];
@@ -153,6 +169,32 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
     }
     return ListView(children: rows);
   }
+
+  Widget _payeeWidget(ProxyLocalizations localizations, PaymentAuthorizationPayeeEntity payee) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(_payeeDisplayName(localizations, payee)),
+        Text(payee.secret),
+      ],
+    );
+  }
+
+  String _payeeDisplayName(ProxyLocalizations localizations, PaymentAuthorizationPayeeEntity payee) {
+    switch (payee.payeeType) {
+      case PayeeTypeEnum.ProxyId:
+        return "${payee.proxyId.id.substring(0, 6)}...";
+      case PayeeTypeEnum.Email:
+        return payee.email;
+      case PayeeTypeEnum.Phone:
+        return payee.phone;
+      case PayeeTypeEnum.AnyoneWithSecret:
+        return localizations.anyoneWithSecret;
+      default:
+        return localizations.anyoneWithSecret;
+    }
+  }
+
 
   Widget _noDepositFound(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);

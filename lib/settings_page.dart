@@ -39,6 +39,7 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
   final ChangeHomePage changeHomePage;
   final UserStore _userStore;
   Stream<UserEntity> _userStream;
+  bool loading = false;
 
   SettingsPageState(this.appConfiguration, this.changeHomePage)
       : _userStore = UserStore.forUser(appConfiguration.firebaseUser);

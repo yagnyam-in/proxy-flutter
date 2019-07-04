@@ -35,6 +35,7 @@ class EventsPage extends StatefulWidget {
 class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavigation {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
+  bool loading = false;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final EventStore _eventStore;

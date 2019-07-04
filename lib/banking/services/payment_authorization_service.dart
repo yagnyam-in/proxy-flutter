@@ -219,7 +219,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     @required String paymentAuthorizationId,
   }) async {
     String jsonResponse = await get(httpClientFactory(),
-        "${UrlConfig.PROXY_BANKING}/payment?proxyUniverse=$proxyUniverse&paymentAuthorizationId=$paymentAuthorizationId");
+        "${UrlConfig.PROXY_BANKING}/payment-authorization?proxyUniverse=$proxyUniverse&paymentAuthorizationId=$paymentAuthorizationId");
     return messageFactory.buildAndVerifySignedMessage(jsonResponse, PaymentAuthorization.fromJson);
   }
 

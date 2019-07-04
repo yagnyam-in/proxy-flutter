@@ -39,7 +39,7 @@ class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBinding
   Timer _timerLink;
   String loginFailedMessage;
   String status;
-  bool _loading = false;
+  bool loading = false;
 
   _LoginPageState(this.appConfiguration, this.appConfigurationUpdater);
 
@@ -98,7 +98,7 @@ class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBinding
         title: Text(localizations.loginPageTitle),
       ),
       body: BusyChildWidget(
-        loading: _loading,
+        loading: loading,
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: _SignUpForm(
@@ -167,7 +167,7 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
   bool _loginEnabled = true;
   bool _lockTOS = false;
   Timer _timerToEnableLoginButton;
-
+  bool loading = false;
   String status;
 
   FocusNode _tcFocusNode;
