@@ -52,7 +52,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     PaymentAuthorizationPayeeInput input,
   ) async {
     String paymentEncashmentId = uuidFactory.v4();
-    var hash = (String input) => _computeHash(input);
+    final encryptionService = SymmetricKeyEncryptionService();
 
     return PaymentAuthorizationPayeeEntity(
       proxyUniverse: proxyUniverse,
@@ -60,11 +60,15 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
       paymentEncashmentId: paymentEncashmentId,
       payeeType: input.payeeType,
       email: input.customerEmail,
-      emailHash: await hash(input.customerEmail),
+      emailHash: await _computeHash(input.customerEmail),
       phone: input.customerPhone,
-      phoneHash: await hash(input.customerPhone),
-      secret: input.secret,
-      secretHash: await hash(input.secret),
+      phoneHash: await _computeHash(input.customerPhone),
+      secretEncrypted: await encryptionService.encrypt(
+        key: appConfiguration.passPhrase,
+        encryptionAlgorithm: SymmetricKeyEncryptionService.ENCRYPTION_ALGORITHM,
+        plainText: input.secret,
+      ),
+      secretHash: await _computeHash(input.secret),
     );
   }
 
@@ -246,28 +250,43 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     String phone,
     @required String secret,
   }) async {
-    var hash = (String input) => _computeHash(input);
     switch (payee.payeeType) {
       case PayeeTypeEnum.ProxyId:
         return false;
       case PayeeTypeEnum.Email:
-        return payee.secretHash == await hash(secret) && payee.emailHash == await hash(email);
+        return await _verifyHash(email, payee.emailHash) && await _verifyHash(secret, payee.secretHash);
       case PayeeTypeEnum.Phone:
-        return payee.secretHash == await hash(secret) && payee.phoneHash == await hash(phone);
+        return await _verifyHash(email, payee.phoneHash) && await _verifyHash(secret, payee.secretHash);
       case PayeeTypeEnum.AnyoneWithSecret:
-        return payee.secretHash == await hash(secret);
+        return await _verifyHash(secret, payee.secretHash);
       default:
         return false;
     }
   }
 
-  Future<HashValue> _computeHash(String input) {
+  Future<bool> _verifyHash(String input, HashValue hash) async {
     if (input == null) {
-      return Future.value(null);
+      return false;
     }
+    return cryptographyService.verifyHash(hashValue: hash, input: input);
+  }
+
+  Future<HashValue> _computeHash(String input) {
     return cryptographyService.getHash(
-      hashAlgorithm: "SHA256",
-      input: input.toUpperCase(),
+      input: input,
+      hashAlgorithm: 'SHA256',
+    );
+  }
+
+  Future<void> acceptPayment({
+    @required SignedMessage<PaymentAuthorization> paymentAuthorization,
+    @required Payee payee,
+    String secret,
+  }) async {
+
+    PaymentEncashment encashment = PaymentEncashment(
+      paymentEncashmentId: payee.paymentEncashmentId,
+      paymentAuthorization: paymentAuthorization, payeeAccount: null,
     );
   }
 }

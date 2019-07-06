@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
 import 'package:proxy_flutter/banking/db/withdrawal_store.dart';
+import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/model/action_menu_item.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
@@ -12,9 +13,9 @@ class WithdrawalPage extends StatefulWidget {
   final String proxyUniverse;
   final String withdrawalId;
 
-  const WithdrawalPage({
+  const WithdrawalPage(
+    this.appConfiguration, {
     Key key,
-    @required this.appConfiguration,
     @required this.proxyUniverse,
     @required this.withdrawalId,
   }) : super(key: key);
@@ -30,9 +31,13 @@ class WithdrawalPage extends StatefulWidget {
 }
 
 class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
+  static const String CANCEL = "cancel";
+
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String withdrawalId;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   Stream<WithdrawalEntity> _withdrawalStream;
   bool loading = false;
 
@@ -56,20 +61,32 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
     super.dispose();
   }
 
+  List<ActionMenuItem> actions(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return [
+      ActionMenuItem(title: localizations.cancelPaymentTooltip, icon: Icons.cancel, action: CANCEL),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.withdrawalEventTitle),
-        actions: [
-          new FlatButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: new Text(
-              localizations.okButtonLabel,
-              style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white),
-            ),
+        title: Text(localizations.depositEventTitle),
+        actions: <Widget>[
+          PopupMenuButton<ActionMenuItem>(
+            onSelected: (action) => _performAction(context, action),
+            itemBuilder: (BuildContext context) {
+              return actions(context).map((ActionMenuItem choice) {
+                return PopupMenuItem<ActionMenuItem>(
+                  value: choice,
+                  child: Text(choice.title),
+                );
+              }).toList();
+            },
           ),
         ],
       ),
@@ -99,60 +116,41 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
     ThemeData themeData = Theme.of(context);
     WithdrawalEntity withdrawalEntity = snapshot.data;
 
-    List<Widget> rows = [
-      const SizedBox(height: 16.0),
-      Icon(withdrawalEntity.icon, size: 64.0),
-      const SizedBox(height: 24.0),
-      Center(
-        child: Text(
-          localizations.amount,
-        ),
-      ),
-      const SizedBox(height: 8.0),
-      Center(
-        child: Text(
-          localizations.amountDisplayMessage(
-            currency: Currency.currencySymbol(withdrawalEntity.amount.currency),
-            value: withdrawalEntity.amount.value,
+    return ListView(
+      children: [
+        const SizedBox(height: 16.0),
+        Icon(withdrawalEntity.icon, size: 64.0),
+        const SizedBox(height: 24.0),
+        Center(
+          child: Text(
+            localizations.amount,
           ),
-          style: themeData.textTheme.title,
         ),
-      ),
-      const SizedBox(height: 24.0),
-      Center(
-        child: Text(
-          localizations.status,
+        const SizedBox(height: 8.0),
+        Center(
+          child: Text(
+            localizations.amountDisplayMessage(
+              currency: Currency.currencySymbol(withdrawalEntity.amount.currency),
+              value: withdrawalEntity.amount.value,
+            ),
+            style: themeData.textTheme.title,
+          ),
         ),
-      ),
-      const SizedBox(height: 8.0),
-      Center(
-        child: Text(
-          withdrawalEntity.getStatusAsText(localizations),
-          style: themeData.textTheme.title,
+        const SizedBox(height: 24.0),
+        Center(
+          child: Text(
+            localizations.status,
+          ),
         ),
-      ),
-    ];
-
-    List<Widget> actions = [];
-    if (withdrawalEntity.isCancelPossible) {
-      actions.add(
-        RaisedButton.icon(
-          onPressed: () => _cancelWithdrawal(withdrawalEntity),
-          icon: Icon(Icons.close),
-          label: Text(localizations.cancelButtonLabel),
+        const SizedBox(height: 8.0),
+        Center(
+          child: Text(
+            withdrawalEntity.getStatusAsText(localizations),
+            style: themeData.textTheme.title,
+          ),
         ),
-      );
-    }
-    if (actions.isNotEmpty) {
-      rows.add(const SizedBox(height: 24.0));
-      rows.add(
-        ButtonBar(
-          alignment: MainAxisAlignment.spaceAround,
-          children: actions,
-        ),
-      );
-    }
-    return ListView(children: rows);
+      ],
+    );
   }
 
   Widget _noDepositFound(BuildContext context) {
@@ -167,19 +165,37 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
             localizations.withdrawalNotFound,
           ),
         ),
-        const SizedBox(height: 32.0),
-        RaisedButton.icon(
-          onPressed: _close,
-          icon: Icon(Icons.close),
-          label: Text(localizations.closeButtonLabel),
-        ),
       ],
     );
   }
 
-  void _close() {
-    Navigator.of(context).pop();
+  void _performAction(BuildContext context, ActionMenuItem action) {
+    if (action.action == CANCEL) {
+      _cancelWithdrawal(context);
+    } else {
+      print("Unknown action $action");
+    }
   }
 
-  void _cancelWithdrawal(WithdrawalEntity withdrawalEntity) {}
+  void _cancelWithdrawal(BuildContext context) async {
+    final withdrawal = await WithdrawalStore(appConfiguration).fetchWithdrawal(
+      proxyUniverse: proxyUniverse,
+      withdrawalId: withdrawalId,
+    );
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    if (withdrawal == null || !withdrawal.isCancelPossible) {
+      showMessage(localizations.cancelNotPossible);
+      return;
+    }
+    showMessage(localizations.notYetImplemented);
+  }
+
+  void showMessage(String message) {
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
 }

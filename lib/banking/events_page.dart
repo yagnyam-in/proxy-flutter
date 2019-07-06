@@ -148,13 +148,13 @@ class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavi
         );
       case EventType.Withdrawal:
         return WithdrawalPage(
-          appConfiguration: appConfiguration,
+          appConfiguration,
           proxyUniverse: event.proxyUniverse,
           withdrawalId: event.eventId,
         );
       case EventType.PaymentAuthorization:
         return PaymentAuthorizationPage(
-          appConfiguration: appConfiguration,
+          appConfiguration,
           proxyUniverse: event.proxyUniverse,
           paymentAuthorizationId: event.eventId,
         );

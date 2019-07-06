@@ -20,7 +20,7 @@ class PaymentAuthorizationPayeeEntity {
   final ProxyId proxyId;
   final String email;
   final String phone;
-  final String secret;
+  final CipherText secretEncrypted;
   final HashValue emailHash;
   final HashValue phoneHash;
   final HashValue secretHash;
@@ -33,12 +33,22 @@ class PaymentAuthorizationPayeeEntity {
     this.proxyId,
     this.email,
     this.phone,
-    this.secret,
+    this.secretEncrypted,
     this.emailHash,
     this.phoneHash,
     this.secretHash,
   });
 
+  @override
+  String toString() {
+    return {
+      'proxyUniverse': proxyUniverse,
+      'paymentAuthorizationId': paymentAuthorizationId,
+      'paymentEncashmentId': paymentEncashmentId,
+      'payeeType': payeeType,
+      'proxyId': proxyId,
+    }.toString();
+  }
 
   Map<String, dynamic> toJson() => _$PaymentAuthorizationPayeeEntityToJson(this);
 

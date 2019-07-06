@@ -971,11 +971,13 @@ class ProxyLocalizations {
 
   String get addReceivingAccountTitle => Intl.message('Add Bank Account');
 
-  String get addReceivingAccountDescription => Intl.message('By adding your Bank Account, you can withdraw money to your Bank Account');
+  String get addReceivingAccountDescription =>
+      Intl.message('By adding your Bank Account, you can withdraw money to your Bank Account');
 
   String get addTestReceivingAccountsTitle => Intl.message('Add Test Bank Accounts');
 
-  String get addTestReceivingAccountsDescription => Intl.message('By adding your Test Bank Accounts, you can test different scenarios');
+  String get addTestReceivingAccountsDescription =>
+      Intl.message('By adding your Test Bank Accounts, you can test different scenarios');
 
   String get dismissButtonLabel => Intl.message('Dismiss');
 
@@ -983,7 +985,8 @@ class ProxyLocalizations {
 
   String get makePaymentTitle => Intl.message('Make Payment');
 
-  String get makePaymentDescription => Intl.message("Its very easy to make Payment, you don't need to know any account details to make payment");
+  String get makePaymentDescription =>
+      Intl.message("Its very easy to make Payment, you don't need to know any account details to make payment");
 
   String get proxyAccountsPageTitle => Intl.message('Money');
 
@@ -999,9 +1002,11 @@ class ProxyLocalizations {
 
   String get registerUserTitle => Intl.message('Register');
 
-  String get newPassPhraseDescription => Intl.message('Setup strong pass phrase to encrypt all your sensitive data. Note that, it is not possible to recover this pass phrase.');
+  String get newPassPhraseDescription => Intl.message(
+      'Setup strong pass phrase to encrypt all your sensitive data. Note that, it is not possible to recover this pass phrase.');
 
-  String get recoverPassPhraseDescription => Intl.message('You already have a account. Enter your pass phrase to proceed.');
+  String get recoverPassPhraseDescription =>
+      Intl.message('You already have a account. Enter your pass phrase to proceed.');
 
   String get wrongPassPhraseDescription => Intl.message('Wrong Pass Phrase');
 
@@ -1036,6 +1041,16 @@ class ProxyLocalizations {
   String get payees => Intl.message('Payees');
 
   String get anyoneWithSecret => Intl.message('Anyone');
+
+  String get sharePaymentTooltip => Intl.message('Share Payment');
+
+  String get cancelPaymentTooltip => Intl.message('Cancel Payment');
+
+  String get cancelDepositTooltip => Intl.message('Cancel Deposit');
+
+  String get cancelNotPossible => Intl.message('Cancel not possible');
+
+  String get notYetImplemented => Intl.message('Not yet implemented');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

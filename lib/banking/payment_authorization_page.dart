@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/model/action_menu_item.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
+import 'package:share/share.dart';
 
 class PaymentAuthorizationPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String paymentAuthorizationId;
 
-  const PaymentAuthorizationPage({
+  const PaymentAuthorizationPage(
+    this.appConfiguration, {
     Key key,
-    @required this.appConfiguration,
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
   }) : super(key: key);
@@ -32,9 +35,14 @@ class PaymentAuthorizationPage extends StatefulWidget {
 }
 
 class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthorizationPage> {
+  static const String CANCEL = "cancel";
+  static const String SHARE = "share";
+
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String paymentAuthorizationId;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   Stream<PaymentAuthorizationEntity> _paymentAuthorizationStream;
   bool loading = false;
 
@@ -58,20 +66,33 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
     super.dispose();
   }
 
+  List<ActionMenuItem> actions(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return [
+      ActionMenuItem(title: localizations.sharePaymentTooltip, icon: Icons.share, action: SHARE),
+      ActionMenuItem(title: localizations.cancelPaymentTooltip, icon: Icons.cancel, action: CANCEL),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(localizations.paymentAuthorizationEventTitle),
-        actions: [
-          new FlatButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: new Text(
-              localizations.okButtonLabel,
-              style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white),
-            ),
+        actions: <Widget>[
+          PopupMenuButton<ActionMenuItem>(
+            onSelected: (action) => _onAction(context, action),
+            itemBuilder: (BuildContext context) {
+              return actions(context).map((ActionMenuItem choice) {
+                return PopupMenuItem<ActionMenuItem>(
+                  value: choice,
+                  child: Text(choice.title),
+                );
+              }).toList();
+            },
           ),
         ],
       ),
@@ -79,11 +100,10 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
         loading: loading,
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: StreamBuilder<PaymentAuthorizationEntity>(
+          child: streamBuilder(
             stream: _paymentAuthorizationStream,
-            builder: (BuildContext context, AsyncSnapshot<PaymentAuthorizationEntity> snapshot) {
-              return body(context, localizations, snapshot);
-            },
+            builder: body,
+            emptyWidget: _noPaymentAuthorizationFound(context),
           ),
         ),
       ),
@@ -92,90 +112,111 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
 
   Widget body(
     BuildContext context,
-    ProxyLocalizations localizations,
-    AsyncSnapshot<PaymentAuthorizationEntity> snapshot,
+    PaymentAuthorizationEntity paymentAuthorizationEntity,
   ) {
-    if (!snapshot.hasData) {
-      return _noDepositFound(context);
-    }
     ThemeData themeData = Theme.of(context);
-    PaymentAuthorizationEntity paymentAuthorizationEntity = snapshot.data;
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
-    List<Widget> rows = [
-      const SizedBox(height: 16.0),
-      Icon(paymentAuthorizationEntity.icon, size: 64.0),
-      const SizedBox(height: 24.0),
-      Center(
-        child: Text(
-          localizations.amount,
-        ),
-      ),
-      const SizedBox(height: 8.0),
-      Center(
-        child: Text(
-          localizations.amountDisplayMessage(
-            currency: Currency.currencySymbol(paymentAuthorizationEntity.amount.currency),
-            value: paymentAuthorizationEntity.amount.value,
+    return ListView(
+      children: [
+        const SizedBox(height: 16.0),
+        Icon(paymentAuthorizationEntity.icon, size: 64.0),
+        const SizedBox(height: 24.0),
+        Center(
+          child: Text(
+            localizations.amount,
           ),
-          style: themeData.textTheme.title,
         ),
-      ),
-      const SizedBox(height: 24.0),
+        const SizedBox(height: 8.0),
+        Center(
+          child: Text(
+            localizations.amountDisplayMessage(
+              currency: Currency.currencySymbol(paymentAuthorizationEntity.amount.currency),
+              value: paymentAuthorizationEntity.amount.value,
+            ),
+            style: themeData.textTheme.title,
+          ),
+        ),
+        const SizedBox(height: 24.0),
+        Center(
+          child: Text(
+            localizations.status,
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Center(
+          child: Text(
+            paymentAuthorizationEntity.getStatusAsText(localizations),
+            style: themeData.textTheme.title,
+          ),
+        ),
+        const SizedBox(height: 24.0),
+        if (paymentAuthorizationEntity.payees.length == 1)
+          ..._singlePayee(context, paymentAuthorizationEntity.payees.first)
+        else
+          ..._multiplePayees(context, paymentAuthorizationEntity.payees)
+      ],
+    );
+  }
+
+  List<Widget> _singlePayee(BuildContext context, PaymentAuthorizationPayeeEntity payee) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    final secret = _secret(payee);
+    return [
       Center(
         child: Text(
-          localizations.status,
+          localizations.secret,
         ),
       ),
       const SizedBox(height: 8.0),
       Center(
-        child: Text(
-          paymentAuthorizationEntity.getStatusAsText(localizations),
-          style: themeData.textTheme.title,
+        child: FutureBuilder(
+          future: secret,
+          builder: (context, snapshot) {
+            return Text(
+              snapshot.hasData ? snapshot.data : '******',
+              style: Theme.of(context).textTheme.title,
+            );
+          },
         ),
       ),
-      const SizedBox(height: 24.0),
+    ];
+  }
+
+  List<Widget> _multiplePayees(BuildContext context, List<PaymentAuthorizationPayeeEntity> payees) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return [
       Center(
         child: Text(
           localizations.payees,
         ),
       ),
       const SizedBox(height: 8.0),
-      ...paymentAuthorizationEntity.payees
+      ...payees
           .expand((payee) => <Widget>[
                 Divider(),
                 _payeeWidget(localizations, payee),
               ])
-          .toList(),
+          .toList()
     ];
-
-    List<Widget> actions = [];
-    if (paymentAuthorizationEntity.isCancelPossible) {
-      actions.add(
-        RaisedButton.icon(
-          onPressed: () => _cancelPaymentAuthorization(paymentAuthorizationEntity),
-          icon: Icon(Icons.close),
-          label: Text(localizations.cancelButtonLabel),
-        ),
-      );
-    }
-    if (actions.isNotEmpty) {
-      rows.add(const SizedBox(height: 24.0));
-      rows.add(
-        ButtonBar(
-          alignment: MainAxisAlignment.spaceAround,
-          children: actions,
-        ),
-      );
-    }
-    return ListView(children: rows);
   }
 
   Widget _payeeWidget(ProxyLocalizations localizations, PaymentAuthorizationPayeeEntity payee) {
+    final secret = _secret(payee);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Text(_payeeDisplayName(localizations, payee)),
-        Text(payee.secret),
+        FutureBuilder(
+          future: secret,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Text(snapshot.data);
+            } else {
+              return Text('******');
+            }
+          },
+        ),
       ],
     );
   }
@@ -195,13 +236,12 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
     }
   }
 
-
-  Widget _noDepositFound(BuildContext context) {
+  Widget _noPaymentAuthorizationFound(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListView(
       children: <Widget>[
         const SizedBox(height: 16.0),
-        Icon(Icons.error, size: 64.0),
+        Icon(Icons.bug_report, size: 64.0),
         const SizedBox(height: 24.0),
         Center(
           child: Text(
@@ -222,5 +262,49 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
     Navigator.of(context).pop();
   }
 
-  void _cancelPaymentAuthorization(PaymentAuthorizationEntity paymentAuthorizationEntity) {}
+  Future<String> _secret(PaymentAuthorizationPayeeEntity payee) {
+    final encryptionService = SymmetricKeyEncryptionService();
+    return encryptionService.decrypt(key: appConfiguration.passPhrase, cipherText: payee.secretEncrypted);
+  }
+
+  void _onAction(BuildContext context, ActionMenuItem action) {
+    if (action.action == SHARE) {
+      _sharePayment(context);
+    } else if (action.action == CANCEL) {
+      _cancelPayment(context);
+    } else {
+      print("Unknown action $action");
+    }
+  }
+
+  void _sharePayment(BuildContext context) async {
+    final paymentAuthorization = await PaymentAuthorizationStore(appConfiguration).fetchPaymentAuthorization(
+      proxyUniverse: proxyUniverse,
+      paymentAuthorizationId: paymentAuthorizationId,
+    );
+    print("Share Payment ${paymentAuthorization.paymentAuthorizationLink}");
+    await Share.share(paymentAuthorization.paymentAuthorizationLink);
+  }
+
+  void _cancelPayment(BuildContext context) async {
+    final paymentAuthorization = await PaymentAuthorizationStore(appConfiguration).fetchPaymentAuthorization(
+      proxyUniverse: proxyUniverse,
+      paymentAuthorizationId: paymentAuthorizationId,
+    );
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    if (paymentAuthorization == null || !paymentAuthorization.isCancelPossible) {
+      showMessage(localizations.cancelNotPossible);
+      return;
+    }
+    showMessage(localizations.notYetImplemented);
+  }
+
+  void showMessage(String message) {
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
 }

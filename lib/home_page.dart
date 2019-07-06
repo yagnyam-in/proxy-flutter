@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/db/deposit_store.dart';
+import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
+import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
+import 'package:proxy_flutter/banking/payment_authorization_page.dart';
 import 'package:proxy_flutter/banking_home.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/contact_store.dart';
@@ -30,6 +33,7 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
   final AppConfiguration appConfiguration;
   final AppConfigurationUpdater appConfigurationUpdater;
   bool loading = false;
+
   _HomePageState(this.appConfiguration, this.appConfigurationUpdater);
 
   @override
@@ -113,17 +117,36 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
     print("Launching dialog to accept payment $query");
     String proxyUniverse = query['proxyUniverse'];
     String paymentAuthorizationId = query['paymentAuthorizationId'];
-    await Navigator.push(
-      context,
-      new MaterialPageRoute(
-        builder: (context) => AcceptPaymentPage(
-          appConfiguration,
-          proxyUniverse: proxyUniverse,
-          paymentAuthorizationId: paymentAuthorizationId,
-        ),
-        fullscreenDialog: true,
-      ),
+    PaymentAuthorizationEntity paymentAuthorization =
+        await PaymentAuthorizationStore(appConfiguration).fetchPaymentAuthorization(
+      proxyUniverse: proxyUniverse,
+      paymentAuthorizationId: paymentAuthorizationId,
     );
+    if (paymentAuthorization != null) {
+      await Navigator.push(
+        context,
+        new MaterialPageRoute(
+          builder: (context) => PaymentAuthorizationPage(
+            appConfiguration,
+            proxyUniverse: proxyUniverse,
+            paymentAuthorizationId: paymentAuthorizationId,
+          ),
+          fullscreenDialog: true,
+        ),
+      );
+    } else {
+      await Navigator.push(
+        context,
+        new MaterialPageRoute(
+          builder: (context) => AcceptPaymentPage(
+            appConfiguration,
+            proxyUniverse: proxyUniverse,
+            paymentAuthorizationId: paymentAuthorizationId,
+          ),
+          fullscreenDialog: true,
+        ),
+      );
+    }
   }
 
   @override

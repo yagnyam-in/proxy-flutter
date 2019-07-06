@@ -3,6 +3,7 @@ import 'package:proxy_flutter/banking/db/deposit_store.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/model/action_menu_item.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
@@ -31,9 +32,13 @@ class DepositPage extends StatefulWidget {
 }
 
 class DepositPageState extends LoadingSupportState<DepositPage> {
+  static const String CANCEL = "cancel";
+
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String depositId;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   Stream<DepositEntity> _depositStream;
   bool loading = false;
 
@@ -57,20 +62,32 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
     super.dispose();
   }
 
+  List<ActionMenuItem> actions(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return [
+      ActionMenuItem(title: localizations.cancelDepositTooltip, icon: Icons.cancel, action: CANCEL),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(localizations.depositEventTitle),
-        actions: [
-          new FlatButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: new Text(
-              localizations.okButtonLabel,
-              style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white),
-            ),
+        actions: <Widget>[
+          PopupMenuButton<ActionMenuItem>(
+            onSelected: (action) => _performAction(context, action),
+            itemBuilder: (BuildContext context) {
+              return actions(context).map((ActionMenuItem choice) {
+                return PopupMenuItem<ActionMenuItem>(
+                  value: choice,
+                  child: Text(choice.title),
+                );
+              }).toList();
+            },
           ),
         ],
       ),
@@ -144,15 +161,6 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
         ),
       );
     }
-    if (depositEntity.isCancelPossible) {
-      actions.add(
-        RaisedButton.icon(
-          onPressed: () => _cancelDeposit(depositEntity),
-          icon: Icon(Icons.close),
-          label: Text(localizations.cancelButtonLabel),
-        ),
-      );
-    }
     if (actions.isNotEmpty) {
       rows.add(const SizedBox(height: 24.0));
       rows.add(
@@ -199,5 +207,34 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
     }
   }
 
-  void _cancelDeposit(DepositEntity depositEntity) {}
+  void _performAction(BuildContext context, ActionMenuItem action) {
+    if (action.action == CANCEL) {
+      _cancelDeposit(context);
+    } else {
+      print("Unknown action $action");
+    }
+  }
+
+  void showMessage(String message) {
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _cancelDeposit(BuildContext context) async {
+    DepositEntity depositEntity = await DepositStore(appConfiguration).fetchDeposit(
+      proxyUniverse: proxyUniverse,
+      depositId: depositId,
+    );
+    if (depositEntity == null || !depositEntity.isCancelPossible) {
+      showMessage(ProxyLocalizations.of(context).cancelNotPossible);
+      return;
+    }
+    if (depositEntity.isCancelPossible) {
+      print("Will cancel $depositEntity");
+    }
+  }
 }

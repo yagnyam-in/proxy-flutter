@@ -60,7 +60,7 @@ class ReceivingAccountsPage extends StatefulWidget {
 
   @override
   _ReceivingAccountsPageState createState() {
-    return _ReceivingAccountsPageState(appConfiguration, changeHomePage, pageMode);
+    return _ReceivingAccountsPageState(appConfiguration, changeHomePage, pageMode, currency);
   }
 }
 
@@ -68,20 +68,22 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
     with HomePageNavigation, EnticementHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
+  final String currency;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   bool loading = false;
 
   final PageMode pageMode;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ReceivingAccountStore _receivingAccountStore;
   Stream<List<ReceivingAccountEntity>> _receivingAccountsStream;
 
-  _ReceivingAccountsPageState(this.appConfiguration, this.changeHomePage, this.pageMode)
+  _ReceivingAccountsPageState(this.appConfiguration, this.changeHomePage, this.pageMode, this.currency)
       : _receivingAccountStore = ReceivingAccountStore(appConfiguration);
 
   @override
   void initState() {
     super.initState();
-    _receivingAccountsStream = _receivingAccountStore.subscribeForAccounts();
+    _receivingAccountsStream = _receivingAccountStore.subscribeForAccounts(currency: currency);
   }
 
   void showToast(String message) {

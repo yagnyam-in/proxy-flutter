@@ -29,8 +29,9 @@ class ReceivingAccountStore with ProxyUtils, FirestoreUtils {
     return accountsRef().document(accountId);
   }
 
-  Stream<List<ReceivingAccountEntity>> subscribeForAccounts() {
-    return accountsRef().snapshots().map(_querySnapshotToAccounts);
+  Stream<List<ReceivingAccountEntity>> subscribeForAccounts({String currency}) {
+    Query query = currency == null ? accountsRef() : accountsRef().where('currency', isEqualTo: currency);
+    return query.snapshots().map(_querySnapshotToAccounts);
   }
 
   Stream<ReceivingAccountEntity> subscribeForAccount({@required String accountId}) {

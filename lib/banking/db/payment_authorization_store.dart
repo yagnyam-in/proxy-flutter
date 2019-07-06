@@ -4,14 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_event.dart';
-import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 
 class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
-
   final AppConfiguration appConfiguration;
   final DocumentReference root;
   final EventStore _eventStore;
@@ -39,10 +38,7 @@ class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
       proxyUniverse: proxyUniverse,
       paymentAuthorizationId: paymentAuthorizationId,
     ).get();
-    if (snapshot.exists) {
-      return PaymentAuthorizationEntity.fromJson(snapshot.data);
-    }
-    return null;
+    return _documentSnapshotToProxyKey(snapshot);
   }
 
   Stream<PaymentAuthorizationEntity> subscribeForPaymentAuthorization({
@@ -52,9 +48,7 @@ class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
     return ref(
       proxyUniverse: proxyUniverse,
       paymentAuthorizationId: paymentAuthorizationId,
-    ).snapshots().map(
-          (s) => s.exists ? PaymentAuthorizationEntity.fromJson(s.data) : null,
-        );
+    ).snapshots().map(_documentSnapshotToProxyKey);
   }
 
   Future<PaymentAuthorizationEntity> savePaymentAuthorization(PaymentAuthorizationEntity paymentAuthorization) async {
@@ -64,5 +58,12 @@ class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
     ).setData(paymentAuthorization.toJson());
     await _eventStore.saveEvent(PaymentAuthorizationEvent.fromPaymentAuthorizationEntity(paymentAuthorization));
     return paymentAuthorization;
+  }
+
+  PaymentAuthorizationEntity _documentSnapshotToProxyKey(DocumentSnapshot snapshot) {
+    if (snapshot == null || !snapshot.exists) {
+      return null;
+    }
+    return PaymentAuthorizationEntity.fromJson(snapshot.data);
   }
 }

@@ -161,85 +161,117 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
             style: themeData.textTheme.title,
           ),
         ),
-        ...paymentCanBeAccepted
-            ? [
-                const SizedBox(height: 24.0),
-                Center(
-                  child: Text(
-                    localizations.enterSecretCode,
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 32, right: 32),
-                    child: TextField(
-                      controller: secretController,
-                      maxLines: 1,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                ButtonBar(
-                  alignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    RaisedButton.icon(
-                      onPressed: () => acceptPayment(context),
-                      icon: Icon(Icons.file_download),
-                      label: Text(localizations.acceptPaymentButtonLabel),
-                    )
-                  ],
-                ),
-              ]
-            : [
-                const SizedBox(height: 24.0),
-                Center(
-                  child: Text(
-                    localizations.paymentCanNotBeAccepted,
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                ButtonBar(
-                  alignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    RaisedButton.icon(
-                      onPressed: close,
-                      icon: Icon(Icons.close),
-                      label: Text(localizations.closeButtonLabel),
-                    )
-                  ],
-                ),
-              ]
+        if (paymentCanBeAccepted) ..._acceptPayment(context) else ..._paymentCanNotBeAccepted(context)
       ],
     );
   }
 
+  List<Widget> _acceptPayment(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return [
+      const SizedBox(height: 24.0),
+      if (_hasPaymentBySecret()) ...[
+        Center(
+          child: Text(
+            localizations.enterSecretCode,
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 32, right: 32),
+            child: TextField(
+              controller: secretController,
+              maxLines: 1,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8.0),
+      ],
+      ButtonBar(
+        alignment: MainAxisAlignment.spaceAround,
+        children: [
+          RaisedButton.icon(
+            onPressed: () => invoke(
+              () => acceptPayment(context),
+              name: 'Accept Payment',
+              onError: () => showMessage(localizations.somethingWentWrong),
+            ),
+            icon: Icon(Icons.file_download),
+            label: Text(localizations.acceptPaymentButtonLabel),
+          )
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _paymentCanNotBeAccepted(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return [
+      const SizedBox(height: 24.0),
+      Center(
+        child: Text(
+          localizations.paymentCanNotBeAccepted,
+          style: TextStyle(color: Colors.red),
+        ),
+      ),
+    ];
+  }
+
   Future<bool> _canPaymentBeAccepted() async {
-    for (var payee in paymentAuthorization.message.payees) {
+    if (_hasPaymentBySecret()) {
+      return true;
+    }
+    return _isPaymentByPayeeId();
+  }
+
+  Future<bool> _isPaymentByPayeeId() async {
+    List<bool> payees = await Future.wait(paymentAuthorization.message.payees.map((payee) async {
       if (payee.payeeType == PayeeTypeEnum.ProxyId) {
         return ProxyKeyStore(appConfiguration).hasProxyKey(payee.proxyId);
       }
+      return false;
+    }).toList());
+    return payees.any((x) => x);
+  }
+
+  bool _hasPaymentBySecret() {
+    for (var payee in paymentAuthorization.message.payees) {
+      if (payee.payeeType != PayeeTypeEnum.ProxyId) {
+        return true;
+      }
     }
-    return true;
+    return false;
   }
 
   Future<void> acceptPayment(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    Payee payee = await BankingServiceFactory.paymentAuthorizationService(appConfiguration).matchingPayee(
+    final paymentAuthorizationService = BankingServiceFactory.paymentAuthorizationService(appConfiguration);
+    Payee payee = await paymentAuthorizationService.matchingPayee(
       paymentAuthorization: paymentAuthorization.message,
       secret: secretController.text,
     );
     if (payee == null) {
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text(localizations.invalidSecret),
-        duration: Duration(seconds: 3),
-      ));
+      showMessage(localizations.invalidSecret);
+      return null;
     }
+    await paymentAuthorizationService.acceptPayment(
+      paymentAuthorization: paymentAuthorization,
+      payee: payee,
+    );
     return null;
+  }
+
+  void showMessage(String message) {
+    Scaffold.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   void close() {

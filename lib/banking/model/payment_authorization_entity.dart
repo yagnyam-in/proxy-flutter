@@ -12,7 +12,7 @@ part 'payment_authorization_entity.g.dart';
 @JsonSerializable()
 class PaymentAuthorizationEntity {
   static final Set<PaymentAuthorizationStatusEnum> cancelPossibleStatuses = {
-    PaymentAuthorizationStatusEnum.Registered,
+    PaymentAuthorizationStatusEnum.Created, PaymentAuthorizationStatusEnum.Registered,
   };
 
   @JsonKey(nullable: false)
