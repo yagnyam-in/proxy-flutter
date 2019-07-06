@@ -36,24 +36,24 @@ class AccountRequest {
 
 class AccountResponse {
   final String accountId;
-  final String accountIdHmac;
+  final HashValue encryptionKeyHash;
 
   AccountResponse({
     @required this.accountId,
-    @required this.accountIdHmac,
+    @required this.encryptionKeyHash,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'accountId': accountId,
-      'accountIdHmac': accountIdHmac,
+      'encryptionKeyHash': encryptionKeyHash,
     };
   }
 
   factory AccountResponse.fromJson(Map json) {
     return AccountResponse(
       accountId: json['accountId'] as String,
-      accountIdHmac: json['accountIdHmac'] as String,
+      encryptionKeyHash: HashValue.fromJson(json['encryptionKeyHash'] as Map),
     );
   }
 }
@@ -90,7 +90,7 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     AccountResponse accountResponse = AccountResponse.fromJson(jsonDecode(response));
     return AccountEntity(
       accountId: accountResponse.accountId,
-      accountIdHmac: accountResponse.accountIdHmac,
+      encryptionKeyHash: accountResponse.encryptionKeyHash,
     );
   }
 
@@ -102,16 +102,10 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
       return false;
     }
     print("Checking HAMC for ${account.accountId}");
-    String accountIdHmac = await ServiceFactory.cryptographyService.getHmac(
-      hmacAlgorithm: "HmacSHA256",
-      input: account.accountId,
-      key: encryptionKey,
+    return ServiceFactory.cryptographyService.verifyHash(
+      hashValue: account.encryptionKeyHash,
+      input: encryptionKey,
     );
-    if (accountIdHmac != account.accountIdHmac) {
-      print("$accountIdHmac != ${account.accountIdHmac}");
-      return false;
-    }
-    return true;
   }
 
   Future<bool> _hasValidMasterProxyId(AccountEntity account, String passPhrase) async {

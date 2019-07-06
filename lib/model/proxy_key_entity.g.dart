@@ -11,8 +11,8 @@ ProxyKeyEntity _$ProxyKeyEntityFromJson(Map json) {
       id: ProxyId.fromJson(json['id'] as Map),
       name: json['name'] as String,
       localAlias: json['localAlias'] as String,
-      encryptionAlgorithm: json['encryptionAlgorithm'] as String,
-      encryptedPrivateKeyEncoded: json['encryptedPrivateKeyEncoded'] as String,
+      privateKeyEncodedEncrypted:
+          CipherText.fromJson(json['privateKeyEncodedEncrypted'] as Map),
       privateKeySha256Thumbprint: json['privateKeySha256Thumbprint'] as String,
       publicKeyEncoded: json['publicKeyEncoded'] as String,
       publicKeySha256Thumbprint: json['publicKeySha256Thumbprint'] as String,
@@ -32,12 +32,11 @@ Map<String, dynamic> _$ProxyKeyEntityToJson(ProxyKeyEntity instance) {
 
   writeNotNull('name', instance.name);
   val['localAlias'] = instance.localAlias;
-  val['encryptionAlgorithm'] = instance.encryptionAlgorithm;
-  val['encryptedPrivateKeyEncoded'] = instance.encryptedPrivateKeyEncoded;
-  writeNotNull(
-      'privateKeySha256Thumbprint', instance.privateKeySha256Thumbprint);
+  val['privateKeyEncodedEncrypted'] =
+      instance.privateKeyEncodedEncrypted.toJson();
+  val['privateKeySha256Thumbprint'] = instance.privateKeySha256Thumbprint;
   val['publicKeyEncoded'] = instance.publicKeyEncoded;
   val['publicKeySha256Thumbprint'] = instance.publicKeySha256Thumbprint;
-  writeNotNull('fcmToken', instance.fcmToken);
+  val['fcmToken'] = instance.fcmToken;
   return val;
 }

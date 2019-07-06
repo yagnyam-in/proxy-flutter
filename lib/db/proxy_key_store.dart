@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/proxy_key_entity.dart';
-import 'package:proxy_flutter/services/encryption_service.dart';
 
 class ProxyKeyStore with ProxyUtils, FirestoreUtils {
   final AccountEntity account;
   final String passPhrase;
-  final EncryptionService encryptionService = EncryptionService();
+  final SymmetricKeyEncryptionService encryptionService = SymmetricKeyEncryptionService();
 
   ProxyKeyStore.forAccount(this.account, this.passPhrase) {
     assert(account != null);
@@ -114,8 +114,7 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
       name: keyEntity.name,
       localAlias: keyEntity.localAlias,
       privateKeyEncoded: await encryptionService.decrypt(
-        encryptionAlgorithm: keyEntity.encryptionAlgorithm,
-        cipherText: keyEntity.encryptedPrivateKeyEncoded,
+        cipherText: keyEntity.privateKeyEncodedEncrypted,
         key: passPhrase,
       ),
       privateKeySha256Thumbprint: keyEntity.privateKeySha256Thumbprint,
@@ -129,9 +128,8 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
       id: key.id,
       name: key.name,
       localAlias: key.localAlias,
-      encryptionAlgorithm: EncryptionService.ENCRYPTION_ALGORITHM,
-      encryptedPrivateKeyEncoded: await encryptionService.encrypt(
-        encryptionAlgorithm: EncryptionService.ENCRYPTION_ALGORITHM,
+      privateKeyEncodedEncrypted: await encryptionService.encrypt(
+        encryptionAlgorithm: SymmetricKeyEncryptionService.ENCRYPTION_ALGORITHM,
         plainText: key.privateKeyEncoded,
         key: passPhrase,
       ),

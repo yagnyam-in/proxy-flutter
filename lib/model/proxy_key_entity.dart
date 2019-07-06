@@ -19,12 +19,9 @@ class ProxyKeyEntity {
   final String localAlias;
 
   @JsonKey(nullable: false)
-  final String encryptionAlgorithm;
+  final CipherText privateKeyEncodedEncrypted;
 
   @JsonKey(nullable: false)
-  final String encryptedPrivateKeyEncoded;
-
-  @JsonKey(nullable: true)
   final String privateKeySha256Thumbprint;
 
   @JsonKey(nullable: false)
@@ -40,8 +37,7 @@ class ProxyKeyEntity {
     @required this.id,
     this.name,
     @required this.localAlias,
-    @required this.encryptionAlgorithm,
-    @required this.encryptedPrivateKeyEncoded,
+    @required this.privateKeyEncodedEncrypted,
     @required this.privateKeySha256Thumbprint,
     @required this.publicKeyEncoded,
     @required this.publicKeySha256Thumbprint,

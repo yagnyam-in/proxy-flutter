@@ -10,7 +10,7 @@ class AccountEntity {
   final String accountId;
 
   @JsonKey(nullable: false)
-  final String accountIdHmac;
+  final HashValue encryptionKeyHash;
 
   @JsonKey(nullable: true)
   final ProxyId masterProxyId;
@@ -22,7 +22,7 @@ class AccountEntity {
     this.accountId,
     this.masterProxyId,
     this.name,
-    this.accountIdHmac,
+    this.encryptionKeyHash,
   });
 
   AccountEntity copy({
@@ -31,7 +31,7 @@ class AccountEntity {
   }) {
     return AccountEntity(
       accountId: this.accountId,
-      accountIdHmac: this.accountIdHmac,
+      encryptionKeyHash: this.encryptionKeyHash,
       masterProxyId: masterProxyId ?? this.masterProxyId,
       name: name ?? this.name,
     );

@@ -13,13 +13,13 @@ AccountEntity _$AccountEntityFromJson(Map json) {
           ? null
           : ProxyId.fromJson(json['masterProxyId'] as Map),
       name: json['name'] as String,
-      accountIdHmac: json['accountIdHmac'] as String);
+      encryptionKeyHash: HashValue.fromJson(json['encryptionKeyHash'] as Map));
 }
 
 Map<String, dynamic> _$AccountEntityToJson(AccountEntity instance) {
   final val = <String, dynamic>{
     'accountId': instance.accountId,
-    'accountIdHmac': instance.accountIdHmac,
+    'encryptionKeyHash': instance.encryptionKeyHash.toJson(),
   };
 
   void writeNotNull(String key, dynamic value) {

@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/payment_authorization_input_dialog.dart';
-import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/localizations.dart';
@@ -52,12 +52,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     PaymentAuthorizationPayeeInput input,
   ) async {
     String paymentEncashmentId = uuidFactory.v4();
-    var hash = (String input) => _computeHash(
-          proxyUniverse: proxyUniverse,
-          paymentAuthorizationId: paymentAuthorizationId,
-          paymentEncashmentId: paymentEncashmentId,
-          input: input,
-        );
+    var hash = (String input) => _computeHash(input);
 
     return PaymentAuthorizationPayeeEntity(
       proxyUniverse: proxyUniverse,
@@ -251,12 +246,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     String phone,
     @required String secret,
   }) async {
-    var hash = (String input) => _computeHash(
-          proxyUniverse: paymentAuthorization.proxyUniverse,
-          paymentAuthorizationId: paymentAuthorization.paymentAuthorizationId,
-          paymentEncashmentId: payee.paymentEncashmentId,
-          input: input,
-        );
+    var hash = (String input) => _computeHash(input);
     switch (payee.payeeType) {
       case PayeeTypeEnum.ProxyId:
         return false;
@@ -271,18 +261,13 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     }
   }
 
-  Future<String> _computeHash({
-    @required String paymentAuthorizationId,
-    @required String paymentEncashmentId,
-    @required String proxyUniverse,
-    @required String input,
-  }) {
+  Future<HashValue> _computeHash(String input) {
     if (input == null) {
       return Future.value(null);
     }
     return cryptographyService.getHash(
       hashAlgorithm: "SHA256",
-      input: "$proxyUniverse#$paymentAuthorizationId#$paymentEncashmentId#${input.toUpperCase()}",
+      input: input.toUpperCase(),
     );
   }
 }

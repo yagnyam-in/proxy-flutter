@@ -21,9 +21,9 @@ class PaymentAuthorizationPayeeEntity {
   final String email;
   final String phone;
   final String secret;
-  final String emailHash;
-  final String phoneHash;
-  final String secretHash;
+  final HashValue emailHash;
+  final HashValue phoneHash;
+  final HashValue secretHash;
 
   PaymentAuthorizationPayeeEntity({
     @required this.payeeType,
