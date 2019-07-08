@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/account_store.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/db/proxy_store.dart';
@@ -75,6 +76,10 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
         appBackendUrl = "${appBackendUrl ?? UrlConfig.APP_BACKEND}/app/accounts" {
     assert(firebaseUser != null);
     assert(appUser != null);
+  }
+
+  factory AccountService.fromAppConfig(AppConfiguration appConfiguration) {
+    return AccountService(firebaseUser: appConfiguration.firebaseUser, appUser: appConfiguration.appUser,);
   }
 
   Future<AccountEntity> createAccount({@required String encryptionKey}) async {
@@ -162,6 +167,19 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
       signatureAlgorithm: proxyVersion.certificateSignatureAlgorithm,
       revocationPassPhrase: revocationPassPhrase,
     );
+  }
+
+  Future<void> updatePreferences(
+    AccountEntity account, {
+    String currency,
+    String email,
+    String phone,
+  }) async {
+    await AccountStore().saveAccount(account.copy(
+      email: email,
+      phone: phone,
+      preferredCurrency: currency,
+    ));
   }
 
   Future<Proxy> _createProxy(ProxyRequest proxyRequest) {

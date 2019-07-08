@@ -4,7 +4,7 @@ import 'package:meta/meta.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/widgets/basic_types.dart';
 
-enum EventType { Unknown, Deposit, Withdrawal, PaymentAuthorization, Fx }
+enum EventType { Unknown, Deposit, Withdrawal, PaymentAuthorization, PaymentEncashment, Fx }
 
 class EventAction {
   final String title;

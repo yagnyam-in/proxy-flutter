@@ -1,11 +1,10 @@
 import 'package:proxy_flutter/banking/services/banking_service.dart';
 import 'package:proxy_flutter/banking/services/deposit_service.dart';
 import 'package:proxy_flutter/banking/services/payment_authorization_service.dart';
+import 'package:proxy_flutter/banking/services/payment_encashment_service.dart';
 import 'package:proxy_flutter/banking/services/withdrawal_service.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
-
-import 'event_actions.dart';
 
 class BankingServiceFactory {
   static BankingService bankingService(AppConfiguration appConfiguration) {
@@ -41,11 +40,12 @@ class BankingServiceFactory {
     );
   }
 
-  static EventActions eventActions(AppConfiguration appConfiguration) {
-    return EventActions(
-      withdrawalService: withdrawalService(appConfiguration),
-      depositService: depositService(appConfiguration),
-      paymentService: paymentAuthorizationService(appConfiguration),
+  static PaymentEncashmentService paymentEncashmentService(AppConfiguration appConfiguration) {
+    return PaymentEncashmentService(
+      appConfiguration,
+      messageFactory: ServiceFactory.messageFactory(appConfiguration),
+      messageSigningService: ServiceFactory.messageSigningService(),
+      cryptographyService: ServiceFactory.cryptographyService,
     );
   }
 }

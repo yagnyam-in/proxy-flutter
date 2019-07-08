@@ -4,10 +4,13 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/db/deposit_store.dart';
 import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
+import 'package:proxy_flutter/banking/db/payment_encashment_store.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
+import 'package:proxy_flutter/banking/model/payment_encashment_entity.dart';
 import 'package:proxy_flutter/banking/payment_authorization_page.dart';
+import 'package:proxy_flutter/banking/payment_encashment_page.dart';
 import 'package:proxy_flutter/banking_home.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/contact_store.dart';
@@ -20,21 +23,23 @@ import 'widgets/basic_types.dart';
 
 class HomePage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final AppConfigurationUpdater appConfigurationUpdater;
 
-  HomePage({Key key, @required this.appConfiguration, @required this.appConfigurationUpdater}) : super(key: key);
+  HomePage(this.appConfiguration, {Key key}) : super(key: key) {
+    print("build home page with $appConfiguration");
+  }
 
   @override
-  _HomePageState createState() => _HomePageState(appConfiguration, appConfigurationUpdater);
+  _HomePageState createState() => _HomePageState(appConfiguration);
 }
 
 class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingObserver {
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final AppConfiguration appConfiguration;
-  final AppConfigurationUpdater appConfigurationUpdater;
   bool loading = false;
 
-  _HomePageState(this.appConfiguration, this.appConfigurationUpdater);
+  _HomePageState(this.appConfiguration) {
+    print("build home page state with $appConfiguration");
+  }
 
   @override
   void initState() {
@@ -64,17 +69,17 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
     if (link == null) return;
     print('link.path = ${link.path}');
     if (link.path == '/actions/add-proxy') {
-      _addProxy(link.queryParameters);
+      _addProxy(link, link.queryParameters);
     } else if (link.path == '/actions/deposit-status') {
-      _depositStatus(link.queryParameters);
+      _depositStatus(link, link.queryParameters);
     } else if (link.path == '/actions/accept-payment') {
-      _acceptPayment(link.queryParameters);
+      _payment(link, link.queryParameters);
     } else {
       print('ignoring $link');
     }
   }
 
-  Future<void> _addProxy(Map<String, String> query) async {
+  Future<void> _addProxy(Uri link, Map<String, String> query) async {
     print("Launching dialog to add proxy with $query");
     ProxyId proxyId = nullIfError(() => ProxyId(query['id'], query['sha256Thumbprint']));
     if (proxyId == null) {
@@ -90,7 +95,7 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
     );
   }
 
-  Future<void> _depositStatus(Map<String, String> query) async {
+  Future<void> _depositStatus(Uri link, Map<String, String> query) async {
     print("Launching dialog to show deposit status $query");
     String proxyUniverse = query['proxyUniverse'];
     String depositId = query['depositId'];
@@ -113,7 +118,7 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
     );
   }
 
-  Future<void> _acceptPayment(Map<String, String> query) async {
+  Future<void> _payment(Uri link, Map<String, String> query) async {
     print("Launching dialog to accept payment $query");
     String proxyUniverse = query['proxyUniverse'];
     String paymentAuthorizationId = query['paymentAuthorizationId'];
@@ -123,37 +128,59 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
       paymentAuthorizationId: paymentAuthorizationId,
     );
     if (paymentAuthorization != null) {
+      print("Launching Payment Authorization Page for $link");
       await Navigator.push(
         context,
         new MaterialPageRoute(
-          builder: (context) => PaymentAuthorizationPage(
+          builder: (context) => PaymentAuthorizationPage.forPaymentAuthorization(
             appConfiguration,
-            proxyUniverse: proxyUniverse,
-            paymentAuthorizationId: paymentAuthorizationId,
+            paymentAuthorization,
           ),
           fullscreenDialog: true,
         ),
       );
-    } else {
-      await Navigator.push(
-        context,
-        new MaterialPageRoute(
-          builder: (context) => AcceptPaymentPage(
-            appConfiguration,
-            proxyUniverse: proxyUniverse,
-            paymentAuthorizationId: paymentAuthorizationId,
-          ),
-          fullscreenDialog: true,
-        ),
-      );
+      return;
     }
+    PaymentEncashmentEntity paymentEncashment = await PaymentEncashmentStore(appConfiguration).fetchPaymentEncashment(
+      proxyUniverse: proxyUniverse,
+      paymentEncashmentId: null,
+      paymentAuthorizationId: paymentAuthorizationId,
+    );
+    if (paymentEncashment != null) {
+      print("Launching Payment Encashment Page for for $link");
+      await Navigator.push(
+        context,
+        new MaterialPageRoute(
+          builder: (context) => PaymentEncashmentPage.forPaymentEncashment(
+            appConfiguration,
+            paymentEncashment,
+          ),
+          fullscreenDialog: true,
+        ),
+      );
+      return;
+    }
+    print("Launching Payment Accept Page for $link");
+    await Navigator.push(
+      context,
+      new MaterialPageRoute(
+        builder: (context) => AcceptPaymentPage(
+          appConfiguration,
+          proxyUniverse: proxyUniverse,
+          paymentAuthorizationId: paymentAuthorizationId,
+          paymentLink: link.toString(),
+        ),
+        fullscreenDialog: true,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    print("Returning Banking Home Page with $appConfiguration");
     return BankingHome(
       appConfiguration,
-      appConfigurationUpdater: appConfigurationUpdater,
+      key: ValueKey(appConfiguration),
     );
   }
 }

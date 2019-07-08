@@ -13,7 +13,10 @@ AccountEntity _$AccountEntityFromJson(Map json) {
           ? null
           : ProxyId.fromJson(json['masterProxyId'] as Map),
       name: json['name'] as String,
-      encryptionKeyHash: HashValue.fromJson(json['encryptionKeyHash'] as Map));
+      encryptionKeyHash: HashValue.fromJson(json['encryptionKeyHash'] as Map),
+      preferredCurrency: json['preferredCurrency'] as String,
+      phone: json['phone'] as String,
+      email: json['email'] as String);
 }
 
 Map<String, dynamic> _$AccountEntityToJson(AccountEntity instance) {
@@ -30,5 +33,8 @@ Map<String, dynamic> _$AccountEntityToJson(AccountEntity instance) {
 
   writeNotNull('masterProxyId', instance.masterProxyId?.toJson());
   writeNotNull('name', instance.name);
+  writeNotNull('preferredCurrency', instance.preferredCurrency);
+  writeNotNull('phone', instance.phone);
+  writeNotNull('email', instance.email);
   return val;
 }

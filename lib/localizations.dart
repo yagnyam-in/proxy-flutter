@@ -933,7 +933,7 @@ class ProxyLocalizations {
 
   String get loginPageDescription {
     return Intl.message(
-      'Please verify your email address before proceeding further.',
+      'Please verify your email address to proceeding further.',
     );
   }
 
@@ -1051,6 +1051,25 @@ class ProxyLocalizations {
   String get cancelNotPossible => Intl.message('Cancel not possible');
 
   String get notYetImplemented => Intl.message('Not yet implemented');
+
+  String get paymentEncashmentEventTitle => Intl.message('Payment Received');
+
+  String get copiedToClipboard => Intl.message('Copied to Clipboard');
+
+  String paymentEncashmentEventSubTitle(String payeeAccount) {
+    return Intl.message(
+      'Account: $payeeAccount',
+      name: 'paymentEncashmentEventSubTitle',
+      args: [payeeAccount],
+      desc: 'Paying to Account',
+      examples: {
+        'payeeAccount': 'NL11INGB040037899',
+      },
+    );
+  }
+
+  String get paymentEncashmentNotFound => Intl.message('Payment Encashment not found');
+
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

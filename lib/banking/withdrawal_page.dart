@@ -75,7 +75,7 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.depositEventTitle),
+        title: Text(localizations.withdrawalEventTitle + appConfiguration.proxyUniverseSuffix),
         actions: <Widget>[
           PopupMenuButton<ActionMenuItem>(
             onSelected: (action) => _performAction(context, action),

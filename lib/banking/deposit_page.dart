@@ -76,7 +76,7 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.depositEventTitle),
+        title: Text(localizations.depositEventTitle + appConfiguration.proxyUniverseSuffix),
         actions: <Widget>[
           PopupMenuButton<ActionMenuItem>(
             onSelected: (action) => _performAction(context, action),

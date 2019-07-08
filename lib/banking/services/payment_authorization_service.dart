@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
@@ -11,23 +10,22 @@ import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.d
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/payment_authorization_input_dialog.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:proxy_flutter/services/service_helper.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 import 'package:uuid/uuid.dart';
 
-class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, RandomUtils {
+class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils, RandomUtils {
   final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
   final HttpClientFactory httpClientFactory;
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
-  final ProxyKeyStore _proxyKeyStore;
   final CryptographyService cryptographyService;
   final PaymentAuthorizationStore _paymentAuthorizationStore;
 
@@ -40,7 +38,6 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     @required this.cryptographyService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _proxyKeyStore = ProxyKeyStore(appConfiguration),
         _paymentAuthorizationStore = PaymentAuthorizationStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
@@ -72,6 +69,16 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     );
   }
 
+  Future<HashValue> _computeHash(String input) {
+    if (input == null) {
+      return Future.value(null);
+    }
+    return cryptographyService.getHash(
+      input: input,
+      hashAlgorithm: 'SHA256',
+    );
+  }
+
   Future<List<PaymentAuthorizationPayeeEntity>> _inputsToPayees(
       String proxyUniverse, String paymentAuthorizationId, List<PaymentAuthorizationPayeeInput> inputs) async {
     return Future.wait(inputs.map((i) => _inputToPayee(proxyUniverse, paymentAuthorizationId, i)).toList());
@@ -93,8 +100,6 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     ProxyAccountEntity proxyAccount,
     PaymentAuthorizationInput input,
   ) async {
-    ProxyId ownerProxyId = proxyAccount.ownerProxyId;
-    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(ownerProxyId);
     String paymentAuthorizationId = uuidFactory.v4();
     String proxyUniverse = proxyAccount.proxyUniverse;
 
@@ -110,9 +115,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
       ),
       payees: payeeEntityList.map(_payeeEntityToPayee).toList(),
     );
-    SignedMessage<PaymentAuthorization> signedPaymentAuthorization =
-        await messageSigningService.signMessage(request, proxyKey);
-    String signedRequestJson = jsonEncode(signedPaymentAuthorization.toJson());
+    final signedPaymentAuthorization = await signMessage(request: request);
     Uri paymentLink = await ServiceFactory.deepLinkService().createDeepLink(
       Uri.parse(
           '${UrlConfig.PROXY_BANKING}/actions/accept-payment?proxyUniverse=$proxyUniverse&paymentAuthorizationId=$paymentAuthorizationId'),
@@ -122,7 +125,6 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
 
     PaymentAuthorizationEntity paymentAuthorizationEntity = _createAuthorizationEntity(
       proxyAccount: proxyAccount,
-      request: request,
       signedPaymentAuthorization: signedPaymentAuthorization,
       paymentLink: paymentLink.toString(),
       payees: payeeEntityList,
@@ -130,65 +132,62 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     PaymentAuthorizationStatusEnum status = paymentAuthorizationEntity.status;
 
     try {
-      print("Sending $signedRequestJson to $proxyBankingUrl");
-      String jsonResponse = await post(
-        httpClientFactory(),
-        proxyBankingUrl,
-        body: signedRequestJson,
+      final signedResponse = await sendAndReceive(
+        url: proxyBankingUrl,
+        signedRequest: signedPaymentAuthorization,
+        responseParser: PaymentAuthorizationRegistered.signedMessageFromJson,
       );
-      print("Received $jsonResponse from $proxyBankingUrl");
-      SignedMessage<PaymentAuthorizationRegistered> signedResponse =
-          await messageFactory.buildAndVerifySignedMessage(jsonResponse, PaymentAuthorizationRegistered.fromJson);
       status = signedResponse.message.paymentAuthorizationStatus;
     } catch (e) {
       print("Error while registering Payment Authorization: $e");
     }
 
-    paymentAuthorizationEntity = await _savePaymentAuthorization(paymentAuthorizationEntity, status: status);
+    await _paymentAuthorizationStore.savePaymentAuthorization(paymentAuthorizationEntity.copy(status: status));
     return paymentLink;
   }
 
-  Future<void> refreshPaymentAuthorizationStatus(
+  Future<void> _refreshPaymentAuthorizationStatus(
     PaymentAuthorizationEntity authorizationEntity,
   ) async {
     print('Refreshing $authorizationEntity');
 
-    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(authorizationEntity.payerProxyId);
     PaymentAuthorizationStatusRequest request = PaymentAuthorizationStatusRequest(
       requestId: uuidFactory.v4(),
       paymentAuthorization: authorizationEntity.signedPaymentAuthorization,
     );
-    SignedMessage<PaymentAuthorizationStatusRequest> signedRequest =
-        await messageSigningService.signMessage(request, proxyKey);
-    String signedRequestJson = jsonEncode(signedRequest.toJson());
+    final signedRequest = await signMessage(request: request);
 
-    print("Sending $signedRequestJson to $proxyBankingUrl");
-    String jsonResponse = await post(
-      httpClientFactory(),
-      proxyBankingUrl,
-      body: signedRequestJson,
+    final signedResponse = await sendAndReceive(
+      url: proxyBankingUrl,
+      signedRequest: signedRequest,
+      responseParser: PaymentAuthorizationStatusResponse.signedMessageFromJson,
     );
-    print("Received $jsonResponse from $proxyBankingUrl");
-    SignedMessage<PaymentAuthorizationStatusResponse> signedResponse =
-        await messageFactory.buildAndVerifySignedMessage(jsonResponse, PaymentAuthorizationStatusResponse.fromJson);
-    await _savePaymentAuthorization(
+    await _savePaymentAuthorizationStatus(
       authorizationEntity,
-      status: signedResponse.message.paymentAuthorizationStatus,
+      signedResponse.message.paymentAuthorizationStatus,
+    );
+  }
+
+  Future<void> processPaymentAuthorizationUpdate(PaymentAuthorizationUpdatedAlert alert) {
+    return refreshPaymentAuthorizationStatus(
+      proxyUniverse: alert.proxyUniverse,
+      paymentAuthorizationId: alert.paymentAuthorizationId,
     );
   }
 
   PaymentAuthorizationEntity _createAuthorizationEntity({
     @required ProxyAccountEntity proxyAccount,
-    @required PaymentAuthorization request,
     @required List<PaymentAuthorizationPayeeEntity> payees,
     @required SignedMessage<PaymentAuthorization> signedPaymentAuthorization,
     @required String paymentLink,
   }) {
+    PaymentAuthorization paymentAuthorization = signedPaymentAuthorization.message;
+
     return PaymentAuthorizationEntity(
       proxyUniverse: proxyAccount.proxyUniverse,
-      paymentAuthorizationId: request.paymentAuthorizationId,
+      paymentAuthorizationId: paymentAuthorization.paymentAuthorizationId,
       status: PaymentAuthorizationStatusEnum.Created,
-      amount: request.amount,
+      amount: paymentAuthorization.amount,
       payerAccountId: proxyAccount.accountId,
       payerProxyId: proxyAccount.ownerProxyId,
       paymentAuthorizationLink: paymentLink,
@@ -200,16 +199,19 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     );
   }
 
-  Future<PaymentAuthorizationEntity> _savePaymentAuthorization(
-    PaymentAuthorizationEntity entity, {
+  Future<PaymentAuthorizationEntity> _savePaymentAuthorizationStatus(
+    PaymentAuthorizationEntity entity,
     PaymentAuthorizationStatusEnum status,
-  }) async {
+  ) async {
     // print("Setting ${entity.paymentAuthorizationEntityId} status to $localStatus");
+    if (status == null || status == entity.status) {
+      return entity;
+    }
     PaymentAuthorizationEntity clone = entity.copy(
       status: status ?? entity.status,
       lastUpdatedTime: DateTime.now(),
     );
-    _paymentAuthorizationStore.savePaymentAuthorization(entity);
+    await _paymentAuthorizationStore.savePaymentAuthorization(clone);
     return clone;
   }
 
@@ -222,71 +224,16 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, DebugUtils, 
     return messageFactory.buildAndVerifySignedMessage(jsonResponse, PaymentAuthorization.fromJson);
   }
 
-  Future<Payee> matchingPayee({
-    @required PaymentAuthorization paymentAuthorization,
-    String email,
-    String phone,
-    @required String secret,
+  Future<void> refreshPaymentAuthorizationStatus({
+    String proxyUniverse,
+    String paymentAuthorizationId,
   }) async {
-    for (var payee in paymentAuthorization.payees) {
-      bool match = await _matchesPyee(
-        paymentAuthorization: paymentAuthorization,
-        payee: payee,
-        secret: secret,
-        phone: phone,
-        email: email,
-      );
-      if (match) {
-        return payee;
-      }
-    }
-    return null;
-  }
-
-  Future<bool> _matchesPyee({
-    @required PaymentAuthorization paymentAuthorization,
-    @required Payee payee,
-    String email,
-    String phone,
-    @required String secret,
-  }) async {
-    switch (payee.payeeType) {
-      case PayeeTypeEnum.ProxyId:
-        return false;
-      case PayeeTypeEnum.Email:
-        return await _verifyHash(email, payee.emailHash) && await _verifyHash(secret, payee.secretHash);
-      case PayeeTypeEnum.Phone:
-        return await _verifyHash(email, payee.phoneHash) && await _verifyHash(secret, payee.secretHash);
-      case PayeeTypeEnum.AnyoneWithSecret:
-        return await _verifyHash(secret, payee.secretHash);
-      default:
-        return false;
-    }
-  }
-
-  Future<bool> _verifyHash(String input, HashValue hash) async {
-    if (input == null) {
-      return false;
-    }
-    return cryptographyService.verifyHash(hashValue: hash, input: input);
-  }
-
-  Future<HashValue> _computeHash(String input) {
-    return cryptographyService.getHash(
-      input: input,
-      hashAlgorithm: 'SHA256',
+    PaymentAuthorizationEntity paymentAuthorizationEntity = await _paymentAuthorizationStore.fetchPaymentAuthorization(
+      proxyUniverse: proxyUniverse,
+      paymentAuthorizationId: paymentAuthorizationId,
     );
-  }
-
-  Future<void> acceptPayment({
-    @required SignedMessage<PaymentAuthorization> paymentAuthorization,
-    @required Payee payee,
-    String secret,
-  }) async {
-
-    PaymentEncashment encashment = PaymentEncashment(
-      paymentEncashmentId: payee.paymentEncashmentId,
-      paymentAuthorization: paymentAuthorization, payeeAccount: null,
-    );
+    if (paymentAuthorizationEntity != null) {
+      await _refreshPaymentAuthorizationStatus(paymentAuthorizationEntity);
+    }
   }
 }

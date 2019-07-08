@@ -43,6 +43,7 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
 
   StreamBuilder streamBuilder<T>({
     @required Stream<T> stream,
+    T initialData,
     String name,
     Widget loadingWidget,
     String errorMessage,
@@ -52,12 +53,14 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
     @required DataToWidgetBuilder<T> builder,
   }) {
     return StreamBuilder<T>(
+      initialData: initialData,
       stream: stream,
       builder: (BuildContext context, AsyncSnapshot<T> snapshot) {
         return asyncBuilder(
           context,
           snapshot,
-          name: name ?? "streamBuilder",
+          builderName: "streamBuilder",
+          name: name,
           loadingWidget: loadingWidget,
           errorMessage: errorMessage,
           errorWidget: errorWidget,
@@ -71,6 +74,7 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
 
   FutureBuilder futureBuilder<T>({
     @required Future<T> future,
+    T initialData,
     String name,
     Widget loadingWidget,
     String errorMessage,
@@ -81,11 +85,13 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
   }) {
     return FutureBuilder<T>(
       future: future,
+      initialData: initialData,
       builder: (BuildContext context, AsyncSnapshot<T> snapshot) {
         return asyncBuilder(
           context,
           snapshot,
-          name: name ?? "futureBuilder",
+          builderName: "futureBuilder",
+          name: name,
           loadingWidget: loadingWidget,
           errorMessage: errorMessage,
           errorWidget: errorWidget,
@@ -100,6 +106,7 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
   Widget asyncBuilder<T>(
     BuildContext context,
     AsyncSnapshot<T> snapshot, {
+        @required String builderName,
     String name,
     Widget loadingWidget,
     String errorMessage,
@@ -109,10 +116,10 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
     @required DataToWidgetBuilder<T> builder,
   }) {
     if (LOADING_STATES.contains(snapshot.connectionState)) {
-      print("asyncBuilder($name) is still loading: ${snapshot.connectionState}");
+      print("$builderName($name) is still loading: ${snapshot.connectionState}");
       return loadingWidget ?? LoadingWidget();
     } else if (snapshot.hasError) {
-      print("asyncBuilder($name) has Error: ${snapshot.error}");
+      print("$builderName($name) has Error: ${snapshot.error}");
       return errorWidget ??
           Center(
             child: Text(
@@ -121,7 +128,7 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
             ),
           );
     } else if (!snapshot.hasData) {
-      print("asyncBuilder($name) has no data");
+      print("$builderName($name) has no data");
       return emptyWidget ??
           Center(
             child: Text(
@@ -129,7 +136,7 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
             ),
           );
     } else {
-      print("asyncBuilder($name) is ready with ${snapshot.data}");
+      print("$builderName($name) is ready with data: ${snapshot.data}");
       return builder(context, snapshot.data);
     }
   }

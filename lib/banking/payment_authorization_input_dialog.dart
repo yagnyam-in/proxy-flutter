@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/services/account_service.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 
@@ -72,22 +74,23 @@ class PaymentAuthorizationInput with ProxyUtils {
     assert(payees.isNotEmpty);
     payees.forEach((p) => p.assertValid());
   }
-
 }
 
 class PaymentAuthorizationInputDialog extends StatefulWidget {
+  final AppConfiguration appConfiguration;
   final PaymentAuthorizationInput paymentAuthorizationInput;
 
-  PaymentAuthorizationInputDialog({Key key, this.paymentAuthorizationInput}) : super(key: key) {
+  PaymentAuthorizationInputDialog(this.appConfiguration, {Key key, this.paymentAuthorizationInput}) : super(key: key) {
     print("Constructing PaymentAuthorizationInputDialog with Input $paymentAuthorizationInput");
   }
 
   @override
   _PaymentAuthorizationInputDialogState createState() =>
-      _PaymentAuthorizationInputDialogState(paymentAuthorizationInput);
+      _PaymentAuthorizationInputDialogState(appConfiguration, paymentAuthorizationInput);
 }
 
 class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationInputDialog> with ProxyUtils {
+  final AppConfiguration appConfiguration;
   final PaymentAuthorizationInput paymentAuthorizationInput;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -109,11 +112,11 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     return [Currency.INR, Currency.EUR];
   }
 
-  _PaymentAuthorizationInputDialogState(this.paymentAuthorizationInput)
+  _PaymentAuthorizationInputDialogState(this.appConfiguration, this.paymentAuthorizationInput)
       : amountController = TextEditingController(),
         messageController = TextEditingController(text: paymentAuthorizationInput?.message),
         secretController = TextEditingController(text: paymentAuthorizationInput?.payees?.first?.secret),
-        _currency = paymentAuthorizationInput?.currency;
+        _currency = paymentAuthorizationInput?.currency ?? appConfiguration.account.preferredCurrency;
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -122,14 +125,16 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     ));
   }
 
-  @override void initState() {
+  @override
+  void initState() {
     super.initState();
     _amountFocusNode = FocusNode();
     _messageFocusNode = FocusNode();
     _submitFocusNode = FocusNode();
   }
 
-  @override void dispose() {
+  @override
+  void dispose() {
     super.dispose();
     _amountFocusNode.dispose();
     _messageFocusNode.dispose();
@@ -204,7 +209,6 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       ),
     ]);
 
-
     children.addAll([
       const SizedBox(height: 16.0),
       TextFormField(
@@ -240,7 +244,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
         alignment: Alignment.center,
         child: RaisedButton(
           focusNode: _submitFocusNode,
-          onPressed: ()  => _submit(localizations),
+          onPressed: () => _submit(localizations),
           child: Text(localizations.createAndShareButtonLabel),
         ),
       ),
@@ -258,6 +262,10 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     if (_currency == null) {
       showError(localizations.fieldIsMandatory(localizations.currency));
     } else if (_formKey.currentState.validate()) {
+      AccountService.fromAppConfig(appConfiguration).updatePreferences(
+        appConfiguration.account,
+        currency: _currency,
+      );
       PaymentAuthorizationInput result = PaymentAuthorizationInput(
         currency: _currency,
         amount: double.parse(amountController.text),

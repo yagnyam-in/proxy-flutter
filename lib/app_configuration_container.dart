@@ -2,24 +2,26 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 
-class AppConfigurationContainer extends StatefulWidget {
+class _AppConfigurationContainer extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final Widget child;
 
-  AppConfigurationContainer({
+  _AppConfigurationContainer({
     @required this.child,
     @required this.appConfiguration,
   });
 
   static AppConfiguration configuration(BuildContext context) {
-    return (context.inheritFromWidgetOfExactType(_InheritedStateContainer) as _InheritedStateContainer).data.appConfiguration;
+    return (context.inheritFromWidgetOfExactType(_InheritedStateContainer) as _InheritedStateContainer)
+        .data
+        .appConfiguration;
   }
 
   @override
   _AppConfigurationContainerState createState() => new _AppConfigurationContainerState(appConfiguration);
 }
 
-class _AppConfigurationContainerState extends State<AppConfigurationContainer> {
+class _AppConfigurationContainerState extends State<_AppConfigurationContainer> {
   final AppConfiguration appConfiguration;
 
   _AppConfigurationContainerState(this.appConfiguration);
@@ -39,6 +41,26 @@ class _AppConfigurationContainerState extends State<AppConfigurationContainer> {
   }
 }
 
+class AppConfigurationContainer extends InheritedWidget {
+  final AppConfiguration appConfiguration;
+
+  AppConfigurationContainer({
+    Key key,
+    @required this.appConfiguration,
+    @required Widget child,
+  }) : super (key:key, child: child);
+
+
+  @override
+  bool updateShouldNotify(AppConfigurationContainer oldContainer) {
+    final latest = this.appConfiguration;
+    final old = oldContainer.appConfiguration;
+    final notify = latest != old;
+    print('AppConfigurationContainer.updateShouldNotify => $notify');
+    return notify;
+  }
+}
+
 class _InheritedStateContainer extends InheritedWidget {
   final _AppConfigurationContainerState data;
 
@@ -49,8 +71,11 @@ class _InheritedStateContainer extends InheritedWidget {
   }) : super(key: key, child: child);
 
   @override
-  bool updateShouldNotify(_InheritedStateContainer old) {
-    print('_InheritedStateContainer.updateShouldNotify');
-    return true;
+  bool updateShouldNotify(_InheritedStateContainer oldContainer) {
+    final latest = data.appConfiguration;
+    final old = oldContainer.data.appConfiguration;
+    final notify = latest != old;
+    print('_InheritedStateContainer.updateShouldNotify => $notify');
+    return notify;
   }
 }

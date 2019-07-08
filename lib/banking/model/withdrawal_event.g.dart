@@ -61,6 +61,7 @@ const _$EventTypeEnumMap = <EventType, dynamic>{
   EventType.Deposit: 'Deposit',
   EventType.Withdrawal: 'Withdrawal',
   EventType.PaymentAuthorization: 'PaymentAuthorization',
+  EventType.PaymentEncashment: 'PaymentEncashment',
   EventType.Fx: 'Fx'
 };
 

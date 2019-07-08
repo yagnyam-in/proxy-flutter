@@ -7,6 +7,7 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/event_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_event.dart';
+import 'package:proxy_flutter/banking/model/payment_encashment_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
@@ -23,7 +24,7 @@ class EventStore with ProxyUtils, FirestoreUtils {
     return root.collection(FirestoreUtils.PROXY_UNIVERSE_NODE).document(proxyUniverse).collection('events');
   }
 
-  DocumentReference ref({
+  DocumentReference _ref({
     @required String proxyUniverse,
     @required String eventId,
   }) {
@@ -53,19 +54,30 @@ class EventStore with ProxyUtils, FirestoreUtils {
     }
   }
 
-  Future<EventEntity> saveEvent(EventEntity event) async {
-    await ref(
+  Future<EventEntity> saveEvent(EventEntity event, {Transaction transaction}) async {
+    final data = event.toJson();
+    final ref = _ref(
       proxyUniverse: event.proxyUniverse,
       eventId: event.eventId,
-    ).setData(event.toJson());
+    );
+    if (transaction != null) {
+      transaction.set(ref, data);
+    } else {
+      ref.setData(data);
+    }
     return event;
   }
 
-  Future<void> deleteEvent(EventEntity event) {
-    return ref(
+  Future<void> deleteEvent(EventEntity event, {Transaction transaction}) {
+    final ref = _ref(
       proxyUniverse: event.proxyUniverse,
       eventId: event.eventId,
-    ).delete();
+    );
+    if (transaction != null) {
+      return transaction.delete(ref);
+    } else {
+      return ref.delete();
+    }
   }
 
   static EventEntity fromJson(Map<dynamic, dynamic> json) {
@@ -77,6 +89,8 @@ class EventStore with ProxyUtils, FirestoreUtils {
         return WithdrawalEvent.fromJson(json);
       case 'PaymentAuthorization':
         return PaymentAuthorizationEvent.fromJson(json);
+      case 'PaymentEncashment':
+        return PaymentEncashmentEvent.fromJson(json);
       default:
         return null;
     }

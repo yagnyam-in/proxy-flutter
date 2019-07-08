@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:proxy_messages/payments.dart';
 
-part 'payment_authorization_entity.g.dart';
+part 'payment_encashment_entity.g.dart';
 
 @JsonSerializable()
-class PaymentAuthorizationEntity {
-  static final Set<PaymentAuthorizationStatusEnum> cancelPossibleStatuses = {
-    PaymentAuthorizationStatusEnum.Created, PaymentAuthorizationStatusEnum.Registered,
+class PaymentEncashmentEntity {
+  static final Set<PaymentEncashmentStatusEnum> cancelPossibleStatuses = {
+    PaymentEncashmentStatusEnum.Created,
+    PaymentEncashmentStatusEnum.Registered,
   };
 
   @JsonKey(nullable: false)
@@ -21,13 +22,16 @@ class PaymentAuthorizationEntity {
   final String paymentAuthorizationId;
 
   @JsonKey(nullable: false)
+  final String paymentEncashmentId;
+
+  @JsonKey(nullable: false)
   final DateTime creationTime;
 
   @JsonKey(nullable: false)
   final DateTime lastUpdatedTime;
 
   @JsonKey(nullable: false)
-  final PaymentAuthorizationStatusEnum status;
+  final PaymentEncashmentStatusEnum status;
 
   @JsonKey(nullable: false)
   final bool completed;
@@ -36,82 +40,94 @@ class PaymentAuthorizationEntity {
   final Amount amount;
 
   @JsonKey(nullable: false)
-  final ProxyAccountId payerAccountId;
+  final ProxyAccountId payeeAccountId;
 
   @JsonKey(nullable: false)
-  final ProxyId payerProxyId;
-
-  @JsonKey(nullable: false)
-  final List<PaymentAuthorizationPayeeEntity> payees;
+  final ProxyId payeeProxyId;
 
   @JsonKey(nullable: false)
   final String paymentAuthorizationLink;
 
-  @JsonKey(nullable: false, fromJson: PaymentAuthorization.signedMessageFromJson)
-  SignedMessage<PaymentAuthorization> signedPaymentAuthorization;
+  @JsonKey(nullable: true)
+  final CipherText secretEncrypted;
 
-  PaymentAuthorizationEntity({
+  @JsonKey(nullable: true)
+  final String email;
+
+  @JsonKey(nullable: true)
+  final String phone;
+
+  @JsonKey(nullable: false, fromJson: PaymentEncashment.signedMessageFromJson)
+  SignedMessage<PaymentEncashment> signedPaymentEncashment;
+
+  PaymentEncashmentEntity({
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
+    @required this.paymentEncashmentId,
     @required this.creationTime,
     @required this.lastUpdatedTime,
     @required this.status,
     @required this.amount,
-    @required this.payerAccountId,
-    @required this.payerProxyId,
-    @required this.signedPaymentAuthorization,
+    @required this.payeeAccountId,
+    @required this.payeeProxyId,
+    @required this.signedPaymentEncashment,
     @required this.paymentAuthorizationLink,
-    @required this.payees,
     @required this.completed,
+    this.secretEncrypted,
+    this.email,
+    this.phone,
   });
 
-  PaymentAuthorizationEntity copy({
+  PaymentEncashmentEntity copy({
     int id,
-    PaymentAuthorizationStatusEnum status,
+    PaymentEncashmentStatusEnum status,
     DateTime lastUpdatedTime,
   }) {
-    PaymentAuthorizationStatusEnum effectiveStatus = status ?? this.status;
-    return PaymentAuthorizationEntity(
+    PaymentEncashmentStatusEnum effectiveStatus = status ?? this.status;
+    return PaymentEncashmentEntity(
       proxyUniverse: this.proxyUniverse,
       paymentAuthorizationId: this.paymentAuthorizationId,
+      paymentEncashmentId: this.paymentEncashmentId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
       creationTime: this.creationTime,
       amount: this.amount,
-      payerAccountId: this.payerAccountId,
-      payerProxyId: this.payerProxyId,
-      signedPaymentAuthorization: this.signedPaymentAuthorization,
+      payeeAccountId: this.payeeAccountId,
+      payeeProxyId: this.payeeProxyId,
+      signedPaymentEncashment: this.signedPaymentEncashment,
       status: effectiveStatus,
       paymentAuthorizationLink: this.paymentAuthorizationLink,
-      payees: this.payees,
       completed: isCompleteStatus(effectiveStatus),
+      secretEncrypted: this.secretEncrypted,
+      email: this.email,
+      phone: this.phone,
     );
   }
 
-  static bool isCompleteStatus(PaymentAuthorizationStatusEnum status) {
-    return status == PaymentAuthorizationStatusEnum.Processed;
+  static bool isCompleteStatus(PaymentEncashmentStatusEnum status) {
+    return status == PaymentEncashmentStatusEnum.Processed;
   }
 
-  static String statusAsText(ProxyLocalizations localizations, PaymentAuthorizationStatusEnum status) {
+  static String statusAsText(ProxyLocalizations localizations, PaymentEncashmentStatusEnum status) {
     switch (status) {
-      case PaymentAuthorizationStatusEnum.Registered:
+      case PaymentEncashmentStatusEnum.Registered:
         return localizations.registered;
-      case PaymentAuthorizationStatusEnum.Rejected:
+      case PaymentEncashmentStatusEnum.Rejected:
         return localizations.rejected;
-      case PaymentAuthorizationStatusEnum.CancelledByPayer:
+      case PaymentEncashmentStatusEnum.CancelledByPayer:
         return localizations.cancelledStatus;
-      case PaymentAuthorizationStatusEnum.CancelledByPayee:
+      case PaymentEncashmentStatusEnum.CancelledByPayee:
         return localizations.cancelledStatus;
-      case PaymentAuthorizationStatusEnum.InProcess:
+      case PaymentEncashmentStatusEnum.InProcess:
         return localizations.inProcess;
-      case PaymentAuthorizationStatusEnum.Processed:
+      case PaymentEncashmentStatusEnum.Processed:
         return localizations.processedStatus;
-      case PaymentAuthorizationStatusEnum.InsufficientFunds:
+      case PaymentEncashmentStatusEnum.InsufficientFunds:
         return localizations.insufficientFundsStatus;
-      case PaymentAuthorizationStatusEnum.Expired:
+      case PaymentEncashmentStatusEnum.Expired:
         return localizations.expiredStatus;
-      case PaymentAuthorizationStatusEnum.Error:
+      case PaymentEncashmentStatusEnum.Error:
         return localizations.errorStatus;
-      case PaymentAuthorizationStatusEnum.Created:
+      case PaymentEncashmentStatusEnum.Created:
         return localizations.created;
       default:
         print("Unhandled Event state: $status");
@@ -119,9 +135,9 @@ class PaymentAuthorizationEntity {
     }
   }
 
-  Map<String, dynamic> toJson() => _$PaymentAuthorizationEntityToJson(this);
+  Map<String, dynamic> toJson() => _$PaymentEncashmentEntityToJson(this);
 
-  static PaymentAuthorizationEntity fromJson(Map json) => _$PaymentAuthorizationEntityFromJson(json);
+  static PaymentEncashmentEntity fromJson(Map json) => _$PaymentEncashmentEntityFromJson(json);
 
   String getAmountAsText(ProxyLocalizations localizations) {
     return '${amount.value} ${Currency.currencySymbol(amount.currency)}';
@@ -132,7 +148,7 @@ class PaymentAuthorizationEntity {
   }
 
   IconData get icon {
-    return Icons.file_upload;
+    return Icons.file_download;
   }
 
   bool get isCancelPossible {

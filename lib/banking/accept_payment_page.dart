@@ -13,11 +13,13 @@ class AcceptPaymentPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String paymentAuthorizationId;
+  final String paymentLink;
 
   const AcceptPaymentPage(
     this.appConfiguration, {
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
+        this.paymentLink,
     Key key,
   }) : super(key: key);
 
@@ -65,7 +67,7 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.acceptPaymentPageTitle),
+        title: Text(localizations.acceptPaymentPageTitle + appConfiguration.proxyUniverseSuffix),
       ),
       body: BusyChildWidget(
         loading: loading,
@@ -79,6 +81,7 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
               scaffoldKey: _scaffoldKey,
               appConfiguration: appConfiguration,
               paymentAuthorization: authorization,
+              paymentLink: widget.paymentLink,
             ),
           ),
         ),
@@ -98,12 +101,14 @@ class _AcceptPaymentPageBody extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   final AppConfiguration appConfiguration;
   final SignedMessage<PaymentAuthorization> paymentAuthorization;
+  final String paymentLink;
 
   const _AcceptPaymentPageBody({
     Key key,
     @required this.scaffoldKey,
     @required this.appConfiguration,
     @required this.paymentAuthorization,
+    this.paymentLink,
   }) : super(key: key);
 
   @override
@@ -249,8 +254,8 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
 
   Future<void> acceptPayment(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    final paymentAuthorizationService = BankingServiceFactory.paymentAuthorizationService(appConfiguration);
-    Payee payee = await paymentAuthorizationService.matchingPayee(
+    final paymentEncashmentService = BankingServiceFactory.paymentEncashmentService(appConfiguration);
+    Payee payee = await paymentEncashmentService.matchingPayee(
       paymentAuthorization: paymentAuthorization.message,
       secret: secretController.text,
     );
@@ -258,9 +263,11 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
       showMessage(localizations.invalidSecret);
       return null;
     }
-    await paymentAuthorizationService.acceptPayment(
-      paymentAuthorization: paymentAuthorization,
+    await paymentEncashmentService.acceptPayment(
       payee: payee,
+      signedPaymentAuthorization: paymentAuthorization,
+      paymentLink: widget.paymentLink,
+      secret: secretController.text,
     );
     return null;
   }

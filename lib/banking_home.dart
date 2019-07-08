@@ -9,9 +9,8 @@ import 'home_page_navigation.dart';
 
 class BankingHome extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final AppConfigurationUpdater appConfigurationUpdater;
 
-  const BankingHome(this.appConfiguration, {Key key, @required this.appConfigurationUpdater}) : super(key: key);
+  const BankingHome(this.appConfiguration, {Key key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -48,7 +47,6 @@ class _BankingHomeState extends State<BankingHome> {
         return SettingsPage(
           appConfiguration,
           changeHomePage: changeHomePage,
-          appConfigurationUpdater: widget.appConfigurationUpdater,
         );
       default:
         return ProxyAccountsPage(

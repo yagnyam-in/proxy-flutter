@@ -100,7 +100,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.bankingTitle),
+        title: Text(localizations.bankingTitle + appConfiguration.proxyUniverseSuffix),
 /*
         actions: <Widget>[
           IconButton(
@@ -236,7 +236,8 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     return null;
   }
 
-  Future<Uri> _createAccountAndPaymentAuthorization(BuildContext context, PaymentAuthorizationInput paymentInput) async {
+  Future<Uri> _createAccountAndPaymentAuthorization(
+      BuildContext context, PaymentAuthorizationInput paymentInput) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     showToast(localizations.creatingAnonymousAccount(paymentInput.currency));
     ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
@@ -385,7 +386,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     );
     PaymentAuthorizationInput result = await Navigator.of(context).push(
       MaterialPageRoute<PaymentAuthorizationInput>(
-        builder: (context) => PaymentAuthorizationInputDialog(paymentAuthorizationInput: paymentAuthorizationInput),
+        builder: (context) => PaymentAuthorizationInputDialog(
+          appConfiguration,
+          paymentAuthorizationInput: paymentAuthorizationInput,
+        ),
         fullscreenDialog: true,
       ),
     );

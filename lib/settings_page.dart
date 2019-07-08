@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
@@ -6,6 +5,7 @@ import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
+import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -19,12 +19,10 @@ import 'widgets/widget_helper.dart';
 class SettingsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
-  final AppConfigurationUpdater appConfigurationUpdater;
 
   const SettingsPage(
     this.appConfiguration, {
     @required this.changeHomePage,
-    @required this.appConfigurationUpdater,
     Key key,
   }) : super(key: key);
 
@@ -56,7 +54,7 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations.profilePageTitle),
+        title: Text(localizations.profilePageTitle + appConfiguration.proxyUniverseSuffix),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.power_settings_new),
@@ -83,14 +81,8 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
   }
 
   void _logout(BuildContext context) {
-    FirebaseAuth.instance.signOut();
-    AppConfiguration.storePassPhrase(null);
-    widget.appConfigurationUpdater(appConfiguration.copy(
-      firebaseUser: null,
-      appUser: null,
-      account: null,
-      passPhrase: null,
-    ));
+    print("Logout");
+    AppConfigurationBloc.instance.signOut();
   }
 }
 
@@ -288,13 +280,15 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
   }
 
   void _changeProxyUniverse(BuildContext context) {
-    setState(() {
-      if (appConfiguration.proxyUniverse == ProxyUniverse.PRODUCTION) {
-        appConfiguration.proxyUniverse = ProxyUniverse.TEST;
-      } else {
-        appConfiguration.proxyUniverse = ProxyUniverse.PRODUCTION;
-      }
-    });
+    String proxyUniverse = appConfiguration.proxyUniverse;
+    if (proxyUniverse == ProxyUniverse.PRODUCTION) {
+      proxyUniverse = ProxyUniverse.TEST;
+    } else {
+      proxyUniverse = ProxyUniverse.PRODUCTION;
+    }
+    AppConfigurationBloc.instance.appConfiguration = appConfiguration.copy(
+      proxyUniverse: proxyUniverse,
+    );
   }
 }
 

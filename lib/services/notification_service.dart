@@ -8,12 +8,13 @@ import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
+import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:proxy_messages/payments.dart';
 import 'package:uuid/uuid.dart';
 
 class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
-
   final Uuid uuidFactory = Uuid();
   final String appBackendUrl;
   final HttpClientFactory httpClientFactory;
@@ -53,9 +54,10 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
   }
 
   void tokenRefresh(String newToken) async {
-    print("New FCM Token $newToken");
-    if (newToken != null && AppConfiguration.instance() != null && AppConfiguration.instance().isComplete) {
-      ProxyKeyStore proxyKeyStore = ProxyKeyStore(AppConfiguration.instance());
+    // print("New FCM Token $newToken");
+    AppConfiguration appConfiguration = AppConfigurationBloc.instance.appConfiguration;
+    if (newToken != null && appConfiguration != null && appConfiguration.isComplete) {
+      ProxyKeyStore proxyKeyStore = ProxyKeyStore(appConfiguration);
       List<ProxyKey> outdatedProxies = await proxyKeyStore.fetchProxiesWithoutFcmToken(newToken);
       print("Got ${outdatedProxies.length} proxies to update");
       outdatedProxies.forEach((key) => _updateToken(proxyKeyStore, key, newToken));
@@ -94,19 +96,26 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     print('data: $data');
     String type = data != null ? data['alertType'] : null;
     print('type: $type');
-    if (AppConfiguration.instance() == null || !AppConfiguration.instance().isComplete) {
+    AppConfiguration appConfiguration = AppConfigurationBloc.instance.appConfiguration;
+    if (appConfiguration == null || !appConfiguration.isComplete) {
       print("Ignoring $message as App Config is null or not complete");
       return null;
     }
     if (type == AccountUpdatedAlert.ALERT_TYPE) {
       AccountUpdatedAlert alert = AccountUpdatedAlert.fromJson(data);
-      BankingServiceFactory.bankingService(AppConfiguration.instance()).refreshAccount(alert.proxyAccountId);
+      BankingServiceFactory.bankingService(appConfiguration).refreshAccount(alert.proxyAccountId);
     } else if (type == WithdrawalUpdatedAlert.ALERT_TYPE) {
       WithdrawalUpdatedAlert alert = WithdrawalUpdatedAlert.fromJson(data);
-      BankingServiceFactory.withdrawalService(AppConfiguration.instance()).processWithdrawalUpdate(alert);
+      BankingServiceFactory.withdrawalService(appConfiguration).processWithdrawalUpdate(alert);
     } else if (type == DepositUpdatedAlert.ALERT_TYPE) {
       DepositUpdatedAlert alert = DepositUpdatedAlert.fromJson(data);
-      BankingServiceFactory.depositService(AppConfiguration.instance()).processDepositUpdate(alert);
+      BankingServiceFactory.depositService(appConfiguration).processDepositUpdate(alert);
+    } else if (type == PaymentAuthorizationUpdatedAlert.ALERT_TYPE) {
+      PaymentAuthorizationUpdatedAlert alert = PaymentAuthorizationUpdatedAlert.fromJson(data);
+      BankingServiceFactory.paymentAuthorizationService(appConfiguration).processPaymentAuthorizationUpdate(alert);
+    } else if (type == PaymentEncashmentUpdatedAlert.ALERT_TYPE) {
+      PaymentEncashmentUpdatedAlert alert = PaymentEncashmentUpdatedAlert.fromJson(data);
+      BankingServiceFactory.paymentEncashmentService(appConfiguration).processPaymentEncashmentUpdate(alert);
     }
     return null;
   }

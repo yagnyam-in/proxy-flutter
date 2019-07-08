@@ -8,6 +8,7 @@ import 'package:proxy_flutter/constants.dart';
 import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
+import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
@@ -15,33 +16,29 @@ import 'package:proxy_flutter/widgets/link_text_span.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class LoginPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final AppConfigurationUpdater appConfigurationUpdater;
 
-  LoginPage({
+  LoginPage(
+    this.appConfiguration, {
     Key key,
-    @required this.appConfigurationUpdater,
-    @required this.appConfiguration,
   }) : super(key: key) {
     print("Constructing LoginPage");
   }
 
   @override
-  _LoginPageState createState() => _LoginPageState(appConfiguration, appConfigurationUpdater);
+  _LoginPageState createState() => _LoginPageState(appConfiguration);
 }
 
 class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBindingObserver {
   final AppConfiguration appConfiguration;
-  final AppConfigurationUpdater appConfigurationUpdater;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   Timer _timerLink;
   String loginFailedMessage;
   String status;
   bool loading = false;
 
-  _LoginPageState(this.appConfiguration, this.appConfigurationUpdater);
+  _LoginPageState(this.appConfiguration);
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -123,10 +120,7 @@ class _LoginPageState extends LoadingSupportState<LoginPage> with WidgetsBinding
           if (appUser == null) {
             appUser = await userStore.saveUser(UserEntity.from(firebaseUser));
           }
-          appConfigurationUpdater(appConfiguration.copy(
-            firebaseUser: firebaseUser,
-            appUser: appUser,
-          ));
+          AppConfigurationBloc.instance.refresh();
         }
       }, name: 'Login With Link', onError: () => showError(loginFailedMessage));
     } catch (e) {
@@ -341,9 +335,6 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
         status = localizations.checkYourMailForLoginLink;
         print('Setting status to $status');
       });
-
     }, name: 'Send Login Link', onError: () => _showSnackBar(localizations.somethingWentWrong));
-
-
   }
 }

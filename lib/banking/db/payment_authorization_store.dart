@@ -26,7 +26,7 @@ class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
     return root
         .collection(FirestoreUtils.PROXY_UNIVERSE_NODE)
         .document(proxyUniverse)
-        .collection('paymentAuthorizations')
+        .collection('payment-authorizations')
         .document(paymentAuthorizationId);
   }
 

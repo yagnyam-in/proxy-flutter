@@ -94,9 +94,10 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
   }
 
   String _getTitle(ProxyLocalizations localizations) {
-    return pageMode == PageMode.manage
+    String title = pageMode == PageMode.manage
         ? localizations.manageReceivingAccountsPageTitle
         : localizations.chooseReceivingAccountsPageTitle;
+    return title +  appConfiguration.proxyUniverseSuffix;
   }
 
   @override

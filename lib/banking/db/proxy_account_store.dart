@@ -17,31 +17,31 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
     assert(appConfiguration != null);
   }
 
-  CollectionReference accountsRef({
+  CollectionReference _accountsRef({
     @required String proxyUniverse,
   }) {
     return root.collection(FirestoreUtils.PROXY_UNIVERSE_NODE).document(proxyUniverse).collection('proxy-accounts');
   }
 
-  DocumentReference ref({
+  DocumentReference _ref({
     @required String proxyUniverse,
     @required String accountId,
   }) {
-    return accountsRef(proxyUniverse: proxyUniverse).document(accountId);
+    return _accountsRef(proxyUniverse: proxyUniverse).document(accountId);
   }
 
   Stream<List<ProxyAccountEntity>> subscribeForAccounts() {
-    return accountsRef(proxyUniverse: appConfiguration.proxyUniverse).snapshots().map(_querySnapshotToAccounts);
+    return _accountsRef(proxyUniverse: appConfiguration.proxyUniverse).snapshots().map(_querySnapshotToAccounts);
   }
 
   Stream<ProxyAccountEntity> subscribeForAccount(ProxyAccountId accountId) {
-    return ref(proxyUniverse: accountId.proxyUniverse, accountId: accountId.accountId)
+    return _ref(proxyUniverse: accountId.proxyUniverse, accountId: accountId.accountId)
         .snapshots()
         .map(_documentSnapshotToAccount);
   }
 
   Future<ProxyAccountEntity> fetchAccount(ProxyAccountId accountId) async {
-    DocumentSnapshot doc = await ref(proxyUniverse: accountId.proxyUniverse, accountId: accountId.accountId).get();
+    DocumentSnapshot doc = await _ref(proxyUniverse: accountId.proxyUniverse, accountId: accountId.accountId).get();
     return _documentSnapshotToAccount(doc);
   }
 
@@ -62,7 +62,7 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
   }
 
   Future<ProxyAccountEntity> saveAccount(ProxyAccountEntity account) async {
-    await ref(
+    await _ref(
       proxyUniverse: account.proxyUniverse,
       accountId: account.accountId.accountId,
     ).setData(account.toJson());
@@ -70,7 +70,7 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
   }
 
   Future<void> deleteAccount(ProxyAccountEntity account) {
-    return ref(
+    return _ref(
       proxyUniverse: account.proxyUniverse,
       accountId: account.accountId.accountId,
     ).delete();

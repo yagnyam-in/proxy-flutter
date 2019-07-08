@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
@@ -16,13 +17,26 @@ class PaymentAuthorizationPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String paymentAuthorizationId;
+  final PaymentAuthorizationEntity paymentAuthorization;
 
-  const PaymentAuthorizationPage(
-    this.appConfiguration, {
+  const PaymentAuthorizationPage(this.appConfiguration, {
     Key key,
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
+    this.paymentAuthorization,
   }) : super(key: key);
+
+  factory PaymentAuthorizationPage.forPaymentAuthorization(AppConfiguration appConfiguration,
+      PaymentAuthorizationEntity paymentAuthorization,
+      {Key key}) {
+    return PaymentAuthorizationPage(
+      appConfiguration,
+      key: key,
+      proxyUniverse: paymentAuthorization.proxyUniverse,
+      paymentAuthorizationId: paymentAuthorization.paymentAuthorizationId,
+      paymentAuthorization: paymentAuthorization,
+    );
+  }
 
   @override
   PaymentAuthorizationPageState createState() {
@@ -81,7 +95,7 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.paymentAuthorizationEventTitle),
+        title: Text(localizations.paymentAuthorizationEventTitle + appConfiguration.proxyUniverseSuffix),
         actions: <Widget>[
           PopupMenuButton<ActionMenuItem>(
             onSelected: (action) => _onAction(context, action),
@@ -101,6 +115,7 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: streamBuilder(
+            initialData: widget.paymentAuthorization,
             stream: _paymentAuthorizationStream,
             builder: body,
             emptyWidget: _noPaymentAuthorizationFound(context),
@@ -110,10 +125,8 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
     );
   }
 
-  Widget body(
-    BuildContext context,
-    PaymentAuthorizationEntity paymentAuthorizationEntity,
-  ) {
+  Widget body(BuildContext context,
+      PaymentAuthorizationEntity paymentAuthorizationEntity,) {
     ThemeData themeData = Theme.of(context);
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
@@ -173,10 +186,20 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
         child: FutureBuilder(
           future: secret,
           builder: (context, snapshot) {
-            return Text(
-              snapshot.hasData ? snapshot.data : '******',
-              style: Theme.of(context).textTheme.title,
-            );
+            if (snapshot.hasData) {
+              return GestureDetector(
+                child: Text(
+                  snapshot.data,
+                  style: Theme
+                      .of(context)
+                      .textTheme
+                      .title,
+                ),
+                onLongPress: () => _copyToClipboard(context, snapshot.data),
+              );
+            } else {
+              return Text('******');
+            }
           },
         ),
       ),
@@ -193,10 +216,11 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
       ),
       const SizedBox(height: 8.0),
       ...payees
-          .expand((payee) => <Widget>[
-                Divider(),
-                _payeeWidget(localizations, payee),
-              ])
+          .expand((payee) =>
+      <Widget>[
+        Divider(),
+        _payeeWidget(localizations, payee),
+      ])
           .toList()
     ];
   }
@@ -211,7 +235,10 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
           future: secret,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return Text(snapshot.data);
+              return GestureDetector(
+                child: Text(snapshot.data),
+                onLongPress: () => _copyToClipboard(context, snapshot.data),
+              );
             } else {
               return Text('******');
             }
@@ -219,6 +246,13 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
         ),
       ],
     );
+  }
+
+  void _copyToClipboard(BuildContext context, String message) {
+    Clipboard.setData(new ClipboardData(text: message));
+    showMessage(ProxyLocalizations
+        .of(context)
+        .copiedToClipboard);
   }
 
   String _payeeDisplayName(ProxyLocalizations localizations, PaymentAuthorizationPayeeEntity payee) {

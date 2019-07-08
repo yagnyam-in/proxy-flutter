@@ -6,29 +6,27 @@ import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_flutter/services/account_service.dart';
+import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 
 class ManageAccountPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final AppConfigurationUpdater appConfigurationUpdater;
 
   ManageAccountPage(
     this.appConfiguration, {
     Key key,
-    @required this.appConfigurationUpdater,
   }) : super(key: key) {
-    print("Constructing ManageAccountPage");
+    print("Constructing ManageAccountPage($appConfiguration)");
   }
 
   @override
-  _ManageAccountPageState createState() => _ManageAccountPageState(appConfiguration, appConfigurationUpdater);
+  _ManageAccountPageState createState() => _ManageAccountPageState(appConfiguration);
 }
 
 class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
   AppConfiguration appConfiguration;
-  final AppConfigurationUpdater appConfigurationUpdater;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController passPhraseController = TextEditingController();
@@ -39,7 +37,7 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
   bool loading = false;
   int retryCount = 0;
 
-  _ManageAccountPageState(this.appConfiguration, this.appConfigurationUpdater) {
+  _ManageAccountPageState(this.appConfiguration) {
     assert(appConfiguration != null);
     assert(appConfiguration.firebaseUser != null);
     assert(appConfiguration.appUser != null);
@@ -212,20 +210,17 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
         });
       }
     } else {
-      await AppConfiguration.storePassPhrase(passPhrase);
-
       AccountEntity account = await accountService.setupMasterProxy(appConfiguration.account, passPhrase);
       appConfiguration = appConfiguration.copy(
         account: account,
         passPhrase: passPhrase,
       );
-      appConfigurationUpdater(appConfiguration);
+      AppConfigurationBloc.instance.refresh(passPhrase: passPhrase);
     }
   }
 
   void _createAccount(BuildContext context) async {
     print("Create Account");
-    await AppConfiguration.storePassPhrase(passPhrase);
 
     AccountEntity account = await accountService.createAccount(encryptionKey: passPhrase);
     UserEntity appUser = await UserStore.forUser(appConfiguration.firebaseUser).saveUser(
@@ -237,6 +232,6 @@ class _ManageAccountPageState extends LoadingSupportState<ManageAccountPage> {
       appUser: appUser,
       passPhrase: passPhrase,
     );
-    appConfigurationUpdater(appConfiguration);
+    AppConfigurationBloc.instance.refresh(passPhrase: passPhrase);
   }
 }

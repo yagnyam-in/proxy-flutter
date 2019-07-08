@@ -1,19 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:proxy_flutter/app_configuration_container.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/account_store.dart';
-import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/home_page.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/login_page.dart';
 import 'package:proxy_flutter/manage_account_page.dart';
-import 'package:proxy_flutter/model/account_entity.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
-import 'package:proxy_flutter/services/account_service.dart';
+import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/flat_button_with_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,47 +29,14 @@ class ProxyApp extends StatefulWidget {
 }
 
 class ProxyAppState extends LoadingSupportState<ProxyApp> {
-  Future<AppConfiguration> _appConfigurationFuture;
+  Stream<AppConfiguration> _appConfigurationStream;
   bool loading = false;
+
   @override
   void initState() {
     super.initState();
-    _appConfigurationFuture = _fetchAppConfiguration();
-  }
-
-  Future<AppConfiguration> _fetchAppConfiguration() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    FirebaseUser firebaseUser = await FirebaseAuth.instance.currentUser();
-    UserEntity appUser;
-    AccountEntity account;
-    String passPhrase = await AppConfiguration.fetchPassPhrase();
-    if (firebaseUser != null) {
-      appUser = await UserStore.forUser(firebaseUser).fetchUser();
-      print("Got App User => $appUser");
-    }
-    if (appUser?.accountId != null) {
-      account = await AccountStore().fetchAccount(appUser.accountId);
-      print("Got Account => $account");
-    }
-    if (account != null) {
-      bool isPassPhraseValid = await AccountService(
-        firebaseUser: firebaseUser,
-        appUser: appUser,
-      ).validateEncryptionKey(
-        account: account,
-        encryptionKey: passPhrase,
-      );
-      if (!isPassPhraseValid) {
-        passPhrase = null;
-      }
-    }
-    return AppConfiguration(
-      preferences: sharedPreferences,
-      firebaseUser: firebaseUser,
-      appUser: appUser,
-      account: account,
-      passPhrase: passPhrase,
-    );
+    _appConfigurationStream = AppConfigurationBloc.instance.appConfigurationStream;
+    AppConfigurationBloc.instance.refresh();
   }
 
   @override
@@ -92,10 +54,11 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
         const Locale('nl', 'NL'),
         const Locale('te', 'IN'),
       ],
-      home: futureBuilder(
-        future: _appConfigurationFuture,
-        builder: body,
+      home: streamBuilder(
+        stream: _appConfigurationStream,
+        builder: _body,
         errorWidget: _errorWidget(context),
+        name: 'AppConfiguration',
       ),
     );
   }
@@ -134,44 +97,29 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
     } catch (e) {
       print("Failed to clear shared preferences");
     }
-    AppConfiguration appConfiguration = await _fetchAppConfiguration();
-    setState(() => _appConfigurationFuture = Future.value(appConfiguration));
+    AppConfigurationBloc.instance.refresh();
   }
 
-  Widget bodyUsingInheritedWidget(BuildContext context, AppConfiguration appConfiguration) {
+  Widget _bodyUsingInheritedWidget(BuildContext context, AppConfiguration appConfiguration) {
     return AppConfigurationContainer(
       appConfiguration: appConfiguration,
-      child: body(context, appConfiguration),
+      child: _body(context, appConfiguration),
     );
   }
 
-  Widget body(BuildContext context, AppConfiguration appConfiguration) {
+  Widget _body(BuildContext context, AppConfiguration appConfiguration) {
+    print("Painting Main Page with appConfiguration $appConfiguration");
     if (appConfiguration.firebaseUser == null || appConfiguration.appUser == null) {
-      return LoginPage(
-        appConfiguration: appConfiguration,
-        appConfigurationUpdater: _updateAppConfiguration,
-      );
+      print("Returning Login Page");
+      return LoginPage(appConfiguration, key: ValueKey(appConfiguration),);
     } else if (appConfiguration.account == null ||
         appConfiguration.passPhrase == null ||
         appConfiguration.account.masterProxyId == null) {
-      return ManageAccountPage(
-        appConfiguration,
-        appConfigurationUpdater: _updateAppConfiguration,
-      );
+      print("Returning Account Setup Page");
+      return ManageAccountPage(appConfiguration, key: ValueKey(appConfiguration),);
     } else {
-      AppConfiguration.setInstance(appConfiguration);
-      return HomePage(
-        appConfiguration: appConfiguration,
-        appConfigurationUpdater: _updateAppConfiguration,
-      );
+      print("Returning Home Page");
+      return HomePage(appConfiguration, key: ValueKey(appConfiguration),);
     }
-  }
-
-  void _updateAppConfiguration(AppConfiguration appConfiguration) {
-    AppConfiguration.setInstance(appConfiguration);
-    Future<AppConfiguration> latestAppConfiguration = _fetchAppConfiguration();
-    setState(() {
-      _appConfigurationFuture = latestAppConfiguration;
-    });
   }
 }
