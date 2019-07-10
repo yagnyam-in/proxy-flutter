@@ -13,8 +13,9 @@ ProxyAccountEntity _$ProxyAccountEntityFromJson(Map json) {
       bankName: json['bankName'] as String,
       balance: Amount.fromJson(json['balance'] as Map),
       ownerProxyId: ProxyId.fromJson(json['ownerProxyId'] as Map),
-      signedProxyAccount: ProxyAccount.signedMessageFromJson(
-          json['signedProxyAccount'] as Map));
+      signedProxyAccount:
+          ProxyAccount.signedMessageFromJson(json['signedProxyAccount'] as Map),
+      active: json['active'] as bool);
 }
 
 Map<String, dynamic> _$ProxyAccountEntityToJson(ProxyAccountEntity instance) {
@@ -33,5 +34,6 @@ Map<String, dynamic> _$ProxyAccountEntityToJson(ProxyAccountEntity instance) {
   val['ownerProxyId'] = instance.ownerProxyId.toJson();
   val['balance'] = instance.balance.toJson();
   val['signedProxyAccount'] = instance.signedProxyAccount.toJson();
+  val['active'] = instance.active;
   return val;
 }

@@ -123,7 +123,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       final signedResponse = await sendAndReceive(
         url: proxyBankingUrl,
         signedRequest: signedEncashment,
-        responseParser: PaymentEncashmentRegistered.signedMessageFromJson,
+        responseParser: PaymentEncashmentRegistered.fromJson,
       );
       status = signedResponse.message.paymentEncashmentStatus;
     } catch (e) {
@@ -201,7 +201,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,
-      responseParser: PaymentEncashmentStatusResponse.signedMessageFromJson,
+      responseParser: PaymentEncashmentStatusResponse.fromJson,
     );
     await _savePaymentEncashmentStatus(
       encashmentEntity,

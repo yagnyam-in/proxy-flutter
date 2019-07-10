@@ -100,7 +100,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(localizations.bankingTitle + appConfiguration.proxyUniverseSuffix),
+        title: Text(localizations.proxyAccountsPageTitle + appConfiguration.proxyUniverseSuffix),
 /*
         actions: <Widget>[
           IconButton(
@@ -174,7 +174,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       physics: ClampingScrollPhysics(),
       children: enticements.expand((enticement) {
         return [
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 4.0),
           enticementCard(context, enticement),
         ];
       }).toList(),
@@ -201,10 +201,12 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
   }
 
   void _createAccountAndDeposit(BuildContext context) async {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
     DepositRequestInput depositInput = await _acceptDepositRequestInput(context);
     if (depositInput != null) {
-      showToast(ProxyLocalizations.of(context).creatingAnonymousAccount(depositInput.currency));
+      showToast(localizations.creatingAnonymousAccount(depositInput.currency));
       ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
+        localizations: localizations,
         ownerProxyId: widget.appConfiguration.masterProxyId,
         proxyUniverse: widget.appConfiguration.proxyUniverse,
         currency: depositInput.currency,
@@ -219,6 +221,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
   }
 
   Future<Uri> createAccountAndPay(BuildContext context) async {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
     PaymentAuthorizationInput paymentInput = await _acceptPaymentInput(context);
     if (paymentInput != null) {
       Uri paymentLink = await invoke(
@@ -228,7 +231,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       if (paymentLink != null) {
         String customerName = appConfiguration.displayName;
         var from = isNotEmpty(customerName) ? ' - $customerName' : '';
-        var message = ProxyLocalizations.of(context).acceptPayment(paymentLink.toString() + from);
+        var message = localizations.acceptPayment(paymentLink.toString() + from);
         await Share.share(message);
       }
       return paymentLink;
@@ -237,10 +240,13 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
   }
 
   Future<Uri> _createAccountAndPaymentAuthorization(
-      BuildContext context, PaymentAuthorizationInput paymentInput) async {
+    BuildContext context,
+    PaymentAuthorizationInput paymentInput,
+  ) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     showToast(localizations.creatingAnonymousAccount(paymentInput.currency));
     ProxyAccountEntity proxyAccount = await _bankingService.createProxyWallet(
+      localizations: localizations,
       ownerProxyId: appConfiguration.masterProxyId,
       proxyUniverse: appConfiguration.proxyUniverse,
       currency: paymentInput.currency,

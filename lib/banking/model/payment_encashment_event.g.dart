@@ -13,6 +13,7 @@ PaymentEncashmentEvent _$PaymentEncashmentEventFromJson(Map json) {
       creationTime: DateTime.parse(json['creationTime'] as String),
       lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
       completed: json['completed'] as bool,
+      paymentAuthorizationId: json['paymentAuthorizationId'] as String,
       paymentEncashmentId: json['paymentEncashmentId'] as String,
       status:
           _$enumDecode(_$PaymentEncashmentStatusEnumEnumMap, json['status']),
@@ -33,6 +34,7 @@ Map<String, dynamic> _$PaymentEncashmentEventToJson(
     'amount': instance.amount.toJson(),
     'payeeAccountId': instance.payeeAccountId.toJson(),
     'paymentAuthorizationLink': instance.paymentAuthorizationLink,
+    'paymentAuthorizationId': instance.paymentAuthorizationId,
   };
 
   void writeNotNull(String key, dynamic value) {

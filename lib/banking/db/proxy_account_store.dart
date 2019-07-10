@@ -45,6 +45,17 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
     return _documentSnapshotToAccount(doc);
   }
 
+  Future<List<ProxyAccountEntity>> fetchActiveAccounts({
+    String proxyUniverse,
+    String currency,
+  }) async {
+    QuerySnapshot querySnapshot = await _accountsRef(proxyUniverse: proxyUniverse)
+        .where('currency', isEqualTo: currency)
+        .where('active', isEqualTo: true)
+        .getDocuments();
+    return _querySnapshotToAccounts(querySnapshot);
+  }
+
   ProxyAccountEntity _documentSnapshotToAccount(DocumentSnapshot snapshot) {
     if (snapshot != null && snapshot.exists) {
       return ProxyAccountEntity.fromJson(snapshot.data);

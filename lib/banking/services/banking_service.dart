@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
+import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
+import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -44,8 +45,12 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     }
   }
 
-  Future<ProxyAccountEntity> createProxyWallet(
-      {@required ProxyId ownerProxyId, @required String proxyUniverse, @required String currency}) async {
+  Future<ProxyAccountEntity> createProxyWallet({
+    @required ProxyLocalizations localizations,
+    @required ProxyId ownerProxyId,
+    @required String proxyUniverse,
+    @required String currency,
+  }) async {
     ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
@@ -66,23 +71,28 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<ProxyWalletCreationResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, ProxyWalletCreationResponse.fromJson);
-    return _saveAccount(ownerProxyId, signedResponse);
+    return _saveAccount(localizations, ownerProxyId, signedResponse);
   }
 
-  ProxyAccountEntity _saveAccount(ProxyId ownerProxyId, SignedMessage<ProxyWalletCreationResponse> signedResponse) {
+  ProxyAccountEntity _saveAccount(
+    ProxyLocalizations localizations,
+    ProxyId ownerProxyId,
+    SignedMessage<ProxyWalletCreationResponse> signedResponse,
+  ) {
     ProxyWalletCreationResponse response = signedResponse.message;
     ProxyAccount proxyAccount = response.proxyAccount.message;
     ProxyAccountId proxyAccountId = proxyAccount.proxyAccountId;
     ProxyAccountEntity proxyAccountEntity = ProxyAccountEntity(
       accountId: proxyAccountId,
       accountName: "",
-      bankName: "Wallet - ${proxyAccountId.proxyUniverse}",
+      bankName: proxyAccount.bankId,
       balance: Amount(
         currency: proxyAccount.currency,
         value: 0,
       ),
       ownerProxyId: ownerProxyId,
       signedProxyAccount: response.proxyAccount,
+      active: true,
     );
     _proxyAccountStore.saveAccount(proxyAccountEntity);
     return proxyAccountEntity;

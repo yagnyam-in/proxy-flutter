@@ -5,6 +5,7 @@ import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
 import 'package:proxy_flutter/services/local_proxy_resolver.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
+import 'package:proxy_flutter/services/register_service.dart';
 
 import 'deep_link_service.dart';
 
@@ -58,4 +59,6 @@ class ServiceFactory {
   static final BootService _bootServiceInstance = BootService();
 
   static BootService bootService() => _bootServiceInstance;
+
+  static RegisterService registerService() => RegisterService();
 }

@@ -64,7 +64,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
       final signedResponse = await sendAndReceive(
         url: proxyBankingUrl,
         signedRequest: signedRequest,
-        responseParser: WithdrawalResponse.signedMessageFromJson,
+        responseParser: WithdrawalResponse.fromJson,
       );
       status = signedResponse.message.status;
     } catch (e) {
@@ -102,7 +102,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,
-      responseParser: WithdrawalStatusResponse.signedMessageFromJson,
+      responseParser: WithdrawalStatusResponse.fromJson,
     );
     return await _saveWithdrawalStatus(withdrawalEntity, signedResponse.message.status);
   }

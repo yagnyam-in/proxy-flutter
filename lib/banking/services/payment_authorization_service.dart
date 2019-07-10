@@ -135,7 +135,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
       final signedResponse = await sendAndReceive(
         url: proxyBankingUrl,
         signedRequest: signedPaymentAuthorization,
-        responseParser: PaymentAuthorizationRegistered.signedMessageFromJson,
+        responseParser: PaymentAuthorizationRegistered.fromJson,
       );
       status = signedResponse.message.paymentAuthorizationStatus;
     } catch (e) {
@@ -160,7 +160,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,
-      responseParser: PaymentAuthorizationStatusResponse.signedMessageFromJson,
+      responseParser: PaymentAuthorizationStatusResponse.fromJson,
     );
     await _savePaymentAuthorizationStatus(
       authorizationEntity,

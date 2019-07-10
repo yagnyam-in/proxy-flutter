@@ -25,6 +25,9 @@ class ProxyAccountEntity with ProxyUtils {
   @JsonKey(nullable: false, fromJson: ProxyAccount.signedMessageFromJson)
   final SignedMessage<ProxyAccount> signedProxyAccount;
 
+  @JsonKey(nullable: false)
+  final bool active;
+
   String get validAccountName => isNotEmpty(accountName) ? accountName : accountId.accountId;
 
   String get validBankName => isNotEmpty(bankName) ? bankName : accountId.bankId;
@@ -40,20 +43,23 @@ class ProxyAccountEntity with ProxyUtils {
     @required this.balance,
     @required this.ownerProxyId,
     @required this.signedProxyAccount,
-  });
+    bool active,
+  }) : this.active = active ?? true;
 
   ProxyAccountEntity copy({
     Amount balance,
     String accountName,
     String bankName,
+    bool active,
   }) {
     return ProxyAccountEntity(
-      accountId: accountId,
+      accountId: this.accountId,
       accountName: accountName ?? this.accountName,
       bankName: bankName ?? this.bankName,
       balance: balance ?? this.balance,
-      ownerProxyId: ownerProxyId,
-      signedProxyAccount: signedProxyAccount,
+      ownerProxyId: this.ownerProxyId,
+      signedProxyAccount: this.signedProxyAccount,
+      active: active ?? this.active,
     );
   }
 

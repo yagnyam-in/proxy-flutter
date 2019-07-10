@@ -1070,6 +1070,11 @@ class ProxyLocalizations {
 
   String get paymentEncashmentNotFound => Intl.message('Payment Encashment not found');
 
+  String get signInWithGoogle => Intl.message('SignIn with Google');
+
+  String get appWelcomeTitle => Intl.message('Welcome to ProMo');
+
+  String get appWelcomeSubTitle => Intl.message('program your money');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

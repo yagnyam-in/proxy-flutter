@@ -53,7 +53,7 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,
-      responseParser: DepositRequestCreationResponse.signedMessageFromJson,
+      responseParser: DepositRequestCreationResponse.fromJson,
     );
     DepositEntity depositEntity = _createDepositEntity(
       proxyAccount,
@@ -101,7 +101,7 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,
-      responseParser: DepositRequestCancelResponse.signedMessageFromJson,
+      responseParser: DepositRequestCancelResponse.fromJson,
     );
     await _saveDepositStatus(depositEntity, signedResponse.message.status);
   }
@@ -115,7 +115,7 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     final signedRequest = await signMessage(request: request);
     final signedResponse = await sendAndReceive(
       signedRequest: signedRequest,
-      responseParser: DepositRequestStatusResponse.signedMessageFromJson,
+      responseParser: DepositRequestStatusResponse.fromJson,
       url: proxyBankingUrl,
     );
     await _saveDepositStatus(depositEntity, signedResponse.message.status);

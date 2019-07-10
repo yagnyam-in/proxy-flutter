@@ -37,7 +37,7 @@ mixin ServiceHelper on ProxyUtils, HttpClientUtils {
   Future<SignedMessage<R>> sendAndReceive<T extends SignableMessage, R extends SignableMessage>({
     @required String url,
     @required SignedMessage<T> signedRequest,
-    @required SignedMessageParser<R> responseParser,
+    @required SignableMessageFromJsonMethod<R> responseParser,
   }) async {
     String signedRequestJson = jsonEncode(signedRequest.toJson());
     print("Sending $signedRequestJson to $url");
@@ -49,7 +49,7 @@ mixin ServiceHelper on ProxyUtils, HttpClientUtils {
     print("Received $jsonResponse from $url");
     return ServiceFactory.messageFactory(appConfiguration).buildAndVerifySignedMessage(
       jsonResponse,
-      jsonDecode(jsonResponse),
+      responseParser,
     );
   }
 }

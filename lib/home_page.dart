@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
@@ -36,6 +38,7 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final AppConfiguration appConfiguration;
   bool loading = false;
+  Timer _timerLink;
 
   _HomePageState(this.appConfiguration) {
     print("build home page state with $appConfiguration");
@@ -52,6 +55,9 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (_timerLink != null) {
+      _timerLink.cancel();
+    }
     super.dispose();
   }
 
@@ -59,12 +65,15 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       print("didChangeAppLifecycleState (ProxyAppState)");
-      _handleDynamicLinks();
+      _timerLink = new Timer(const Duration(milliseconds: 1000), () {
+        _handleDynamicLinks();
+      });
     }
   }
 
   Future<void> _handleDynamicLinks() async {
     final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
+    print("Handle dynamic link $data");
     Uri link = data?.link;
     if (link == null) return;
     print('link.path = ${link.path}');
