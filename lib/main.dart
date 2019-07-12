@@ -2,15 +2,16 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:proxy_flutter/choose_proxy_universe_page.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/home_page.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/manage_account_page.dart';
 import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/flat_button_with_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'create_or_recover_account_page.dart';
 import 'services/service_factory.dart';
 import 'welcome_page.dart';
 
@@ -119,7 +120,13 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
         appConfiguration.passPhrase == null ||
         appConfiguration.account.masterProxyId == null) {
       print("Returning Account Setup Page");
-      return ManageAccountPage(
+      return CreateOrRecoverAccount(
+        appConfiguration,
+        key: ValueKey(appConfiguration),
+      );
+    } else if (appConfiguration.proxyUniverse == null) {
+      print("Returning Choose Proxy Universe Page");
+      return ChooseProxyUniverse(
         appConfiguration,
         key: ValueKey(appConfiguration),
       );

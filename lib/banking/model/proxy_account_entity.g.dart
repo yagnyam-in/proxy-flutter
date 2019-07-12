@@ -15,6 +15,8 @@ ProxyAccountEntity _$ProxyAccountEntityFromJson(Map json) {
       ownerProxyId: ProxyId.fromJson(json['ownerProxyId'] as Map),
       signedProxyAccount:
           ProxyAccount.signedMessageFromJson(json['signedProxyAccount'] as Map),
+      idOfOwnerProxyId: json['idOfOwnerProxyId'] as String,
+      currency: json['currency'] as String,
       active: json['active'] as bool);
 }
 
@@ -35,5 +37,7 @@ Map<String, dynamic> _$ProxyAccountEntityToJson(ProxyAccountEntity instance) {
   val['balance'] = instance.balance.toJson();
   val['signedProxyAccount'] = instance.signedProxyAccount.toJson();
   val['active'] = instance.active;
+  val['currency'] = instance.currency;
+  val['idOfOwnerProxyId'] = instance.idOfOwnerProxyId;
   return val;
 }

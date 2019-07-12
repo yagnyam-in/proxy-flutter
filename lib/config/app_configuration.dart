@@ -36,9 +36,6 @@ class AppConfiguration {
     this.proxyUniverse,
   }) {
     assert(preferences != null);
-    if (isBlank(proxyUniverse)) {
-      proxyUniverse = ProxyUniverse.PRODUCTION;
-    }
   }
 
   AppConfiguration copy({
@@ -103,7 +100,7 @@ class AppConfiguration {
   }
 
   bool get isProductionUniverse {
-    return proxyUniverse == ProxyUniverse.PRODUCTION;
+    return proxyUniverse == null || proxyUniverse == ProxyUniverse.PRODUCTION;
   }
 
   String get displayName {
@@ -125,7 +122,7 @@ class AppConfiguration {
   Future<void> persist() async {
     Future.wait([
       _storePassPhrase(passPhrase),
-      _storeProxyUniverse(proxyUniverse),
+      storeProxyUniverse(proxyUniverse),
     ]);
   }
 
@@ -160,7 +157,7 @@ class AppConfiguration {
     return null;
   }
 
-  static Future<void> _storeProxyUniverse(String value) async {
+  static Future<void> storeProxyUniverse(String value) async {
     try {
       SharedPreferences preferences = await SharedPreferences.getInstance();
       if (value != null) {

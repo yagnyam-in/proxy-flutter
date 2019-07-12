@@ -35,7 +35,7 @@ class EnticementFactory {
       id: Enticement.MAKE_PAYMENT,
       titleBuilder: (ProxyLocalizations localizations) => localizations.makePaymentTitle,
       descriptionBuilder: (ProxyLocalizations localizations) => localizations.makePaymentDescription,
-      priority: 200,
+      priority: 300,
     );
   }
 
@@ -46,7 +46,7 @@ class EnticementFactory {
       id: Enticement.ADD_RECEIVING_ACCOUNT,
       titleBuilder: (localizations) => localizations.addReceivingAccountTitle,
       descriptionBuilder: (localizations) => localizations.addReceivingAccountDescription,
-      priority: 300,
+      priority: 400,
     );
   }
 
@@ -57,8 +57,41 @@ class EnticementFactory {
       id: Enticement.ADD_BUNQ_ACCOUNT,
       titleBuilder: (ProxyLocalizations localizations) => localizations.addBunqAccountTitle,
       descriptionBuilder: (ProxyLocalizations localizations) => localizations.addBunqAccountDescription,
-      priority: 400,
+      priority: 500,
     );
   }
+
+
+  static Enticement get noProxyAccounts {
+    return Enticement(
+      proxyUniverses: Set.identity(),
+      id: Enticement.NO_PROXY_ACCOUNTS,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.noProxyAccountsTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.noProxyAccountsDescription,
+      priority: 9999,
+    );
+  }
+
+  static Enticement get noEvents {
+    return Enticement(
+      proxyUniverses: Set.identity(),
+      id: Enticement.NO_EVENTS,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.noEventsTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.noEventsDescription,
+      priority: 9999,
+    );
+  }
+
+
+  static Enticement get noReceivingAccounts {
+    return Enticement(
+      proxyUniverses: Set.identity(),
+      id: Enticement.NO_RECEIVING_ACCOUNTS,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.noReceivingAccountsTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.noReceivingAccountsDescription,
+      priority: 9999,
+    );
+  }
+
 
 }

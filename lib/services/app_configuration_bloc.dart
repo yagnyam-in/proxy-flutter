@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/account_store.dart';
 import 'package:proxy_flutter/db/user_store.dart';
@@ -96,7 +95,7 @@ class AppConfigurationBloc {
       appUser: null,
       account: null,
       passPhrase: null,
-      proxyUniverse: ProxyUniverse.PRODUCTION,
+      proxyUniverse: appConfiguration.proxyUniverse,
     );
     FirebaseAuth.instance.signOut();
   }

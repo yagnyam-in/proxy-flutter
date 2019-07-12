@@ -28,5 +28,11 @@ class Enticement {
   static const String MAKE_PAYMENT = "make-payment";
   static const String ADD_BUNQ_ACCOUNT = "add-bunq-account";
   static const String ADD_RECEIVING_ACCOUNT = "add-receiving-account";
+  static const String ADD_FUNDS = "add-funds";
+
+  static const String NO_EVENTS = "no-events";
+  static const String NO_PROXY_ACCOUNTS = "no-proxy-accounts";
+  static const String NO_RECEIVING_ACCOUNTS = "no-receiving-accounts";
+
   static const String ADD_TEST_RECEIVING_ACCOUNTS = "add-test-receiving-accounts";
 }

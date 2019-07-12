@@ -31,6 +31,12 @@ class _WelcomePageState extends State<WelcomePage> {
   _WelcomePageState(this.appConfiguration);
 
   @override
+  void initState() {
+    super.initState();
+    ServiceFactory.bootService().start();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,

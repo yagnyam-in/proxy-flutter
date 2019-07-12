@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
+import 'package:proxy_flutter/banking/deposit_helper.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
+import 'package:proxy_flutter/banking/payment_helper.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/widgets/receiving_account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
@@ -11,6 +14,8 @@ import 'package:proxy_flutter/services/enticement_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/enticement_helper.dart';
 import 'package:uuid/uuid.dart';
+
+import 'proxy_account_helper.dart';
 
 final Uuid uuidFactory = Uuid();
 
@@ -65,7 +70,7 @@ class ReceivingAccountsPage extends StatefulWidget {
 }
 
 class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsPage>
-    with HomePageNavigation, EnticementHelper {
+    with HomePageNavigation, EnticementHelper, DepositHelper, PaymentHelper, AccountHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
   final String currency;
@@ -97,7 +102,7 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
     String title = pageMode == PageMode.manage
         ? localizations.manageReceivingAccountsPageTitle
         : localizations.chooseReceivingAccountsPageTitle;
-    return title +  appConfiguration.proxyUniverseSuffix;
+    return title + appConfiguration.proxyUniverseSuffix;
   }
 
   @override
@@ -142,9 +147,12 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
         shrinkWrap: true,
         physics: ClampingScrollPhysics(),
         children: [
-            const SizedBox(height: 4.0),
-            enticementCard(context, EnticementFactory.addReceivingAccount, cancellable: false),
-          ],
+          const SizedBox(height: 4.0),
+          if (appConfiguration.proxyUniverse == ProxyUniverse.PRODUCTION)
+            enticementCard(context, EnticementFactory.noReceivingAccounts, cancellable: false),
+          if (appConfiguration.proxyUniverse == ProxyUniverse.TEST)
+            enticementCard(context, EnticementFactory.addTestReceivingAccounts, cancellable: false),
+        ],
       );
     }
     return ListView(
@@ -193,11 +201,5 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
 
   void _archiveAccount(BuildContext context, ReceivingAccountEntity receivingAccount) async {
     await _receivingAccountStore.archiveAccount(receivingAccount);
-  }
-
-  @override
-  Future<Uri> createAccountAndPay(BuildContext context) async {
-    print("This should never be invoked");
-    return null;
   }
 }

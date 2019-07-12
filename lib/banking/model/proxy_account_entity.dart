@@ -7,6 +7,10 @@ part 'proxy_account_entity.g.dart';
 
 @JsonSerializable()
 class ProxyAccountEntity with ProxyUtils {
+  static const String CURRENCY = 'currency';
+  static const String ACTIVE = 'active';
+  static const String ID_OF_OWNER_PROXY_ID = 'idOfOwnerProxyId';
+
   @JsonKey(nullable: false)
   final ProxyAccountId accountId;
 
@@ -25,14 +29,18 @@ class ProxyAccountEntity with ProxyUtils {
   @JsonKey(nullable: false, fromJson: ProxyAccount.signedMessageFromJson)
   final SignedMessage<ProxyAccount> signedProxyAccount;
 
-  @JsonKey(nullable: false)
+  @JsonKey(name: ACTIVE, nullable: false)
   final bool active;
+
+  @JsonKey(name: CURRENCY, nullable: false)
+  final String currency;
+
+  @JsonKey(name: ID_OF_OWNER_PROXY_ID, nullable: false)
+  final String idOfOwnerProxyId;
 
   String get validAccountName => isNotEmpty(accountName) ? accountName : accountId.accountId;
 
   String get validBankName => isNotEmpty(bankName) ? bankName : accountId.bankId;
-
-  String get currency => balance?.currency;
 
   String get proxyUniverse => accountId.proxyUniverse;
 
@@ -43,8 +51,13 @@ class ProxyAccountEntity with ProxyUtils {
     @required this.balance,
     @required this.ownerProxyId,
     @required this.signedProxyAccount,
+    String idOfOwnerProxyId,
+    String currency,
     bool active,
-  }) : this.active = active ?? true;
+  }) : this.active = active ?? true, this.currency = balance.currency, this.idOfOwnerProxyId = ownerProxyId.id {
+    assert(currency == null || this.currency == currency);
+    assert(idOfOwnerProxyId == null || this.idOfOwnerProxyId == idOfOwnerProxyId);
+  }
 
   ProxyAccountEntity copy({
     Amount balance,

@@ -31,7 +31,10 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
   }
 
   Stream<List<ProxyAccountEntity>> subscribeForAccounts() {
-    return _accountsRef(proxyUniverse: appConfiguration.proxyUniverse).snapshots().map(_querySnapshotToAccounts);
+    return _accountsRef(proxyUniverse: appConfiguration.proxyUniverse)
+        .where(ProxyAccountEntity.ACTIVE, isEqualTo: true)
+        .snapshots()
+        .map(_querySnapshotToAccounts);
   }
 
   Stream<ProxyAccountEntity> subscribeForAccount(ProxyAccountId accountId) {
@@ -46,14 +49,16 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
   }
 
   Future<List<ProxyAccountEntity>> fetchActiveAccounts({
-    String proxyUniverse,
-    String currency,
+    @required ProxyId masterProxyId,
+    @required String proxyUniverse,
+    @required String currency,
   }) async {
     QuerySnapshot querySnapshot = await _accountsRef(proxyUniverse: proxyUniverse)
-        .where('currency', isEqualTo: currency)
-        .where('active', isEqualTo: true)
+        .where(ProxyAccountEntity.ID_OF_OWNER_PROXY_ID, isEqualTo: masterProxyId.id)
+        .where(ProxyAccountEntity.CURRENCY, isEqualTo: currency)
+        .where(ProxyAccountEntity.ACTIVE, isEqualTo: true)
         .getDocuments();
-    return _querySnapshotToAccounts(querySnapshot);
+    return _querySnapshotToAccounts(querySnapshot).where((a) => a.ownerProxyId == masterProxyId).toList();
   }
 
   ProxyAccountEntity _documentSnapshotToAccount(DocumentSnapshot snapshot) {

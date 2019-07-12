@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
 import 'package:proxy_flutter/banking/db/test_receiving_accounts.dart';
-import 'package:proxy_flutter/banking/payment_authorization_input_dialog.dart';
+import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/widgets/enticement_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/enticement.dart';
 import 'package:proxy_flutter/services/enticement_service.dart';
-import 'package:share/share.dart';
 
 mixin EnticementHelper {
   AppConfiguration get appConfiguration;
 
   Future<Uri> createAccountAndPay(BuildContext context);
+
+  Future<void> createAccountAndDeposit(BuildContext context);
 
   Future<ReceivingAccountEntity> createReceivingAccount(BuildContext context) {
     return Navigator.of(context).push(
@@ -27,7 +25,6 @@ mixin EnticementHelper {
       ),
     );
   }
-
 
   void showToast(String message);
 
@@ -58,10 +55,16 @@ mixin EnticementHelper {
         _makePayment(context, enticement);
         break;
       case Enticement.ADD_RECEIVING_ACCOUNT:
+      case Enticement.NO_RECEIVING_ACCOUNTS:
         _addReceivingAccount(context, enticement);
         break;
       case Enticement.ADD_BUNQ_ACCOUNT:
         _addBunqAccount(context, enticement);
+        break;
+      case Enticement.ADD_FUNDS:
+      case Enticement.NO_PROXY_ACCOUNTS:
+      case Enticement.NO_EVENTS:
+        _addFunds(context, enticement);
         break;
     }
   }
@@ -69,8 +72,7 @@ mixin EnticementHelper {
   void _addTestAccounts(BuildContext context, Enticement enticement) {
     print("Add Test Accounts");
     ReceivingAccountStore store = ReceivingAccountStore(appConfiguration);
-    TestReceivingAccounts.allTestAccounts
-        .forEach((a) async => await store.saveAccount(a));
+    TestReceivingAccounts.allTestAccounts.forEach((a) async => await store.saveAccount(a));
     dismissEnticement(context, enticement);
   }
 
@@ -101,5 +103,14 @@ mixin EnticementHelper {
   void _addBunqAccount(BuildContext context, Enticement enticement) {
     showToast("Not yet ready");
     dismissEnticement(context, enticement);
+  }
+
+  void _addFunds(BuildContext context, Enticement enticement) {
+    print("Add Receiving Account");
+    try {
+      createAccountAndDeposit(context);
+    } catch (e) {
+      print("Error Adding funds: $e");
+    }
   }
 }

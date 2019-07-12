@@ -102,7 +102,7 @@ class ProxyLocalizations {
 
   String get passPhraseHint {
     return Intl.message(
-      'Alpha Numerics, spaces and Special Symbols',
+      'Recommended length is 16 chracters incl spaces.',
       name: 'passPhraseHint',
       desc: 'Pass Phrase hint like characters allowed',
     );
@@ -256,21 +256,9 @@ class ProxyLocalizations {
     );
   }
 
-  String get loadMoneyTitle {
-    return Intl.message(
-      'Load Money',
-      name: 'loadMoneyTitle',
-      desc: 'Load Money',
-    );
-  }
+  String get addFundsTitle => Intl.message('Add Funds');
 
-  String get loadMoneyDescription {
-    return Intl.message(
-      'By already loading Money, you can make Payments faster',
-      name: 'loadMoneyDescription',
-      desc: 'By already loading Money, you can make Payments faster',
-    );
-  }
+  String get addFundsDescription => Intl.message('By already adding funds, you can make Payments faster');
 
   String get errorLoadingAccounts {
     return Intl.message(
@@ -1003,10 +991,10 @@ class ProxyLocalizations {
   String get registerUserTitle => Intl.message('Register');
 
   String get newPassPhraseDescription => Intl.message(
-      'Setup strong pass phrase to encrypt all your sensitive data. Note that, it is not possible to recover this pass phrase.');
+      'Setup strong pass phrase to encrypt all your sensitive data.');
 
   String get recoverPassPhraseDescription =>
-      Intl.message('You already have a account. Enter your pass phrase to proceed.');
+      Intl.message('Enter your pass phrase to proceed.');
 
   String get wrongPassPhraseDescription => Intl.message('Wrong Pass Phrase');
 
@@ -1075,6 +1063,38 @@ class ProxyLocalizations {
   String get appWelcomeTitle => Intl.message('Welcome to ProMo');
 
   String get appWelcomeSubTitle => Intl.message('program your money');
+
+  String get chooseProxyAccountPageTitle => Intl.message('Choose Account');
+
+  String get depositActionItemTitle => Intl.message('Add Funds');
+
+  String get noProxyAccountsTitle => Intl.message('No Money found');
+
+  String get noProxyAccountsDescription => Intl.message('Start by adding funds, so that you can transact faster');
+
+  String get noEventsTitle => Intl.message('No Transactions found');
+
+  String get noEventsDescription => Intl.message('Start by adding funds, so that you can transact faster');
+
+  String get noReceivingAccountsTitle => Intl.message('No Accounts found');
+
+  String get noReceivingAccountsDescription =>
+      Intl.message('Start by adding your Bank Account. So that, you can withdraw money to your Bank Account');
+
+  String get setupPassPhraseButtonLabel =>
+      Intl.message('Setup');
+
+  String get recoverPassPhraseButtonLabel =>
+      Intl.message('Recover');
+
+  String get chooseProxyUniverseTitle => Intl.message('Choose Universe');
+
+  String get chooseProxyUniverseSubtitle => Intl.message('You can switch anytime, from Profile tab');
+
+  String get productionButtonLabel => Intl.message('Production');
+
+  String get testButtonLabel => Intl.message('Test');
+
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
 import 'package:proxy_flutter/banking/model/event_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_event.dart';
 import 'package:proxy_flutter/banking/model/payment_encashment_event.dart';
 import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
 import 'package:proxy_flutter/banking/payment_authorization_page.dart';
 import 'package:proxy_flutter/banking/payment_encashment_page.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
-import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/banking/widgets/event_card.dart';
 import 'package:proxy_flutter/banking/withdrawal_page.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/services/enticement_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
+import 'package:proxy_flutter/widgets/enticement_helper.dart';
 import 'package:uuid/uuid.dart';
+
+import 'deposit_helper.dart';
+import 'payment_helper.dart';
+import 'proxy_account_helper.dart';
 
 final Uuid uuidFactory = Uuid();
 
@@ -36,7 +41,8 @@ class EventsPage extends StatefulWidget {
   }
 }
 
-class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavigation {
+class _EventsPageState extends LoadingSupportState<EventsPage>
+    with HomePageNavigation, EnticementHelper, DepositHelper, PaymentHelper, AccountHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
   bool loading = false;
@@ -87,8 +93,13 @@ class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavi
   Widget _events(BuildContext context, List<EventEntity> events) {
     print("events : $events");
     if (events.isEmpty) {
-      return Center(
-        child: Text(ProxyLocalizations.of(context).noEvents),
+      return ListView(
+        shrinkWrap: true,
+        physics: ClampingScrollPhysics(),
+        children: [
+          const SizedBox(height: 4.0),
+          enticementCard(context, EnticementFactory.noEvents, cancellable: false),
+        ],
       );
     }
     return ListView(
@@ -197,7 +208,8 @@ class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavi
         );
         break;
       case EventType.PaymentAuthorization:
-        await BankingServiceFactory.paymentAuthorizationService(widget.appConfiguration).refreshPaymentAuthorizationStatus(
+        await BankingServiceFactory.paymentAuthorizationService(widget.appConfiguration)
+            .refreshPaymentAuthorizationStatus(
           proxyUniverse: event.proxyUniverse,
           paymentAuthorizationId: (event as PaymentAuthorizationEvent).paymentAuthorizationId,
         );
@@ -206,7 +218,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage> with HomePageNavi
         await BankingServiceFactory.paymentEncashmentService(widget.appConfiguration).refreshPaymentEncashmentStatus(
           proxyUniverse: event.proxyUniverse,
           paymentAuthorizationId: (event as PaymentEncashmentEvent).paymentAuthorizationId,
-            paymentEncashmentId: (event as PaymentEncashmentEvent).paymentEncashmentId,
+          paymentEncashmentId: (event as PaymentEncashmentEvent).paymentEncashmentId,
         );
         break;
       default:
