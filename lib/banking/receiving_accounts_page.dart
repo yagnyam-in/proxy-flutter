@@ -4,7 +4,7 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
 import 'package:proxy_flutter/banking/deposit_helper.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/payment_helper.dart';
+import 'package:proxy_flutter/banking/payment_authorization_helper.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/widgets/receiving_account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
@@ -70,7 +70,7 @@ class ReceivingAccountsPage extends StatefulWidget {
 }
 
 class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsPage>
-    with HomePageNavigation, EnticementHelper, DepositHelper, PaymentHelper, AccountHelper {
+    with HomePageNavigation, EnticementHelper, DepositHelper, PaymentAuthorizationHelper, AccountHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
   final String currency;

@@ -21,7 +21,7 @@ import 'package:proxy_flutter/widgets/enticement_helper.dart';
 import 'package:uuid/uuid.dart';
 
 import 'deposit_helper.dart';
-import 'payment_helper.dart';
+import 'payment_authorization_helper.dart';
 import 'proxy_account_helper.dart';
 
 final Uuid uuidFactory = Uuid();
@@ -42,7 +42,7 @@ class EventsPage extends StatefulWidget {
 }
 
 class _EventsPageState extends LoadingSupportState<EventsPage>
-    with HomePageNavigation, EnticementHelper, DepositHelper, PaymentHelper, AccountHelper {
+    with HomePageNavigation, EnticementHelper, DepositHelper, PaymentAuthorizationHelper, AccountHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
   bool loading = false;

@@ -12,17 +12,7 @@ mixin AccountHelper {
   void showToast(String message);
 
   Future<ProxyAccountEntity> fetchOrCreateAccount(ProxyLocalizations localizations, String currency) async {
-    List<ProxyAccountEntity> existing = await ProxyAccountStore(appConfiguration).fetchActiveAccounts(
-      masterProxyId: appConfiguration.masterProxyId,
-      currency: currency,
-      proxyUniverse: appConfiguration.proxyUniverse,
-    );
-    if (existing.isNotEmpty) {
-      return existing.first;
-    }
-    showToast(localizations.creatingAnonymousAccount(currency));
-    return BankingServiceFactory.bankingService(appConfiguration).createProxyWallet(
-      localizations: localizations,
+    return BankingServiceFactory.bankingService(appConfiguration).fetchOrCreateProxyWallet(
       ownerProxyId: appConfiguration.masterProxyId,
       proxyUniverse: appConfiguration.proxyUniverse,
       currency: currency,

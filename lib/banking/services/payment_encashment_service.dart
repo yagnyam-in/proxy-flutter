@@ -89,7 +89,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     return cryptographyService.verifyHash(hashValue: hash, input: input);
   }
 
-  Future<void> acceptPayment({
+  Future<PaymentEncashmentEntity> acceptPayment({
     @required SignedMessage<PaymentAuthorization> signedPaymentAuthorization,
     @required Payee payee,
     String paymentLink,
@@ -98,7 +98,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     String secret,
   }) async {
     PaymentAuthorization paymentAuthorization = signedPaymentAuthorization.message;
-    var proxyAccount = await BankingServiceFactory.bankingService(appConfiguration).createProxyWallet(
+    var proxyAccount = await BankingServiceFactory.bankingService(appConfiguration).fetchOrCreateProxyWallet(
       ownerProxyId: appConfiguration.masterProxyId,
       proxyUniverse: paymentAuthorization.proxyUniverse,
       currency: paymentAuthorization.currency,
@@ -126,10 +126,10 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
         responseParser: PaymentEncashmentRegistered.fromJson,
       );
       status = signedResponse.message.paymentEncashmentStatus;
-    } catch (e) {
-      print("Error while registering Payment Encashment: $e");
+    } finally {
+      await _paymentEncashmentStore.savePaymentEncashment(encashmentEntity.copy(status: status));
     }
-    await _paymentEncashmentStore.savePaymentEncashment(encashmentEntity.copy(status: status));
+    return encashmentEntity;
   }
 
   Future<PaymentEncashmentEntity> _createPaymentEncashmentEntity({

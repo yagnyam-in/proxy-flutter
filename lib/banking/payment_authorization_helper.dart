@@ -10,7 +10,7 @@ import 'package:share/share.dart';
 import 'model/proxy_account_entity.dart';
 import 'payment_authorization_input_dialog.dart';
 
-mixin PaymentHelper {
+mixin PaymentAuthorizationHelper {
   AppConfiguration get appConfiguration;
 
   Future<ProxyAccountEntity> fetchOrCreateAccount(ProxyLocalizations localizations, String currency);

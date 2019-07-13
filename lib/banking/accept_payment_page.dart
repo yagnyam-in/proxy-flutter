@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/model/payment_encashment_entity.dart';
+import 'package:proxy_flutter/banking/payment_encashment_page.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
@@ -8,6 +10,10 @@ import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
+
+import 'proxy_account_helper.dart';
+
+typedef OnPaymentAcceptedCallback = void Function(PaymentEncashmentEntity paymentEncashmentEntity);
 
 class AcceptPaymentPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
@@ -19,7 +25,7 @@ class AcceptPaymentPage extends StatefulWidget {
     this.appConfiguration, {
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
-        this.paymentLink,
+    this.paymentLink,
     Key key,
   }) : super(key: key);
 
@@ -33,12 +39,13 @@ class AcceptPaymentPage extends StatefulWidget {
   }
 }
 
-class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with ProxyUtils {
+class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with ProxyUtils, AccountHelper {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String paymentAuthorizationId;
-  Future<SignedMessage<PaymentAuthorization>> _paymentAuthorization;
+  Future<SignedMessage<PaymentAuthorization>> _paymentAuthorizationMessageFuture;
+  PaymentEncashmentEntity _paymentEncashmentEntity;
   bool loading = false;
 
   AcceptPaymentPageState({
@@ -50,7 +57,7 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
   @override
   void initState() {
     super.initState();
-    _paymentAuthorization = _fetchPaymentAuthorization();
+    _paymentAuthorizationMessageFuture = _fetchPaymentAuthorization();
   }
 
   void showToast(String message) {
@@ -63,7 +70,9 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-
+    if (_paymentEncashmentEntity != null) {
+      return PaymentEncashmentPage.forPaymentEncashment(appConfiguration, _paymentEncashmentEntity);
+    }
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -75,13 +84,14 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: futureBuilder(
             name: "Payment Authorization Fetcher",
-            future: _paymentAuthorization,
+            future: _paymentAuthorizationMessageFuture,
             emptyMessage: localizations.invalidPayment,
             builder: (context, authorization) => _AcceptPaymentPageBody(
               scaffoldKey: _scaffoldKey,
               appConfiguration: appConfiguration,
               paymentAuthorization: authorization,
               paymentLink: widget.paymentLink,
+              onPaymentAccepted: _onPaymentAccepted,
             ),
           ),
         ),
@@ -95,6 +105,12 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
       paymentAuthorizationId: paymentAuthorizationId,
     );
   }
+
+  void _onPaymentAccepted(PaymentEncashmentEntity paymentEncashmentEntity) {
+    setState(() {
+      this._paymentEncashmentEntity = paymentEncashmentEntity;
+    });
+  }
 }
 
 class _AcceptPaymentPageBody extends StatefulWidget {
@@ -102,13 +118,15 @@ class _AcceptPaymentPageBody extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final SignedMessage<PaymentAuthorization> paymentAuthorization;
   final String paymentLink;
+  final OnPaymentAcceptedCallback onPaymentAccepted;
 
   const _AcceptPaymentPageBody({
     Key key,
     @required this.scaffoldKey,
     @required this.appConfiguration,
     @required this.paymentAuthorization,
-    this.paymentLink,
+    @required this.paymentLink,
+    @required this.onPaymentAccepted,
   }) : super(key: key);
 
   @override
@@ -263,13 +281,15 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
       showMessage(localizations.invalidSecret);
       return null;
     }
-    await paymentEncashmentService.acceptPayment(
+    PaymentEncashmentEntity paymentEncashmentEntity = await paymentEncashmentService.acceptPayment(
       payee: payee,
       signedPaymentAuthorization: paymentAuthorization,
       paymentLink: widget.paymentLink,
       secret: secretController.text,
     );
-    return null;
+    if (paymentEncashmentEntity != null) {
+      widget.onPaymentAccepted(paymentEncashmentEntity);
+    }
   }
 
   void showMessage(String message) {
@@ -279,9 +299,5 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
         duration: Duration(seconds: 3),
       ),
     );
-  }
-
-  void close() {
-    Navigator.of(context).pop();
   }
 }

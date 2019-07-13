@@ -8,7 +8,6 @@ import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
-import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
@@ -45,8 +44,27 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     }
   }
 
+  Future<ProxyAccountEntity> fetchOrCreateProxyWallet({
+    @required ProxyId ownerProxyId,
+    @required String proxyUniverse,
+    @required String currency,
+  }) async {
+    List<ProxyAccountEntity> existing = await _proxyAccountStore.fetchActiveAccounts(
+      masterProxyId: ownerProxyId,
+      currency: currency,
+      proxyUniverse: proxyUniverse,
+    );
+    if (existing.isNotEmpty) {
+      return existing.first;
+    }
+    return createProxyWallet(
+      ownerProxyId: ownerProxyId,
+      proxyUniverse: proxyUniverse,
+      currency: currency,
+    );
+  }
+
   Future<ProxyAccountEntity> createProxyWallet({
-    @required ProxyLocalizations localizations,
     @required ProxyId ownerProxyId,
     @required String proxyUniverse,
     @required String currency,
@@ -71,11 +89,10 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     print("Received $jsonResponse from $proxyBankingUrl");
     SignedMessage<ProxyWalletCreationResponse> signedResponse =
         await messageFactory.buildAndVerifySignedMessage(jsonResponse, ProxyWalletCreationResponse.fromJson);
-    return _saveAccount(localizations, ownerProxyId, signedResponse);
+    return _saveAccount(ownerProxyId, signedResponse);
   }
 
   ProxyAccountEntity _saveAccount(
-    ProxyLocalizations localizations,
     ProxyId ownerProxyId,
     SignedMessage<ProxyWalletCreationResponse> signedResponse,
   ) {

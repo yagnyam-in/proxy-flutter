@@ -45,14 +45,12 @@ class PaymentEncashmentStore with ProxyUtils, FirestoreUtils {
         proxyUniverse: proxyUniverse,
         paymentEncashmentId: paymentEncashmentId,
       ).get();
-      return _documentSnapshotToProxyKey(snapshot);
+      return _documentSnapshotToEntity(snapshot);
     } else if (paymentAuthorizationId != null) {
-      QuerySnapshot docs = await _paymentEncshmentsRef(proxyUniverse: proxyUniverse)
+      QuerySnapshot snapshot = await _paymentEncshmentsRef(proxyUniverse: proxyUniverse)
           .where("paymentAuthorizationId", isEqualTo: paymentAuthorizationId)
           .getDocuments();
-      if (docs.documents != null && docs.documents.isNotEmpty) {
-        return _documentSnapshotToProxyKey(docs.documents.first);
-      }
+      return _querySnapshotToFirstEntity(snapshot);
     }
     return null;
   }
@@ -60,11 +58,20 @@ class PaymentEncashmentStore with ProxyUtils, FirestoreUtils {
   Stream<PaymentEncashmentEntity> subscribeForPaymentEncashment({
     @required String proxyUniverse,
     @required String paymentEncashmentId,
+    @required String paymentAuthorizationId,
   }) {
-    return _ref(
-      proxyUniverse: proxyUniverse,
-      paymentEncashmentId: paymentEncashmentId,
-    ).snapshots().map(_documentSnapshotToProxyKey);
+    if (paymentEncashmentId != null) {
+      return _ref(
+        proxyUniverse: proxyUniverse,
+        paymentEncashmentId: paymentEncashmentId,
+      ).snapshots().map(_documentSnapshotToEntity);
+    } else if (paymentAuthorizationId != null) {
+      return _paymentEncshmentsRef(proxyUniverse: proxyUniverse)
+          .where("paymentAuthorizationId", isEqualTo: paymentAuthorizationId)
+          .snapshots()
+          .map(_querySnapshotToFirstEntity);
+    }
+    return Stream.empty();
   }
 
   Future<PaymentEncashmentEntity> savePaymentEncashment(PaymentEncashmentEntity paymentEncashment) async {
@@ -76,7 +83,14 @@ class PaymentEncashmentStore with ProxyUtils, FirestoreUtils {
     return paymentEncashment;
   }
 
-  PaymentEncashmentEntity _documentSnapshotToProxyKey(DocumentSnapshot snapshot) {
+  PaymentEncashmentEntity _querySnapshotToFirstEntity(QuerySnapshot snapshot) {
+    if (snapshot.documents != null && snapshot.documents.isNotEmpty) {
+      return _documentSnapshotToEntity(snapshot.documents.first);
+    }
+    return null;
+  }
+
+  PaymentEncashmentEntity _documentSnapshotToEntity(DocumentSnapshot snapshot) {
     if (snapshot == null || !snapshot.exists) {
       return null;
     }

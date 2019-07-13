@@ -4,7 +4,7 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/deposit_helper.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/banking/payment_helper.dart';
+import 'package:proxy_flutter/banking/payment_authorization_helper.dart';
 import 'package:proxy_flutter/banking/widgets/account_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/contacts_page.dart';
@@ -50,7 +50,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         EnticementHelper,
         HomePageNavigation,
         DepositHelper,
-        PaymentHelper,
+        PaymentAuthorizationHelper,
         WithdrawalHelper,
         AccountHelper {
   static const String DEPOSIT = "deposit";
