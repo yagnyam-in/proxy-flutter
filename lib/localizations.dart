@@ -370,17 +370,17 @@ class ProxyLocalizations {
 
   String get manageReceivingAccountsPageTitle {
     return Intl.message(
-      'Accounts',
+      'Bank Accounts',
       name: 'manageReceivingAccountsPageTitle',
-      desc: 'Receiving Accounts Page Hint',
+      desc: 'Bank Accounts Page Title',
     );
   }
 
   String get chooseReceivingAccountsPageTitle {
     return Intl.message(
-      'Choose Account',
+      'Choose Bank Account',
       name: 'chooseReceivingAccountsPageTitle',
-      desc: 'Receiving Accounts Page Hint',
+      desc: 'Choose Bank Accounts Page Title',
     );
   }
 
@@ -731,21 +731,21 @@ class ProxyLocalizations {
       );
 
   String get cancelledByPayerStatus => Intl.message(
-        'No Funds',
+    'Cancelled by Payer',
         name: 'cancelledByPayerStatus',
-        desc: 'No Funds',
+        desc: 'Cancelled by Payer',
       );
 
   String get cancelledByPayeeStatus => Intl.message(
-        'No Funds',
+        'Cancelled by Payee',
         name: 'cancelledByPayeeStatus',
-        desc: 'No Funds',
+        desc: 'Cancelled by Payee',
       );
 
   String get processedStatus => Intl.message(
-        'No Funds',
+        'Processed',
         name: 'processedStatus',
-        desc: 'No Funds',
+        desc: 'Processed',
       );
 
   String get expiredStatus => Intl.message(
@@ -976,9 +976,9 @@ class ProxyLocalizations {
   String get makePaymentDescription =>
       Intl.message("Its very easy to make Payment, you don't need to know any account details to make payment");
 
-  String get proxyAccountsPageTitle => Intl.message('Money');
+  String get proxyAccountsPageTitle => Intl.message('Anonymous Accounts');
 
-  String get receivingAccountsTitle => Intl.message('Accounts');
+  String get receivingAccountsTitle => Intl.message('Bank Accounts');
 
   String get authorizePhoneNumber => Intl.message('Verify Phone');
 
@@ -1094,6 +1094,14 @@ class ProxyLocalizations {
   String get productionButtonLabel => Intl.message('Production');
 
   String get testButtonLabel => Intl.message('Test');
+
+  String get proxyAccountsPageNavigationLabel => Intl.message('Anonymous');
+
+  String get eventsPageNavigationLabel => Intl.message('Events');
+
+  String get receivingAccountsNavigationLabel => Intl.message('Accounts');
+
+  String get profilePageNavigationLabel => Intl.message('Profile');
 
 }
 

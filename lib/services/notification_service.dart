@@ -92,7 +92,7 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   Future<void> onMessage(Map<String, dynamic> message) async {
     print("onMessage $message");
-    Map<dynamic, dynamic> data = message['data'];
+    Map<dynamic, dynamic> data = message['data'] ?? message;
     print('data: $data');
     String type = data != null ? data['alertType'] : null;
     print('type: $type');

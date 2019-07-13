@@ -84,19 +84,19 @@ class _BottomNavigationBarState extends State<_BottomNavigationBar> {
       items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
           icon: Icon(Icons.account_balance_wallet),
-          title: Text(localizations.proxyAccountsPageTitle),
+          title: Text(localizations.proxyAccountsPageNavigationLabel),
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.event),
-          title: Text(localizations.eventsPageTitle),
+          title: Text(localizations.eventsPageNavigationLabel),
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.account_balance),
-          title: Text(localizations.receivingAccountsTitle),
+          title: Text(localizations.receivingAccountsNavigationLabel),
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.account_box),
-          title: Text(localizations.profilePageTitle),
+          title: Text(localizations.profilePageNavigationLabel),
         ),
       ],
       type: BottomNavigationBarType.fixed,

@@ -1,7 +1,7 @@
 name: proxy_flutter
 description: Anonymize Identity and Payments
 
-version: 1.2.8+28
+version: 1.3.0+30
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
