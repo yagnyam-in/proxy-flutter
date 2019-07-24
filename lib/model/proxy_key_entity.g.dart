@@ -15,8 +15,7 @@ ProxyKeyEntity _$ProxyKeyEntityFromJson(Map json) {
           CipherText.fromJson(json['privateKeyEncodedEncrypted'] as Map),
       privateKeySha256Thumbprint: json['privateKeySha256Thumbprint'] as String,
       publicKeyEncoded: json['publicKeyEncoded'] as String,
-      publicKeySha256Thumbprint: json['publicKeySha256Thumbprint'] as String,
-      fcmToken: json['fcmToken'] as String);
+      publicKeySha256Thumbprint: json['publicKeySha256Thumbprint'] as String);
 }
 
 Map<String, dynamic> _$ProxyKeyEntityToJson(ProxyKeyEntity instance) {
@@ -37,6 +36,5 @@ Map<String, dynamic> _$ProxyKeyEntityToJson(ProxyKeyEntity instance) {
   val['privateKeySha256Thumbprint'] = instance.privateKeySha256Thumbprint;
   val['publicKeyEncoded'] = instance.publicKeyEncoded;
   val['publicKeySha256Thumbprint'] = instance.publicKeySha256Thumbprint;
-  val['fcmToken'] = instance.fcmToken;
   return val;
 }

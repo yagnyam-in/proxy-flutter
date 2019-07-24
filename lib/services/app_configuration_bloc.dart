@@ -7,8 +7,10 @@ import 'package:proxy_flutter/db/user_store.dart';
 import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_flutter/services/account_service.dart';
+import 'package:quiver/strings.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class AppConfigurationBloc {
   static final AppConfigurationBloc instance = AppConfigurationBloc();
@@ -50,8 +52,20 @@ class AppConfigurationBloc {
     );
   }
 
+  String _fetchDeviceId(SharedPreferences sharedPreferences) {
+    String deviceId = sharedPreferences.getString('deviceId');
+    if (isNotEmpty(deviceId)) {
+      return deviceId;
+    } else {
+      deviceId = Uuid().v4();
+      sharedPreferences.setString('deviceId', deviceId);
+      return deviceId;
+    }
+  }
+
   Future<AppConfiguration> _fetchAppConfiguration() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    String deviceId = _fetchDeviceId(sharedPreferences);
     FirebaseUser firebaseUser = await FirebaseAuth.instance.currentUser();
     UserEntity appUser;
     AccountEntity account;
@@ -84,6 +98,7 @@ class AppConfigurationBloc {
       account: account,
       passPhrase: passPhrase,
       proxyUniverse: proxyUniverse,
+      deviceId: deviceId,
     );
   }
 
@@ -96,6 +111,7 @@ class AppConfigurationBloc {
       account: null,
       passPhrase: null,
       proxyUniverse: appConfiguration.proxyUniverse,
+      deviceId: appConfiguration.deviceId,
     );
     FirebaseAuth.instance.signOut();
   }

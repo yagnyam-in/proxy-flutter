@@ -30,9 +30,6 @@ class ProxyKeyEntity {
   @JsonKey(nullable: false)
   final String publicKeySha256Thumbprint;
 
-  @JsonKey(nullable: true, includeIfNull: true)
-  final String fcmToken;
-
   ProxyKeyEntity({
     @required this.id,
     this.name,
@@ -41,7 +38,6 @@ class ProxyKeyEntity {
     @required this.privateKeySha256Thumbprint,
     @required this.publicKeyEncoded,
     @required this.publicKeySha256Thumbprint,
-    this.fcmToken,
   });
 
   String toString() {

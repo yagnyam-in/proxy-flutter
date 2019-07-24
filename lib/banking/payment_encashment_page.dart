@@ -73,6 +73,7 @@ class PaymentEncashmentPageState extends LoadingSupportState<PaymentEncashmentPa
     super.initState();
     _paymentEncashmentStream = PaymentEncashmentStore(appConfiguration).subscribeForPaymentEncashment(
       proxyUniverse: proxyUniverse,
+      paymentAuthorizationId: paymentAuthorizationId,
       paymentEncashmentId: paymentEncashmentId,
     );
   }

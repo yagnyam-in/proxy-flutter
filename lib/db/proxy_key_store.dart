@@ -41,10 +41,11 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
     return null;
   }
 
-  Future<void> updateFcmToken(ProxyKey proxyKey, String fcmToken) async {
-    return _ref(proxyKey.id).setData({
-      'fcmToken': fcmToken,
-    }, merge: true);
+  Future<List<ProxyKey>> fetchProxyKeys({Set<ProxyId> exclusion}) async {
+    QuerySnapshot querySnapshot = await _proxiesRef().getDocuments();
+    List<ProxyKeyEntity> entities =
+        _querySnapshotToProxyKeys(querySnapshot).where((e) => !exclusion.contains(e.id)).toList();
+    return Future.wait(entities.map(_proxyKeyEntityToProxyKey).toList());
   }
 
   Future<bool> hasProxyKey(ProxyId proxyId) async {
@@ -73,23 +74,6 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
       await _proxyKeyToProxyKeyEntity(proxyKey),
       transaction: transaction,
     );
-  }
-
-  Future<List<ProxyKey>> fetchProxiesWithoutFcmToken(String fcmToken) async {
-    print('fetchProxiesWithoutFcmToken $fcmToken');
-    List<Future<QuerySnapshot>> snapshotFutures = [
-      _proxiesRef().where("fcmToken", isNull: true).getDocuments(),
-      _proxiesRef().where("fcmToken", isLessThan: fcmToken).getDocuments(),
-      _proxiesRef().where("fcmToken", isGreaterThan: fcmToken).getDocuments(),
-    ];
-    List<QuerySnapshot> snapshots = await Future.wait(snapshotFutures);
-    List<Future<ProxyKey>> keys = snapshots.expand((snapshot) {
-      return _querySnapshotToProxyKeys(snapshot)
-          .where((e) => e.fcmToken != fcmToken)
-          .map((e) async => await _proxyKeyEntityToProxyKey(e))
-          .toList();
-    }).toList();
-    return Future.wait(keys);
   }
 
   ProxyKeyEntity _documentSnapshotToProxyKey(DocumentSnapshot snapshot) {
@@ -136,7 +120,6 @@ class ProxyKeyStore with ProxyUtils, FirestoreUtils {
       privateKeySha256Thumbprint: key.privateKeySha256Thumbprint,
       publicKeyEncoded: key.publicKeyEncoded,
       publicKeySha256Thumbprint: key.publicKeySha256Thumbprint,
-      fcmToken: 'dummy', // Required for Querying
     );
   }
 }

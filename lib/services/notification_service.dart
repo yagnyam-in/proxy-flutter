@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/db/device_store.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/url_config.dart';
@@ -58,23 +60,42 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
     AppConfiguration appConfiguration = AppConfigurationBloc.instance.appConfiguration;
     if (newToken != null && appConfiguration != null && appConfiguration.isComplete) {
       ProxyKeyStore proxyKeyStore = ProxyKeyStore(appConfiguration);
-      List<ProxyKey> outdatedProxies = await proxyKeyStore.fetchProxiesWithoutFcmToken(newToken);
-      print("Got ${outdatedProxies.length} proxies to update");
-      outdatedProxies.forEach((key) => _updateToken(proxyKeyStore, key, newToken));
+      DeviceStore deviceStore = DeviceStore(appConfiguration);
+      Set<ProxyId> uptoDateProxies = await deviceStore.fetchProxiesWithFcmToken(
+        deviceId: appConfiguration.deviceId,
+        fcmToken: newToken,
+      );
+      List<ProxyKey> allProxies = await proxyKeyStore.fetchProxyKeys(exclusion: uptoDateProxies);
+      allProxies.forEach(
+        (key) => _updateToken(
+          key,
+          deviceId: appConfiguration.deviceId,
+          fcmToken: newToken,
+        ),
+      );
+      deviceStore.updateFcmToken(
+        deviceId: appConfiguration.deviceId,
+        fcmToken: newToken,
+        proxyKeys: allProxies,
+      );
     } else {
       print("Can't update FCM Token as AppConfiguration is incomplete");
     }
   }
 
-  void _updateToken(ProxyKeyStore proxyKeyStore, ProxyKey proxyKey, String newToken) async {
-    print("Updating FCM Token for ${proxyKey.id}");
-    ProxyCustomerUpdateRequest request = new ProxyCustomerUpdateRequest(
+  void _updateToken(
+    ProxyKey proxyKey, {
+    @required String deviceId,
+    @required String fcmToken,
+  }) async {
+    print("Updating FCM Token for ${proxyKey.id} on Device $deviceId");
+    DeviceUpdateRequest request = new DeviceUpdateRequest(
       requestId: uuidFactory.v4(),
       proxyId: proxyKey.id,
-      gcmToken: newToken,
+      deviceId: deviceId,
+      fcmToken: fcmToken,
     );
-    SignedMessage<ProxyCustomerUpdateRequest> signedRequest =
-        await messageSigningService.signMessage(request, proxyKey);
+    SignedMessage<DeviceUpdateRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
     print("Sending $signedRequestJson to $appBackendUrl");
     String jsonResponse = await post(
@@ -83,7 +104,6 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
       body: signedRequestJson,
     );
     print("Received $jsonResponse from $appBackendUrl");
-    proxyKeyStore.updateFcmToken(proxyKey, newToken);
   }
 
   void tokenRefreshFailure(error) {

@@ -4,7 +4,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
-import 'package:quiver/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfiguration {
@@ -18,6 +17,7 @@ class AppConfiguration {
   AccountEntity account;
   String passPhrase;
   String proxyUniverse;
+  String deviceId;
 
   String get proxyUniverseSuffix {
     if (proxyUniverse == ProxyUniverse.PRODUCTION) {
@@ -34,6 +34,7 @@ class AppConfiguration {
     this.account,
     this.passPhrase,
     this.proxyUniverse,
+    this.deviceId,
   }) {
     assert(preferences != null);
   }
@@ -44,6 +45,7 @@ class AppConfiguration {
     AccountEntity account,
     String passPhrase,
     String proxyUniverse,
+    String deviceId,
   }) {
     return AppConfiguration(
       preferences: preferences,
@@ -52,6 +54,7 @@ class AppConfiguration {
       account: account ?? this.account,
       passPhrase: passPhrase ?? this.passPhrase,
       proxyUniverse: proxyUniverse ?? this.proxyUniverse,
+      deviceId: deviceId ?? this.deviceId,
     );
   }
 
@@ -62,7 +65,8 @@ class AppConfiguration {
           this.appUser == other.appUser &&
           this.account == other.account &&
           this.passPhrase == other.passPhrase &&
-          this.proxyUniverse == other.proxyUniverse;
+          this.proxyUniverse == other.proxyUniverse &&
+          this.deviceId == other.deviceId;
     }
     return false;
   }
@@ -79,6 +83,7 @@ class AppConfiguration {
       'appUser': appUser?.email,
       'account': account?.accountId,
       'proxyUniverse': proxyUniverse,
+      'deviceId': deviceId,
     }.toString();
   }
 
