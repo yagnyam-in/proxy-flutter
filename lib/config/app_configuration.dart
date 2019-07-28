@@ -4,12 +4,15 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/model/account_entity.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
+import 'package:quiver/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class AppConfiguration {
   static const String ShowWelcomePages = "showWelcomePagesV0";
   static const String PROXY_UNIVERSE = "proxyUniverse";
   static const String PASSPHRASE_KEY = "passPhrase";
+  static const String DEVICE_ID = "deviceId";
 
   final SharedPreferences preferences;
   final FirebaseUser firebaseUser;
@@ -82,8 +85,8 @@ class AppConfiguration {
       'firebaseUser': firebaseUser?.uid,
       'appUser': appUser?.email,
       'account': account?.accountId,
-      'proxyUniverse': proxyUniverse,
-      'deviceId': deviceId,
+      PROXY_UNIVERSE: proxyUniverse,
+      DEVICE_ID: deviceId,
     }.toString();
   }
 
@@ -160,6 +163,18 @@ class AppConfiguration {
       print('Error fetching $PROXY_UNIVERSE: $t');
     }
     return null;
+  }
+
+  static Future<String> fetchDeviceId() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String deviceId = preferences.getString(DEVICE_ID);
+    if (isNotEmpty(deviceId)) {
+      return deviceId;
+    } else {
+      deviceId = Uuid().v4();
+      preferences.setString(DEVICE_ID, deviceId);
+      return deviceId;
+    }
   }
 
   static Future<void> storeProxyUniverse(String value) async {

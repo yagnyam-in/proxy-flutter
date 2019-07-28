@@ -60,7 +60,10 @@ mixin DepositHelper {
         ? DepositRequestInput.fromCustomer(appConfiguration.appUser)
         : DepositRequestInput.forAccount(proxyAccount, appConfiguration.appUser);
     return Navigator.of(context).push(MaterialPageRoute<DepositRequestInput>(
-      builder: (context) => DepositRequestInputDialog(depositRequestInput: depositRequestInput),
+      builder: (context) => DepositRequestInputDialog(
+        appConfiguration,
+        depositRequestInput: depositRequestInput,
+      ),
       fullscreenDialog: true,
     ));
   }

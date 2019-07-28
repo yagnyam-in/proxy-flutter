@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:quiver/strings.dart';
+
+import 'services/banking_service_factory.dart';
+import 'widgets/currency_input_form_field.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
@@ -66,22 +71,27 @@ class DepositRequestInput with ProxyUtils {
 }
 
 class DepositRequestInputDialog extends StatefulWidget {
+  final AppConfiguration appConfiguration;
   final DepositRequestInput depositRequestInput;
 
-  DepositRequestInputDialog({Key key, this.depositRequestInput}) : super(key: key) {
+  DepositRequestInputDialog(this.appConfiguration, {Key key, this.depositRequestInput}) : super(key: key) {
     print("Constructing DepositRequestInputDialog with Input $depositRequestInput");
   }
 
   @override
-  _DepositRequestInputDialogState createState() => _DepositRequestInputDialogState(depositRequestInput);
+  _DepositRequestInputDialogState createState() => _DepositRequestInputDialogState(
+        appConfiguration,
+        depositRequestInput,
+      );
 }
 
 class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
+  final AppConfiguration appConfiguration;
   final DepositRequestInput depositRequestInput;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final List<String> validCurrencies;
+  Future<Set<String>> _validCurrenciesFuture;
 
   final TextEditingController messageController;
   final TextEditingController amountController;
@@ -91,21 +101,29 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
 
   String _currency;
 
-  _DepositRequestInputDialogState(this.depositRequestInput)
+  _DepositRequestInputDialogState(this.appConfiguration, this.depositRequestInput)
       : amountController = TextEditingController(),
         messageController = TextEditingController(text: depositRequestInput?.message),
         nameController = TextEditingController(text: depositRequestInput?.customerName),
         phoneController = TextEditingController(text: depositRequestInput?.customerPhone),
         emailController = TextEditingController(text: depositRequestInput?.customerEmail),
-        _currency = depositRequestInput?.currency,
-        validCurrencies =
-            depositRequestInput?.currency != null ? [depositRequestInput.currency] : [Currency.INR, Currency.EUR];
+        _currency = depositRequestInput?.currency;
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text(message),
       duration: Duration(seconds: 3),
     ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (isNotEmpty(_currency)) {
+      _validCurrenciesFuture =  Future.value({_currency});
+    } else {
+      _validCurrenciesFuture =  BankingServiceFactory.bankingService(appConfiguration).supportedCurrenciesForDefaultBank();
+    }
   }
 
   @override
@@ -140,32 +158,11 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
 
     children.addAll([
       const SizedBox(height: 16.0),
-      new FormField(
-        builder: (FormFieldState state) {
-          return InputDecorator(
-            decoration: InputDecoration(
-              labelText: localizations.currency,
-            ),
-            isEmpty: _currency == '',
-            child: new DropdownButtonHideUnderline(
-              child: new DropdownButton(
-                value: _currency,
-                isDense: true,
-                onChanged: (String newValue) {
-                  setState(() {
-                    _currency = newValue;
-                    state.didChange(newValue);
-                  });
-                },
-                items: validCurrencies.map((String value) {
-                  return new DropdownMenuItem(
-                    value: value,
-                    child: new Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
-          );
+      CurrencyInputFormField.forCurrencies(
+        preferredCurrency: appConfiguration.account.preferredCurrency,
+        validCurrenciesFuture: _validCurrenciesFuture,
+        onChanged: (String newValue) {
+          _currency = newValue;
         },
       ),
       const SizedBox(height: 16.0),

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/banking/db/bank_store.dart';
 import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
+import 'package:proxy_flutter/banking/model/bank_entity.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
@@ -36,12 +38,30 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
-  String _bankId(String proxyUniverse) {
-    if (proxyUniverse == ProxyUniverse.PRODUCTION) {
-      return "wallet";
-    } else {
-      return "test-wallet";
-    }
+  Future<BankEntity> _fetchDefaultBank({String proxyUniverse}) {
+    proxyUniverse = proxyUniverse ?? appConfiguration.proxyUniverse;
+    String bankId = proxyUniverse == ProxyUniverse.PRODUCTION ? "wallet" : "test-wallet";
+    return BankStore().fetchBank(
+      proxyUniverse: proxyUniverse,
+      bankId: bankId,
+    );
+  }
+
+  Future<Set<String>> supportedCurrenciesForDefaultBank({String proxyUniverse}) async {
+    print("supportedCurrenciesForDefaultBank(proxyUniverse: $proxyUniverse)");
+    BankEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
+    return bank.supportedCurrencies;
+  }
+
+  Future<Set<String>> supportedCurrenciesForBank({
+    String proxyUniverse,
+    @required ProxyId bankProxyId,
+  }) async {
+    BankEntity bank = await BankStore().fetchBank(
+      proxyUniverse: proxyUniverse ?? appConfiguration.proxyUniverse,
+      bankProxyId: bankProxyId,
+    );
+    return bank.supportedCurrencies;
   }
 
   Future<ProxyAccountEntity> fetchOrCreateProxyWallet({
@@ -69,12 +89,13 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required String proxyUniverse,
     @required String currency,
   }) async {
+    BankEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
     ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyUniverse: proxyUniverse,
       proxyId: proxyKey.id,
-      bankId: ProxyId(_bankId(proxyUniverse)),
+      bankId: bank.bankProxyId,
       currency: currency,
     );
     SignedMessage<ProxyWalletCreationRequest> signedRequest =

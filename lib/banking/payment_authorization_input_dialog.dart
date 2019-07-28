@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
+import 'package:proxy_flutter/banking/widgets/currency_input_form_field.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/account_service.dart';
@@ -81,7 +83,7 @@ class PaymentAuthorizationInputDialog extends StatefulWidget {
   final PaymentAuthorizationInput paymentAuthorizationInput;
 
   PaymentAuthorizationInputDialog(this.appConfiguration, {Key key, this.paymentAuthorizationInput}) : super(key: key) {
-    print("Constructing PaymentAuthorizationInputDialog with Input $paymentAuthorizationInput");
+    print("Constructing PaymentAuthorizationInputDialog(proxyUniverse: ${appConfiguration.proxyUniverse}) with Input:$paymentAuthorizationInput");
   }
 
   @override
@@ -94,6 +96,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   final PaymentAuthorizationInput paymentAuthorizationInput;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  Future<Set<String>> _validCurrenciesFuture;
 
   final TextEditingController messageController;
   final TextEditingController amountController;
@@ -105,18 +108,11 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
 
   String _currency;
 
-  List<String> get validCurrencies {
-    if (isNotEmpty(paymentAuthorizationInput?.currency)) {
-      return [paymentAuthorizationInput.currency];
-    }
-    return [Currency.INR, Currency.EUR];
-  }
-
   _PaymentAuthorizationInputDialogState(this.appConfiguration, this.paymentAuthorizationInput)
       : amountController = TextEditingController(),
         messageController = TextEditingController(text: paymentAuthorizationInput?.message),
         secretController = TextEditingController(text: paymentAuthorizationInput?.payees?.first?.secret),
-        _currency = paymentAuthorizationInput?.currency ?? appConfiguration.account.preferredCurrency;
+        _currency = paymentAuthorizationInput?.currency;
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -131,6 +127,11 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     _amountFocusNode = FocusNode();
     _messageFocusNode = FocusNode();
     _submitFocusNode = FocusNode();
+    if (isNotEmpty(_currency)) {
+      _validCurrenciesFuture =  Future.value({_currency});
+    } else {
+      _validCurrenciesFuture =  BankingServiceFactory.bankingService(appConfiguration).supportedCurrenciesForDefaultBank();
+    }
   }
 
   @override
@@ -164,35 +165,14 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
 
     children.addAll([
       const SizedBox(height: 16.0),
-      new FormField(
-        builder: (FormFieldState state) {
-          return InputDecorator(
-            decoration: InputDecoration(
-              labelText: localizations.currency,
-            ),
-            isEmpty: _currency == '',
-            child: new DropdownButtonHideUnderline(
-              child: new DropdownButton(
-                value: _currency,
-                isDense: true,
-                onChanged: (String newValue) {
-                  setState(() {
-                    _currency = newValue;
-                    state.didChange(newValue);
-                  });
-                  if (_currency != null) {
-                    FocusScope.of(context).requestFocus(_amountFocusNode);
-                  }
-                },
-                items: validCurrencies.map((String value) {
-                  return new DropdownMenuItem(
-                    value: value,
-                    child: new Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
-          );
+      CurrencyInputFormField.forCurrencies(
+        preferredCurrency: appConfiguration.account.preferredCurrency,
+        validCurrenciesFuture: _validCurrenciesFuture,
+        onChanged: (String newValue) {
+          _currency = newValue;
+          if (_currency != null) {
+            FocusScope.of(context).requestFocus(_amountFocusNode);
+          }
         },
       ),
       const SizedBox(height: 16.0),
