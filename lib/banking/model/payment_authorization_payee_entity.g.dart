@@ -9,27 +9,28 @@ part of 'payment_authorization_payee_entity.dart';
 PaymentAuthorizationPayeeEntity _$PaymentAuthorizationPayeeEntityFromJson(
     Map json) {
   return PaymentAuthorizationPayeeEntity(
-      payeeType: _$enumDecode(_$PayeeTypeEnumEnumMap, json['payeeType']),
-      proxyUniverse: json['proxyUniverse'] as String,
-      paymentAuthorizationId: json['paymentAuthorizationId'] as String,
-      paymentEncashmentId: json['paymentEncashmentId'] as String,
-      proxyId: json['proxyId'] == null
-          ? null
-          : ProxyId.fromJson(json['proxyId'] as Map),
-      email: json['email'] as String,
-      phone: json['phone'] as String,
-      secretEncrypted: json['secretEncrypted'] == null
-          ? null
-          : CipherText.fromJson(json['secretEncrypted'] as Map),
-      emailHash: json['emailHash'] == null
-          ? null
-          : HashValue.fromJson(json['emailHash'] as Map),
-      phoneHash: json['phoneHash'] == null
-          ? null
-          : HashValue.fromJson(json['phoneHash'] as Map),
-      secretHash: json['secretHash'] == null
-          ? null
-          : HashValue.fromJson(json['secretHash'] as Map));
+    payeeType: _$enumDecode(_$PayeeTypeEnumEnumMap, json['payeeType']),
+    proxyUniverse: json['proxyUniverse'] as String,
+    paymentAuthorizationId: json['paymentAuthorizationId'] as String,
+    paymentEncashmentId: json['paymentEncashmentId'] as String,
+    proxyId: json['proxyId'] == null
+        ? null
+        : ProxyId.fromJson(json['proxyId'] as Map),
+    email: json['email'] as String,
+    phone: json['phone'] as String,
+    secretEncrypted: json['secretEncrypted'] == null
+        ? null
+        : CipherText.fromJson(json['secretEncrypted'] as Map),
+    emailHash: json['emailHash'] == null
+        ? null
+        : HashValue.fromJson(json['emailHash'] as Map),
+    phoneHash: json['phoneHash'] == null
+        ? null
+        : HashValue.fromJson(json['phoneHash'] as Map),
+    secretHash: json['secretHash'] == null
+        ? null
+        : HashValue.fromJson(json['secretHash'] as Map),
+  );
 }
 
 Map<String, dynamic> _$PaymentAuthorizationPayeeEntityToJson(
