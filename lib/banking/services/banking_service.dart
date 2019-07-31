@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
@@ -9,12 +7,12 @@ import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/model/bank_entity.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/proxy_key_store.dart';
+import 'package:proxy_flutter/services/service_helper.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
-class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
+class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils {
   final AppConfiguration appConfiguration;
   final Uuid uuidFactory = Uuid();
   final String proxyBankingUrl;
@@ -22,7 +20,6 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
   final MessageFactory messageFactory;
   final MessageSigningService messageSigningService;
   final ProxyAccountStore _proxyAccountStore;
-  final ProxyKeyStore _proxyKeyStore;
 
   BankingService(
     this.appConfiguration, {
@@ -32,7 +29,6 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.messageSigningService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
-        _proxyKeyStore = ProxyKeyStore(appConfiguration),
         _proxyAccountStore = ProxyAccountStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));
@@ -90,26 +86,19 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required String currency,
   }) async {
     BankEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
-    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(ownerProxyId);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyUniverse: proxyUniverse,
-      proxyId: proxyKey.id,
+      proxyId: ownerProxyId,
       bankId: bank.bankProxyId,
       currency: currency,
     );
-    SignedMessage<ProxyWalletCreationRequest> signedRequest =
-        await messageSigningService.signMessage(request, proxyKey);
-    String signedRequestJson = jsonEncode(signedRequest.toJson());
-    print("Sending $signedRequestJson to $proxyBankingUrl");
-    String jsonResponse = await post(
-      httpClientFactory(),
-      proxyBankingUrl,
-      body: signedRequestJson,
+    final signedRequest = await signMessage(request: request);
+    final signedResponse = await sendAndReceive(
+      url: proxyBankingUrl,
+      signedRequest: signedRequest,
+      responseParser: ProxyWalletCreationResponse.fromJson,
     );
-    print("Received $jsonResponse from $proxyBankingUrl");
-    SignedMessage<ProxyWalletCreationResponse> signedResponse =
-        await messageFactory.buildAndVerifySignedMessage(jsonResponse, ProxyWalletCreationResponse.fromJson);
     return _saveAccount(ownerProxyId, signedResponse);
   }
 
@@ -144,22 +133,18 @@ class BankingService with ProxyUtils, HttpClientUtils, DebugUtils {
       print("Account $proxyAccount not found");
       return null;
     }
-    ProxyKey proxyKey = await _proxyKeyStore.fetchProxyKey(proxyAccount.ownerProxyId);
     AccountBalanceRequest request = AccountBalanceRequest(
       requestId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,
     );
-    SignedMessage<AccountBalanceRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
-    String signedRequestJson = jsonEncode(signedRequest.toJson());
-    print("Sending $signedRequestJson to $proxyBankingUrl");
-    String jsonResponse = await post(
-      httpClientFactory(),
-      proxyBankingUrl,
-      body: signedRequestJson,
+
+    final signedRequest = await signMessage(request: request);
+    final signedResponse = await sendAndReceive(
+      url: proxyBankingUrl,
+      signedRequest: signedRequest,
+      responseParser: AccountBalanceResponse.fromJson,
     );
-    print("Received $jsonResponse from $proxyBankingUrl");
-    SignedMessage<AccountBalanceResponse> signedResponse =
-        await messageFactory.buildAndVerifySignedMessage(jsonResponse, AccountBalanceResponse.fromJson);
+
     if (signedResponse.message.balance != proxyAccount.balance) {
       print("Account $accountId has balance => ${proxyAccount.balance}");
       _proxyAccountStore.saveAccount(proxyAccount.copy(balance: signedResponse.message.balance));

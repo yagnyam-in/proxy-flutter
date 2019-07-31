@@ -95,7 +95,7 @@ class NotificationService with ProxyUtils, HttpClientUtils, DebugUtils {
       deviceId: deviceId,
       fcmToken: fcmToken,
     );
-    SignedMessage<DeviceUpdateRequest> signedRequest = await messageSigningService.signMessage(request, proxyKey);
+    SignedMessage<DeviceUpdateRequest> signedRequest = await messageSigningService.sign(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
     print("Sending $signedRequestJson to $appBackendUrl");
     String jsonResponse = await post(

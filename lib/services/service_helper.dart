@@ -28,7 +28,7 @@ mixin ServiceHelper on ProxyUtils, HttpClientUtils {
     @required T request,
   }) async {
     ProxyKey proxyKey = await ProxyKeyStore(appConfiguration).fetchProxyKey(appConfiguration.masterProxyId);
-    return ServiceFactory.messageSigningService().signMessage(
+    return ServiceFactory.messageSigningService().sign(
       request,
       proxyKey,
     );
