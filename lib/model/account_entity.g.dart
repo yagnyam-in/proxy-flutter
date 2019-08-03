@@ -8,16 +8,15 @@ part of 'account_entity.dart';
 
 AccountEntity _$AccountEntityFromJson(Map json) {
   return AccountEntity(
-    accountId: json['accountId'] as String,
-    masterProxyId: json['masterProxyId'] == null
-        ? null
-        : ProxyId.fromJson(json['masterProxyId'] as Map),
-    name: json['name'] as String,
-    encryptionKeyHash: HashValue.fromJson(json['encryptionKeyHash'] as Map),
-    preferredCurrency: json['preferredCurrency'] as String,
-    phone: json['phone'] as String,
-    email: json['email'] as String,
-  );
+      accountId: json['accountId'] as String,
+      masterProxyId: json['masterProxyId'] == null
+          ? null
+          : ProxyId.fromJson(json['masterProxyId'] as Map),
+      name: json['name'] as String,
+      encryptionKeyHash: HashValue.fromJson(json['encryptionKeyHash'] as Map),
+      preferredCurrency: json['preferredCurrency'] as String,
+      phone: json['phone'] as String,
+      email: json['email'] as String);
 }
 
 Map<String, dynamic> _$AccountEntityToJson(AccountEntity instance) {

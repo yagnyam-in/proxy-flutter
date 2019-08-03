@@ -26,6 +26,9 @@ class CurrencyInputFormField extends StatefulWidget {
         effectiveCurrency = validCurrencies.firstWhere((currency) => currency == preferredCurrency, orElse: () => null);
       }
     }
+    if (effectiveCurrency != null) {
+      onChanged(effectiveCurrency);
+    }
     return CurrencyInputFormFieldState(effectiveCurrency);
   }
 

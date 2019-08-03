@@ -8,18 +8,17 @@ part of 'deposit_event.dart';
 
 DepositEvent _$DepositEventFromJson(Map json) {
   return DepositEvent(
-    eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
-    proxyUniverse: json['proxyUniverse'] as String,
-    creationTime: DateTime.parse(json['creationTime'] as String),
-    lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
-    completed: json['completed'] as bool,
-    depositId: json['depositId'] as String,
-    status: _$enumDecode(_$DepositStatusEnumEnumMap, json['status']),
-    amount: Amount.fromJson(json['amount'] as Map),
-    destinationProxyAccountId:
-        ProxyAccountId.fromJson(json['destinationProxyAccountId'] as Map),
-    depositLink: json['depositLink'] as String,
-  );
+      eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
+      proxyUniverse: json['proxyUniverse'] as String,
+      creationTime: DateTime.parse(json['creationTime'] as String),
+      lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
+      completed: json['completed'] as bool,
+      depositId: json['depositId'] as String,
+      status: _$enumDecode(_$DepositStatusEnumEnumMap, json['status']),
+      amount: Amount.fromJson(json['amount'] as Map),
+      destinationProxyAccountId:
+          ProxyAccountId.fromJson(json['destinationProxyAccountId'] as Map),
+      depositLink: json['depositLink'] as String);
 }
 
 Map<String, dynamic> _$DepositEventToJson(DepositEvent instance) {

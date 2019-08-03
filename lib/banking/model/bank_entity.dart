@@ -29,9 +29,13 @@ class BankEntity with ProxyUtils {
   @JsonKey(name: BANK_SHA256_THUMBPRINT, nullable: false)
   final String bankSha256Thumbprint;
 
+  @JsonKey(nullable: true)
+  final String bankName;
+
   BankEntity({
     @required this.proxyUniverse,
     @required this.bankProxyId,
+    @required this.bankName,
     @required this.supportedCurrencies,
     @required this.apiUrl,
   }) : bankId = bankProxyId.id, bankSha256Thumbprint = bankProxyId.sha256Thumbprint;

@@ -89,8 +89,8 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyUniverse: proxyUniverse,
-      proxyId: ownerProxyId,
-      bankId: bank.bankProxyId,
+      ownerProxyId: ownerProxyId,
+      bankProxyId: bank.bankProxyId,
       currency: currency,
     );
     final signedRequest = await signMessage(request: request);
@@ -99,12 +99,13 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       signedRequest: signedRequest,
       responseParser: ProxyWalletCreationResponse.fromJson,
     );
-    return _saveAccount(ownerProxyId, signedResponse);
+    return _saveAccount(ownerProxyId, signedResponse, bank);
   }
 
   ProxyAccountEntity _saveAccount(
     ProxyId ownerProxyId,
     SignedMessage<ProxyWalletCreationResponse> signedResponse,
+      BankEntity bank,
   ) {
     ProxyWalletCreationResponse response = signedResponse.message;
     ProxyAccount proxyAccount = response.proxyAccount.message;
@@ -112,7 +113,7 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     ProxyAccountEntity proxyAccountEntity = ProxyAccountEntity(
       accountId: proxyAccountId,
       accountName: "",
-      bankName: proxyAccount.bankId,
+      bankName: bank.bankName,
       balance: Amount(
         currency: proxyAccount.currency,
         value: 0,

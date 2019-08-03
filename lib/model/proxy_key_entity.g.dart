@@ -8,15 +8,14 @@ part of 'proxy_key_entity.dart';
 
 ProxyKeyEntity _$ProxyKeyEntityFromJson(Map json) {
   return ProxyKeyEntity(
-    id: ProxyId.fromJson(json['id'] as Map),
-    name: json['name'] as String,
-    localAlias: json['localAlias'] as String,
-    privateKeyEncodedEncrypted:
-        CipherText.fromJson(json['privateKeyEncodedEncrypted'] as Map),
-    privateKeySha256Thumbprint: json['privateKeySha256Thumbprint'] as String,
-    publicKeyEncoded: json['publicKeyEncoded'] as String,
-    publicKeySha256Thumbprint: json['publicKeySha256Thumbprint'] as String,
-  );
+      id: ProxyId.fromJson(json['id'] as Map),
+      name: json['name'] as String,
+      localAlias: json['localAlias'] as String,
+      privateKeyEncodedEncrypted:
+          CipherText.fromJson(json['privateKeyEncodedEncrypted'] as Map),
+      privateKeySha256Thumbprint: json['privateKeySha256Thumbprint'] as String,
+      publicKeyEncoded: json['publicKeyEncoded'] as String,
+      publicKeySha256Thumbprint: json['publicKeySha256Thumbprint'] as String);
 }
 
 Map<String, dynamic> _$ProxyKeyEntityToJson(ProxyKeyEntity instance) {

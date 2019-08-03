@@ -8,17 +8,16 @@ part of 'withdrawal_event.dart';
 
 WithdrawalEvent _$WithdrawalEventFromJson(Map json) {
   return WithdrawalEvent(
-    eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
-    proxyUniverse: json['proxyUniverse'] as String,
-    creationTime: DateTime.parse(json['creationTime'] as String),
-    lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
-    withdrawalId: json['withdrawalId'] as String,
-    completed: json['completed'] as bool,
-    status: _$enumDecode(_$WithdrawalStatusEnumEnumMap, json['status']),
-    amount: Amount.fromJson(json['amount'] as Map),
-    destinationAccountNumber: json['destinationAccountNumber'] as String,
-    destinationAccountBank: json['destinationAccountBank'] as String,
-  );
+      eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
+      proxyUniverse: json['proxyUniverse'] as String,
+      creationTime: DateTime.parse(json['creationTime'] as String),
+      lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
+      withdrawalId: json['withdrawalId'] as String,
+      completed: json['completed'] as bool,
+      status: _$enumDecode(_$WithdrawalStatusEnumEnumMap, json['status']),
+      amount: Amount.fromJson(json['amount'] as Map),
+      destinationAccountNumber: json['destinationAccountNumber'] as String,
+      destinationAccountBank: json['destinationAccountBank'] as String);
 }
 
 Map<String, dynamic> _$WithdrawalEventToJson(WithdrawalEvent instance) {

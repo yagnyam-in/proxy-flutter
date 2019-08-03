@@ -8,21 +8,20 @@ part of 'deposit_entity.dart';
 
 DepositEntity _$DepositEntityFromJson(Map json) {
   return DepositEntity(
-    proxyUniverse: json['proxyUniverse'] as String,
-    creationTime: DateTime.parse(json['creationTime'] as String),
-    lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
-    depositId: json['depositId'] as String,
-    completed: json['completed'] as bool,
-    status: _$enumDecode(_$DepositStatusEnumEnumMap, json['status']),
-    amount: Amount.fromJson(json['amount'] as Map),
-    destinationProxyAccountId:
-        ProxyAccountId.fromJson(json['destinationProxyAccountId'] as Map),
-    destinationProxyAccountOwnerProxyId:
-        ProxyId.fromJson(json['destinationProxyAccountOwnerProxyId'] as Map),
-    depositLink: json['depositLink'] as String,
-    signedDepositRequest: DepositRequest.signedMessageFromJson(
-        json['signedDepositRequest'] as Map),
-  );
+      proxyUniverse: json['proxyUniverse'] as String,
+      creationTime: DateTime.parse(json['creationTime'] as String),
+      lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
+      depositId: json['depositId'] as String,
+      completed: json['completed'] as bool,
+      status: _$enumDecode(_$DepositStatusEnumEnumMap, json['status']),
+      amount: Amount.fromJson(json['amount'] as Map),
+      destinationProxyAccountId:
+          ProxyAccountId.fromJson(json['destinationProxyAccountId'] as Map),
+      destinationProxyAccountOwnerProxyId:
+          ProxyId.fromJson(json['destinationProxyAccountOwnerProxyId'] as Map),
+      depositLink: json['depositLink'] as String,
+      signedDepositRequest: DepositRequest.signedMessageFromJson(
+          json['signedDepositRequest'] as Map));
 }
 
 Map<String, dynamic> _$DepositEntityToJson(DepositEntity instance) {

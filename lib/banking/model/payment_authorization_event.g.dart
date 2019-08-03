@@ -8,18 +8,17 @@ part of 'payment_authorization_event.dart';
 
 PaymentAuthorizationEvent _$PaymentAuthorizationEventFromJson(Map json) {
   return PaymentAuthorizationEvent(
-    eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
-    proxyUniverse: json['proxyUniverse'] as String,
-    creationTime: DateTime.parse(json['creationTime'] as String),
-    lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
-    completed: json['completed'] as bool,
-    paymentAuthorizationId: json['paymentAuthorizationId'] as String,
-    status:
-        _$enumDecode(_$PaymentAuthorizationStatusEnumEnumMap, json['status']),
-    amount: Amount.fromJson(json['amount'] as Map),
-    payerAccountId: ProxyAccountId.fromJson(json['payerAccountId'] as Map),
-    paymentAuthorizationLink: json['paymentAuthorizationLink'] as String,
-  );
+      eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
+      proxyUniverse: json['proxyUniverse'] as String,
+      creationTime: DateTime.parse(json['creationTime'] as String),
+      lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
+      completed: json['completed'] as bool,
+      paymentAuthorizationId: json['paymentAuthorizationId'] as String,
+      status:
+          _$enumDecode(_$PaymentAuthorizationStatusEnumEnumMap, json['status']),
+      amount: Amount.fromJson(json['amount'] as Map),
+      payerAccountId: ProxyAccountId.fromJson(json['payerAccountId'] as Map),
+      paymentAuthorizationLink: json['paymentAuthorizationLink'] as String);
 }
 
 Map<String, dynamic> _$PaymentAuthorizationEventToJson(
