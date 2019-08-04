@@ -29,16 +29,16 @@ class BusyChildWidget extends StatelessWidget {
     return Stack(
       children: <Widget>[
         Opacity(
-          opacity: loading ? 1.0 : 0,
-          child: loadingWidget,
-        ),
-        Opacity(
           opacity: 1,
           child: AbsorbPointer(
             absorbing: loading,
             child: child,
           ),
-        )
+        ),
+        Opacity(
+          opacity: loading ? 1.0 : 0,
+          child: loadingWidget,
+        ),
       ],
     );
   }

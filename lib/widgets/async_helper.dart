@@ -135,12 +135,10 @@ abstract class LoadingSupportState<T extends StatefulWidget> extends State<T> {
         onError();
       }
     } finally {
-      if (!silent) {
-        print("LoadingSupportState($name) Clearing loading flag");
-        setState(() {
-          loading = false;
-        });
-      }
+      print("LoadingSupportState($name) Clearing loading flag");
+      setState(() {
+        loading = false;
+      });
     }
     return null;
   }
