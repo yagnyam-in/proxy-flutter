@@ -1026,6 +1026,8 @@ class ProxyLocalizations {
 
   String get createAndShareButtonLabel => Intl.message('Create & Share');
 
+  String get depositButtonLabel => Intl.message('Deposit');
+
   String get payees => Intl.message('Payees');
 
   String get anyoneWithSecret => Intl.message('Anyone');

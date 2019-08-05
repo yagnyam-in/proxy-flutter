@@ -99,6 +99,13 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
   final TextEditingController phoneController;
   final TextEditingController emailController;
 
+  FocusNode _amountFocusNode;
+  FocusNode _messageFocusNode;
+  FocusNode _nameFocusNode;
+  FocusNode _phoneFocusNode;
+  FocusNode _emailFocusNode;
+  FocusNode _submitFocusNode;
+
   String _currency;
 
   _DepositRequestInputDialogState(this.appConfiguration, this.depositRequestInput)
@@ -120,10 +127,29 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
   void initState() {
     super.initState();
     if (isNotEmpty(_currency)) {
-      _validCurrenciesFuture =  Future.value({_currency});
+      _validCurrenciesFuture = Future.value({_currency});
     } else {
-      _validCurrenciesFuture =  BankingServiceFactory.bankingService(appConfiguration).supportedCurrenciesForDefaultBank();
+      _validCurrenciesFuture =
+          BankingServiceFactory.bankingService(appConfiguration).supportedCurrenciesForDefaultBank();
     }
+
+    _amountFocusNode = new FocusNode();
+    _messageFocusNode = new FocusNode();
+    _nameFocusNode = new FocusNode();
+    _phoneFocusNode = new FocusNode();
+    _emailFocusNode = new FocusNode();
+    _submitFocusNode = new FocusNode();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _amountFocusNode.dispose();
+    _messageFocusNode.dispose();
+    _nameFocusNode.dispose();
+    _phoneFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _submitFocusNode.dispose();
   }
 
   @override
@@ -137,12 +163,6 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(localizations.depositRequestInputTitle),
-        actions: [
-          new FlatButton(
-              onPressed: () => _submit(localizations),
-              child: new Text(localizations.okButtonLabel,
-                  style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white))),
-        ],
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -163,11 +183,16 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
         validCurrenciesFuture: _validCurrenciesFuture,
         onChanged: (String newValue) {
           _currency = newValue;
+          if (_currency != null) {
+            FocusScope.of(context).requestFocus(_amountFocusNode);
+          }
         },
       ),
       const SizedBox(height: 16.0),
       TextFormField(
         controller: amountController,
+        focusNode: _amountFocusNode,
+        onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(_currency == Currency.INR ? _nameFocusNode : _submitFocusNode),
         decoration: InputDecoration(
           labelText: localizations.amount,
         ),
@@ -181,6 +206,8 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
         const SizedBox(height: 16.0),
         TextFormField(
           controller: nameController,
+          focusNode: _nameFocusNode,
+          onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(_phoneFocusNode),
           decoration: InputDecoration(
             labelText: localizations.customerName,
           ),
@@ -190,6 +217,8 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
         const SizedBox(height: 16.0),
         TextFormField(
           controller: phoneController,
+          focusNode: _phoneFocusNode,
+          onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(_emailFocusNode),
           decoration: InputDecoration(
             labelText: localizations.customerPhone,
           ),
@@ -199,6 +228,8 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
         const SizedBox(height: 16.0),
         TextFormField(
           controller: emailController,
+          focusNode: _emailFocusNode,
+          onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(_submitFocusNode),
           decoration: InputDecoration(
             labelText: localizations.customerEmail,
           ),
@@ -207,6 +238,18 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
         ),
       ]);
     }
+
+    children.addAll([
+      Container(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        alignment: Alignment.center,
+        child: RaisedButton(
+          focusNode: _submitFocusNode,
+          onPressed: () => _submit(localizations),
+          child: Text(localizations.depositButtonLabel),
+        ),
+      ),
+    ]);
 
     return Form(
       key: _formKey,
