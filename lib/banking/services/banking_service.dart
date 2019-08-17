@@ -105,7 +105,7 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
   ProxyAccountEntity _saveAccount(
     ProxyId ownerProxyId,
     SignedMessage<ProxyWalletCreationResponse> signedResponse,
-      BankEntity bank,
+    BankEntity bank,
   ) {
     ProxyWalletCreationResponse response = signedResponse.message;
     ProxyAccount proxyAccount = response.proxyAccount.message;
@@ -147,7 +147,6 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     );
 
     if (signedResponse.message.balance != proxyAccount.balance) {
-      print("Account $accountId has balance => ${proxyAccount.balance}");
       _proxyAccountStore.saveAccount(proxyAccount.copy(balance: signedResponse.message.balance));
     }
   }

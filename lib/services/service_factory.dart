@@ -2,6 +2,7 @@ import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/services/alert_service.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
 import 'package:proxy_flutter/services/local_proxy_resolver.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
@@ -61,4 +62,6 @@ class ServiceFactory {
   static BootService bootService() => _bootServiceInstance;
 
   static RegisterService registerService() => RegisterService();
+
+  static AlertService alertService(AppConfiguration appConfiguration) => AlertService(appConfiguration);
 }

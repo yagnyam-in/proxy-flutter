@@ -62,7 +62,7 @@ class _CreateOrRecoverAccountState extends LoadingSupportState<CreateOrRecoverAc
   @override
   void initState() {
     super.initState();
-    ServiceFactory.bootService().start();
+    ServiceFactory.bootService().warmUpBackends();
     actionButtonFocusNode = FocusNode();
   }
 

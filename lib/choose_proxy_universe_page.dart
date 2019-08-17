@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/app_configuration_bloc.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
 
 import 'config/app_configuration.dart';
 
@@ -29,7 +28,6 @@ class _ChooseProxyUniverseState extends State<ChooseProxyUniverse> {
   @override
   void initState() {
     super.initState();
-    ServiceFactory.bootService().start();
   }
 
   @override

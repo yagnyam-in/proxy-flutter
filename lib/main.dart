@@ -37,7 +37,8 @@ class ProxyAppState extends LoadingSupportState<ProxyApp> {
   @override
   void initState() {
     super.initState();
-    ServiceFactory.bootService().start();
+    ServiceFactory.bootService().warmUpBackends();
+    ServiceFactory.bootService().subscribeForAlerts();
     _appConfigurationStream = AppConfigurationBloc.instance.appConfigurationStream;
     AppConfigurationBloc.instance.refresh();
   }

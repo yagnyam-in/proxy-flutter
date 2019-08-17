@@ -70,7 +70,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     super.initState();
     _proxyAccountsStream = ProxyAccountStore(appConfiguration).subscribeForAccounts();
     _enticementsStream = EnticementService(appConfiguration).subscribeForFirstEnticement();
-    ServiceFactory.bootService().start();
+    ServiceFactory.bootService().warmUpBackends();
   }
 
   @override

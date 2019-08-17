@@ -15,10 +15,7 @@ class DeviceStore with ProxyUtils, FirestoreUtils {
   DeviceStore(this.appConfiguration) : root = FirestoreUtils.accountRootRef(appConfiguration.accountId);
 
   CollectionReference _devicesRef() {
-    return root
-        .collection(FirestoreUtils.PROXY_UNIVERSE_NODE)
-        .document(appConfiguration.proxyUniverse)
-        .collection('devices');
+    return root.collection('devices');
   }
 
   DocumentReference _ref(String deviceId) {

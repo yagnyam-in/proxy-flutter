@@ -1,11 +1,12 @@
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
+
+import 'service_factory.dart';
 
 class BootService with ProxyUtils, HttpClientUtils, DebugUtils {
   final String backendHealthCheck;
   final HttpClientFactory httpClientFactory;
-
-  bool _started = false;
 
   BootService({
     String proxyCentralHealthCheck,
@@ -16,18 +17,21 @@ class BootService with ProxyUtils, HttpClientUtils, DebugUtils {
     assert(isNotEmpty(this.backendHealthCheck));
   }
 
-  void start() {
-    if (!_started) {
-      _start();
-      _started = true;
-    }
-  }
-
-  void _start() {
+  void warmUpBackends() {
     get(httpClientFactory(), backendHealthCheck).then((health) {
       print("Proxy Central Health Check $health");
     }, onError: (error) {
       print("Proxy Central Health Check $error");
     });
+  }
+
+  void subscribeForAlerts() {
+    print("subscribe for alerts");
+    ServiceFactory.notificationService().start();
+  }
+
+  void processPendingAlerts(AppConfiguration appConfiguration) {
+    print("process pending alerts");
+    ServiceFactory.alertService(appConfiguration).processPendingAlerts();
   }
 }
