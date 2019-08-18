@@ -236,4 +236,11 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
       await _refreshPaymentAuthorizationStatus(paymentAuthorizationEntity);
     }
   }
+
+  Future<void> processLitePaymentAuthorizationUpdate(Map alert) {
+    return refreshPaymentAuthorizationStatus(
+      proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
+      paymentAuthorizationId: alert[PaymentAuthorizationUpdatedAlert.FIELD_PAYMENT_AUTHORIZATION_ID],
+    );
+  }
 }

@@ -19,7 +19,7 @@ class NotificationService with ProxyUtils, HttpClientUtils {
   final HttpClientFactory httpClientFactory;
   final MessageSigningService messageSigningService;
   final String appBackendUrl;
-  String get subscribeForAlertsUrl => appBackendUrl + "/subscribe-for-alerts";
+  String get subscribeForAlertsUrl => appBackendUrl + "/alerts";
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   bool _started = false;
@@ -97,13 +97,13 @@ class NotificationService with ProxyUtils, HttpClientUtils {
     );
     SignedMessage<SubscribeForAlertsRequest> signedRequest = await messageSigningService.sign(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
-    print("Sending $signedRequestJson to $subscribeForAlertsUrl");
+    // print("Sending $signedRequestJson to $subscribeForAlertsUrl");
     String jsonResponse = await post(
       httpClientFactory(),
       subscribeForAlertsUrl,
       body: signedRequestJson,
     );
-    print("Received $jsonResponse from $subscribeForAlertsUrl");
+    // print("Received $jsonResponse from $subscribeForAlertsUrl");
   }
 
   void _tokenRefreshFailure(error) {
@@ -117,7 +117,11 @@ class NotificationService with ProxyUtils, HttpClientUtils {
       print("Ignoring $message as App Config is null or not complete");
       return null;
     }
-    ServiceFactory.alertService(appConfiguration).processPendingAlerts();
+    Map data = message['data'] ?? message;
+    print("data: $data");
+    final alertService = ServiceFactory.alertService(appConfiguration);
+    await alertService.processLiteAlert(data);
+    await alertService.processPendingAlerts();
   }
 
   Future<void> _onLaunch(Map<String, dynamic> message) {

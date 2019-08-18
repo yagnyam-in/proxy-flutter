@@ -223,4 +223,12 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       await _refreshPaymentEncashmentStatus(paymentEncashmentEntity);
     }
   }
+
+  Future<void> processLitePaymentEncashmentUpdate(Map alert) {
+    return refreshPaymentEncashmentStatus(
+      proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
+      paymentEncashmentId: alert[PaymentEncashmentUpdatedAlert.FIELD_PAYMENT_ENCASHMENT_ID],
+      paymentAuthorizationId: alert[PaymentEncashmentUpdatedAlert.FIELD_PAYMENT_AUTHORIZATION_ID],
+    );
+  }
 }

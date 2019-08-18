@@ -40,13 +40,13 @@ mixin ServiceHelper on ProxyUtils, HttpClientUtils {
     @required SignableMessageFromJsonMethod<R> responseParser,
   }) async {
     String signedRequestJson = jsonEncode(signedRequest.toJson());
-    print("Sending $signedRequestJson to $url");
+    // print("Sending $signedRequestJson to $url");
     String jsonResponse = await post(
       httpClientFactory(),
       url,
       body: signedRequestJson,
     );
-    print("Received $jsonResponse from $url");
+    // print("Received $jsonResponse from $url");
     return ServiceFactory.messageFactory(appConfiguration).buildAndVerifySignedMessage(
       jsonResponse,
       responseParser,

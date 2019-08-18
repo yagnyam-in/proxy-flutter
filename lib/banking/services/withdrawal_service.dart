@@ -145,4 +145,11 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
     await _withdrawalStore.saveWithdrawal(clone);
     return clone;
   }
+
+  Future<void> processLiteWithdrawalUpdate(Map alert) {
+    return refreshWithdrawalStatus(
+      proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
+      withdrawalId: alert[WithdrawalUpdatedAlert.FIELD_WITHDRAWAL_ID],
+    );
+  }
 }

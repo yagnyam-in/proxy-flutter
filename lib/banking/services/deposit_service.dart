@@ -156,4 +156,11 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     await _depositStore.saveDeposit(clone);
     return clone;
   }
+
+  Future<void> processLiteDepositUpdate(Map alert) {
+    return refreshDepositStatus(
+      proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
+      depositId: alert[DepositUpdatedAlert.FIELD_DEPOSIT_ID],
+    );
+  }
 }
