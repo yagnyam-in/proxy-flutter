@@ -1,24 +1,30 @@
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/escrow.dart';
 import 'package:proxy_messages/payments.dart';
 
 class AlertFactory {
-  static Alert createAlert(Map<String, dynamic> alertMap) {
-    String type = alertMap['alertType'];
+  final AppConfiguration appConfiguration;
+
+  AlertFactory(this.appConfiguration);
+
+  // TODO: Must be verified. Use MessageFactory instead of factory methods
+  Future<SignedMessage<SignableAlertMessage>> createAlert(Map json) async {
+    String type = json['type'];
     switch (type) {
       case AccountUpdatedAlert.ALERT_TYPE:
-        return AccountUpdatedAlert.fromJson(alertMap);
+        return AccountUpdatedAlert.signedMessageFromJson(json);
       case DepositUpdatedAlert.ALERT_TYPE:
-        return DepositUpdatedAlert.fromJson(alertMap);
+        return DepositUpdatedAlert.signedMessageFromJson(json);
       case WithdrawalUpdatedAlert.ALERT_TYPE:
-        return WithdrawalUpdatedAlert.fromJson(alertMap);
+        return WithdrawalUpdatedAlert.signedMessageFromJson(json);
       case PaymentAuthorizationUpdatedAlert.ALERT_TYPE:
-        return PaymentAuthorizationUpdatedAlert.fromJson(alertMap);
+        return PaymentAuthorizationUpdatedAlert.signedMessageFromJson(json);
       case PaymentEncashmentUpdatedAlert.ALERT_TYPE:
-        return PaymentEncashmentUpdatedAlert.fromJson(alertMap);
+        return PaymentEncashmentUpdatedAlert.signedMessageFromJson(json);
       case EscrowAccountUpdatedAlert.ALERT_TYPE:
-        return EscrowAccountUpdatedAlert.fromJson(alertMap);
+        return EscrowAccountUpdatedAlert.signedMessageFromJson(json);
       default:
         print("Unknnown Alert Type $type");
         return null;

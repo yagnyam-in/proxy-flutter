@@ -16,9 +16,10 @@ import 'package:uuid/uuid.dart';
 
 class NotificationService with ProxyUtils, HttpClientUtils {
   final Uuid uuidFactory = Uuid();
-  final String appBackendUrl;
   final HttpClientFactory httpClientFactory;
   final MessageSigningService messageSigningService;
+  final String appBackendUrl;
+  String get subscribeForAlertsUrl => appBackendUrl + "/subscribe-for-alerts";
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   bool _started = false;
@@ -27,7 +28,7 @@ class NotificationService with ProxyUtils, HttpClientUtils {
     String appBackendUrl,
     HttpClientFactory httpClientFactory,
     @required this.messageSigningService,
-  })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
+  })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/app",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
     assert(isNotEmpty(this.appBackendUrl));
   }
@@ -88,21 +89,21 @@ class NotificationService with ProxyUtils, HttpClientUtils {
     @required String fcmToken,
   }) async {
     print("Updating FCM Token for ${proxyKey.id} on Device $deviceId");
-    DeviceUpdateRequest request = new DeviceUpdateRequest(
+    SubscribeForAlertsRequest request = new SubscribeForAlertsRequest(
       requestId: uuidFactory.v4(),
       proxyId: proxyKey.id,
       deviceId: deviceId,
       fcmToken: fcmToken,
     );
-    SignedMessage<DeviceUpdateRequest> signedRequest = await messageSigningService.sign(request, proxyKey);
+    SignedMessage<SubscribeForAlertsRequest> signedRequest = await messageSigningService.sign(request, proxyKey);
     String signedRequestJson = jsonEncode(signedRequest.toJson());
-    print("Sending $signedRequestJson to $appBackendUrl");
+    print("Sending $signedRequestJson to $subscribeForAlertsUrl");
     String jsonResponse = await post(
       httpClientFactory(),
-      appBackendUrl,
+      subscribeForAlertsUrl,
       body: signedRequestJson,
     );
-    print("Received $jsonResponse from $appBackendUrl");
+    print("Received $jsonResponse from $subscribeForAlertsUrl");
   }
 
   void _tokenRefreshFailure(error) {

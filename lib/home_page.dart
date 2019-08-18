@@ -47,7 +47,7 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
   @override
   void initState() {
     super.initState();
-    ServiceFactory.bootService().warmUpBackends();
+    ServiceFactory.bootService().subscribeForAlerts();
     ServiceFactory.bootService().processPendingAlerts(appConfiguration);
     WidgetsBinding.instance.addObserver(this);
   }

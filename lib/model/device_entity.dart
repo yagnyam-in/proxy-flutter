@@ -15,6 +15,9 @@ class DeviceEntity {
   @JsonKey(nullable: false)
   final String fcmToken;
 
+  @JsonKey(nullable: true)
+  final DateTime alertsProcessedTill;
+
   @JsonKey(nullable: false)
   final Set<ProxyId> proxyIdList;
 
@@ -22,13 +25,24 @@ class DeviceEntity {
     @required this.deviceId,
     @required this.fcmToken,
     @required this.proxyIdList,
+    this.alertsProcessedTill,
   });
+
+  DeviceEntity copy({DateTime alertsProcessedTill}) {
+    return DeviceEntity(
+      deviceId: deviceId,
+      fcmToken: fcmToken,
+      proxyIdList: proxyIdList,
+      alertsProcessedTill: alertsProcessedTill,
+    );
+  }
 
   String toString() {
     return {
       "deviceId": deviceId,
       "fcmToken": fcmToken,
       "proxyIdList": proxyIdList,
+      "alertsProcessedTill": alertsProcessedTill,
     }.toString();
   }
 

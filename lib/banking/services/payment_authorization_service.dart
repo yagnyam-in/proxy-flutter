@@ -168,10 +168,10 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     );
   }
 
-  Future<void> processPaymentAuthorizationUpdate(PaymentAuthorizationUpdatedAlert alert) {
+  Future<void> processPaymentAuthorizationUpdate(SignedMessage<PaymentAuthorizationUpdatedAlert> alert) {
     return refreshPaymentAuthorizationStatus(
-      proxyUniverse: alert.proxyUniverse,
-      paymentAuthorizationId: alert.paymentAuthorizationId,
+      proxyUniverse: alert.message.proxyUniverse,
+      paymentAuthorizationId: alert.message.paymentAuthorizationId,
     );
   }
 

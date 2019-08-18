@@ -73,10 +73,10 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
     return _withdrawalStore.saveWithdrawal(withdrawalEntity.copy(status: status));
   }
 
-  Future<void> processWithdrawalUpdate(WithdrawalUpdatedAlert alert) {
+  Future<void> processWithdrawalUpdate(SignedMessage<WithdrawalUpdatedAlert> alert) {
     return refreshWithdrawalStatus(
-      proxyUniverse: alert.proxyUniverse,
-      withdrawalId: alert.withdrawalId,
+      proxyUniverse: alert.message.proxyUniverse,
+      withdrawalId: alert.message.withdrawalId,
     );
   }
 

@@ -181,11 +181,11 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     return clone;
   }
 
-  Future<void> processPaymentEncashmentUpdate(PaymentEncashmentUpdatedAlert alert) {
+  Future<void> processPaymentEncashmentUpdate(SignedMessage<PaymentEncashmentUpdatedAlert> alert) {
     return refreshPaymentEncashmentStatus(
-      proxyUniverse: alert.proxyUniverse,
-      paymentEncashmentId: alert.paymentEncashmentId,
-      paymentAuthorizationId: alert.paymentAuthorizationId,
+      proxyUniverse: alert.message.proxyUniverse,
+      paymentEncashmentId: alert.message.paymentEncashmentId,
+      paymentAuthorizationId: alert.message.paymentAuthorizationId,
     );
   }
 

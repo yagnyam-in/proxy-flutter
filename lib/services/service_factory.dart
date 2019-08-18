@@ -2,6 +2,8 @@ import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/db/device_store.dart';
+import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/services/alert_service.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
 import 'package:proxy_flutter/services/local_proxy_resolver.dart';
@@ -23,11 +25,11 @@ class ServiceFactory {
         ),
       );
 
-
   static get cryptographyService => PointyCastleCryptographyService();
-  static get proxyKeyFactory => PointyCastleProxyKeyFactory();
-  static get proxyRequestFactory => PointyCastleProxyRequestFactory(cryptographyService);
 
+  static get proxyKeyFactory => PointyCastleProxyKeyFactory();
+
+  static get proxyRequestFactory => PointyCastleProxyRequestFactory(cryptographyService);
 
   static MessageVerificationService messageVerificationService(AppConfiguration appConfiguration) {
     return new MessageVerificationService(
@@ -63,5 +65,10 @@ class ServiceFactory {
 
   static RegisterService registerService() => RegisterService();
 
-  static AlertService alertService(AppConfiguration appConfiguration) => AlertService(appConfiguration);
+  static AlertService alertService(AppConfiguration appConfiguration) => AlertService(
+        appConfiguration,
+        messageSigningService: messageSigningService(),
+        proxyKeyStore: ProxyKeyStore(appConfiguration),
+        deviceStore: DeviceStore(appConfiguration),
+      );
 }

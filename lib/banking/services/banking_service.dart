@@ -150,4 +150,8 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       _proxyAccountStore.saveAccount(proxyAccount.copy(balance: signedResponse.message.balance));
     }
   }
+
+  Future<void> processAccountUpdate(SignedMessage<AccountUpdatedAlert> alert) {
+    return refreshAccount(alert.message.proxyAccountId);
+  }
 }

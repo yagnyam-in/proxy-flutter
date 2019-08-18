@@ -64,10 +64,10 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     return depositEntity.depositLink;
   }
 
-  Future<void> processDepositUpdate(DepositUpdatedAlert alert) {
+  Future<void> processDepositUpdate(SignedMessage<DepositUpdatedAlert> alert) {
     return refreshDepositStatus(
-      proxyUniverse: alert.proxyUniverse,
-      depositId: alert.depositId,
+      proxyUniverse: alert.message.proxyUniverse,
+      depositId: alert.message.depositId,
     );
   }
 

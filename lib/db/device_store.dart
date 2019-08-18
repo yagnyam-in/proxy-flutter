@@ -27,8 +27,7 @@ class DeviceStore with ProxyUtils, FirestoreUtils {
     @required String fcmToken,
     @required List<ProxyKey> proxyKeys,
   }) async {
-    final existingSnapshot = await _ref(deviceId).get();
-    final DeviceEntity existingDevice = _documentSnapshotToDevice(existingSnapshot);
+    final DeviceEntity existingDevice = await fetchDevice(deviceId);
     DeviceEntity updatedDevice;
     if (existingDevice != null && existingDevice.fcmToken == fcmToken) {
       final Set<ProxyId> existingProxies = existingDevice.proxyIdList;
@@ -45,7 +44,11 @@ class DeviceStore with ProxyUtils, FirestoreUtils {
         proxyIdList: proxyKeys.map((k) => k.id).toSet(),
       );
     }
-    return _ref(deviceId).setData(updatedDevice.toJson());
+    return saveDevice(updatedDevice);
+  }
+
+  Future<void> saveDevice(DeviceEntity deviceEntity) async {
+    _ref(deviceEntity.deviceId).setData(deviceEntity.toJson());
   }
 
   Future<Set<ProxyId>> fetchProxiesWithFcmToken({
@@ -53,12 +56,17 @@ class DeviceStore with ProxyUtils, FirestoreUtils {
     @required String fcmToken,
   }) async {
     print('fetchProxiesWithFcmToken(deviceId: $deviceId, fcmToken: $fcmToken)');
-    final existingSnapshot = await _ref(deviceId).get();
-    final DeviceEntity existingDevice = _documentSnapshotToDevice(existingSnapshot);
+    final DeviceEntity existingDevice = await fetchDevice(deviceId);
     if (existingDevice != null) {
       return existingDevice.proxyIdList;
     }
     return {};
+  }
+
+  Future<DeviceEntity> fetchDevice(String deviceId) async {
+    print('fetchDevice(deviceId: $deviceId)');
+    final existingSnapshot = await _ref(deviceId).get();
+    return _documentSnapshotToDevice(existingSnapshot);
   }
 
   DeviceEntity _documentSnapshotToDevice(DocumentSnapshot snapshot) {
