@@ -8,16 +8,17 @@ part of 'proxy_account_entity.dart';
 
 ProxyAccountEntity _$ProxyAccountEntityFromJson(Map json) {
   return ProxyAccountEntity(
-      accountId: ProxyAccountId.fromJson(json['accountId'] as Map),
-      accountName: json['accountName'] as String,
-      bankName: json['bankName'] as String,
-      balance: Amount.fromJson(json['balance'] as Map),
-      ownerProxyId: ProxyId.fromJson(json['ownerProxyId'] as Map),
-      signedProxyAccount:
-          ProxyAccount.signedMessageFromJson(json['signedProxyAccount'] as Map),
-      idOfOwnerProxyId: json['idOfOwnerProxyId'] as String,
-      currency: json['currency'] as String,
-      active: json['active'] as bool);
+    accountId: ProxyAccountId.fromJson(json['accountId'] as Map),
+    accountName: json['accountName'] as String,
+    bankName: json['bankName'] as String,
+    balance: Amount.fromJson(json['balance'] as Map),
+    ownerProxyId: ProxyId.fromJson(json['ownerProxyId'] as Map),
+    signedProxyAccount:
+        ProxyAccount.signedMessageFromJson(json['signedProxyAccount'] as Map),
+    idOfOwnerProxyId: json['idOfOwnerProxyId'] as String,
+    currency: json['currency'] as String,
+    active: json['active'] as bool,
+  );
 }
 
 Map<String, dynamic> _$ProxyAccountEntityToJson(ProxyAccountEntity instance) {

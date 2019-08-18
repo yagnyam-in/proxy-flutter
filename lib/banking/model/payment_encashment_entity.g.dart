@@ -8,25 +8,25 @@ part of 'payment_encashment_entity.dart';
 
 PaymentEncashmentEntity _$PaymentEncashmentEntityFromJson(Map json) {
   return PaymentEncashmentEntity(
-      proxyUniverse: json['proxyUniverse'] as String,
-      paymentAuthorizationId: json['paymentAuthorizationId'] as String,
-      paymentEncashmentId: json['paymentEncashmentId'] as String,
-      creationTime: DateTime.parse(json['creationTime'] as String),
-      lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
-      status:
-          _$enumDecode(_$PaymentEncashmentStatusEnumEnumMap, json['status']),
-      amount: Amount.fromJson(json['amount'] as Map),
-      payeeAccountId: ProxyAccountId.fromJson(json['payeeAccountId'] as Map),
-      payeeProxyId: ProxyId.fromJson(json['payeeProxyId'] as Map),
-      signedPaymentEncashment: PaymentEncashment.signedMessageFromJson(
-          json['signedPaymentEncashment'] as Map),
-      paymentAuthorizationLink: json['paymentAuthorizationLink'] as String,
-      completed: json['completed'] as bool,
-      secretEncrypted: json['secretEncrypted'] == null
-          ? null
-          : CipherText.fromJson(json['secretEncrypted'] as Map),
-      email: json['email'] as String,
-      phone: json['phone'] as String);
+    proxyUniverse: json['proxyUniverse'] as String,
+    paymentAuthorizationId: json['paymentAuthorizationId'] as String,
+    paymentEncashmentId: json['paymentEncashmentId'] as String,
+    creationTime: DateTime.parse(json['creationTime'] as String),
+    lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
+    status: _$enumDecode(_$PaymentEncashmentStatusEnumEnumMap, json['status']),
+    amount: Amount.fromJson(json['amount'] as Map),
+    payeeAccountId: ProxyAccountId.fromJson(json['payeeAccountId'] as Map),
+    payeeProxyId: ProxyId.fromJson(json['payeeProxyId'] as Map),
+    signedPaymentEncashment: PaymentEncashment.signedMessageFromJson(
+        json['signedPaymentEncashment'] as Map),
+    paymentAuthorizationLink: json['paymentAuthorizationLink'] as String,
+    completed: json['completed'] as bool,
+    secretEncrypted: json['secretEncrypted'] == null
+        ? null
+        : CipherText.fromJson(json['secretEncrypted'] as Map),
+    email: json['email'] as String,
+    phone: json['phone'] as String,
+  );
 }
 
 Map<String, dynamic> _$PaymentEncashmentEntityToJson(

@@ -8,14 +8,15 @@ part of 'device_entity.dart';
 
 DeviceEntity _$DeviceEntityFromJson(Map json) {
   return DeviceEntity(
-      deviceId: json['deviceId'] as String,
-      fcmToken: json['fcmToken'] as String,
-      proxyIdList: (json['proxyIdList'] as List)
-          .map((e) => ProxyId.fromJson(e as Map))
-          .toSet(),
-      alertsProcessedTill: json['alertsProcessedTill'] == null
-          ? null
-          : DateTime.parse(json['alertsProcessedTill'] as String));
+    deviceId: json['deviceId'] as String,
+    fcmToken: json['fcmToken'] as String,
+    proxyIdList: (json['proxyIdList'] as List)
+        .map((e) => ProxyId.fromJson(e as Map))
+        .toSet(),
+    alertsProcessedTill: json['alertsProcessedTill'] == null
+        ? null
+        : DateTime.parse(json['alertsProcessedTill'] as String),
+  );
 }
 
 Map<String, dynamic> _$DeviceEntityToJson(DeviceEntity instance) {

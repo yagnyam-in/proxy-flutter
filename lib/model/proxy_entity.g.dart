@@ -8,12 +8,13 @@ part of 'proxy_entity.dart';
 
 ProxyEntity _$ProxyEntityFromJson(Map json) {
   return ProxyEntity(
-      proxy: Proxy.fromJson(json['proxy'] as Map),
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String));
+    proxy: Proxy.fromJson(json['proxy'] as Map),
+    lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+  );
 }
 
 Map<String, dynamic> _$ProxyEntityToJson(ProxyEntity instance) =>
     <String, dynamic>{
       'proxy': instance.proxy.toJson(),
-      'lastUpdated': instance.lastUpdated.toIso8601String()
+      'lastUpdated': instance.lastUpdated.toIso8601String(),
     };

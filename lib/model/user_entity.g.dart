@@ -8,16 +8,17 @@ part of 'user_entity.dart';
 
 UserEntity _$UserEntityFromJson(Map json) {
   return UserEntity(
-      uid: json['uid'] as String,
-      password: json['password'] as String,
-      accountId: json['accountId'] as String,
-      masterProxyId: json['masterProxyId'] == null
-          ? null
-          : ProxyId.fromJson(json['masterProxyId'] as Map),
-      name: json['name'] as String,
-      phone: json['phone'] as String,
-      email: json['email'] as String,
-      address: json['address'] as String);
+    uid: json['uid'] as String,
+    password: json['password'] as String,
+    accountId: json['accountId'] as String,
+    masterProxyId: json['masterProxyId'] == null
+        ? null
+        : ProxyId.fromJson(json['masterProxyId'] as Map),
+    name: json['name'] as String,
+    phone: json['phone'] as String,
+    email: json['email'] as String,
+    address: json['address'] as String,
+  );
 }
 
 Map<String, dynamic> _$UserEntityToJson(UserEntity instance) {
