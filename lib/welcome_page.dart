@@ -133,7 +133,9 @@ class _WelcomePageState extends State<WelcomePage> {
       idToken: googleAuth.idToken,
     );
 
-    final FirebaseUser firebaseUser = await _auth.signInWithCredential(credential);
+    final AuthResult authResult = await _auth.signInWithCredential(credential);
+    final FirebaseUser firebaseUser = authResult?.user;
+
     if (firebaseUser != null) {
       UserEntity appUser = await ServiceFactory.registerService().registerUser(firebaseUser);
       print("signed in " + appUser.name);

@@ -17,9 +17,7 @@ import 'welcome_page.dart';
 
 void main() {
   Crashlytics.instance.enableInDevMode = true;
-  FlutterError.onError = (FlutterErrorDetails details) {
-    Crashlytics.instance.onError(details);
-  };
+  FlutterError.onError = Crashlytics.instance.recordFlutterError;
   runApp(ProxyApp());
 }
 

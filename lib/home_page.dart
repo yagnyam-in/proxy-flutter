@@ -34,11 +34,10 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState(appConfiguration);
 }
 
-class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingObserver {
+class _HomePageState extends LoadingSupportState<HomePage> {
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final AppConfiguration appConfiguration;
   bool loading = false;
-  Timer _timerLink;
 
   _HomePageState(this.appConfiguration) {
     print("build home page state with $appConfiguration");
@@ -49,32 +48,26 @@ class _HomePageState extends LoadingSupportState<HomePage> with WidgetsBindingOb
     super.initState();
     ServiceFactory.bootService().subscribeForAlerts();
     ServiceFactory.bootService().processPendingAlerts(appConfiguration);
-    WidgetsBinding.instance.addObserver(this);
+    this.initDynamicLinks();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    if (_timerLink != null) {
-      _timerLink.cancel();
+  void initDynamicLinks() async {
+    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.getInitialLink();
+    final Uri deepLink = data?.link;
+    if (deepLink != null) {
+      _handleDynamicLinks(deepLink);
     }
-    super.dispose();
+    FirebaseDynamicLinks.instance.onLink(onSuccess: (PendingDynamicLinkData dynamicLink) async {
+      final Uri deepLink = dynamicLink?.link;
+      if (deepLink != null) {
+        _handleDynamicLinks(deepLink);
+      }
+    }, onError: (OnLinkErrorException e) async {
+      print('initDynamicLinks: ${e.message}');
+    });
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      print("didChangeAppLifecycleState (ProxyAppState)");
-      _timerLink = new Timer(const Duration(milliseconds: 1000), () {
-        _handleDynamicLinks();
-      });
-    }
-  }
-
-  Future<void> _handleDynamicLinks() async {
-    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
-    print("Handle dynamic link $data");
-    Uri link = data?.link;
+  Future<void> _handleDynamicLinks(Uri link) async {
     if (link == null) return;
     print('link.path = ${link.path}');
     if (link.path == '/actions/add-proxy') {

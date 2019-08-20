@@ -49,32 +49,26 @@ class _EmailLinkLoginPageState extends LoadingSupportState<EmailLinkLoginPage> w
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    initDynamicLinks();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    if (_timerLink != null) {
-      _timerLink.cancel();
+  void initDynamicLinks() async {
+    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.getInitialLink();
+    final Uri deepLink = data?.link;
+    if (deepLink != null) {
+      _handleDynamicLinks(deepLink);
     }
-    super.dispose();
+    FirebaseDynamicLinks.instance.onLink(onSuccess: (PendingDynamicLinkData dynamicLink) async {
+      final Uri deepLink = dynamicLink?.link;
+      if (deepLink != null) {
+        _handleDynamicLinks(deepLink);
+      }
+    }, onError: (OnLinkErrorException e) async {
+      print('initDynamicLinks: ${e.message}');
+    });
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      print("didChangeAppLifecycleState (EmailLinkLoginPage)");
-      _timerLink = new Timer(const Duration(milliseconds: 1000), () {
-        _handleDynamicLinks();
-      });
-    }
-  }
-
-  Future<void> _handleDynamicLinks() async {
-    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.retrieveDynamicLink();
-    print('Handle Dynamic Links $data');
-    Uri link = data?.link;
+  Future<void> _handleDynamicLinks(Uri link) async {
     if (link == null) return;
     print('link = $link');
     bool isLoginLink = await FirebaseAuth.instance.isSignInWithEmailLink(link.toString());
@@ -108,10 +102,11 @@ class _EmailLinkLoginPageState extends LoadingSupportState<EmailLinkLoginPage> w
   void _login(Uri loginLink) async {
     try {
       invoke(() async {
-        FirebaseUser firebaseUser = await FirebaseAuth.instance.signInWithEmailAndLink(
+        final authResult = await FirebaseAuth.instance.signInWithEmailAndLink(
           email: appConfiguration.preferences.getString('email'),
           link: loginLink.toString(),
         );
+        FirebaseUser firebaseUser = authResult?.user;
         if (firebaseUser != null) {
           await ServiceFactory.registerService().registerUser(firebaseUser);
           AppConfigurationBloc.instance.refresh();
