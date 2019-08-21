@@ -168,13 +168,6 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     );
   }
 
-  Future<void> processPaymentAuthorizationUpdate(SignedMessage<PaymentAuthorizationUpdatedAlert> alert) {
-    return refreshPaymentAuthorizationStatus(
-      proxyUniverse: alert.message.proxyUniverse,
-      paymentAuthorizationId: alert.message.paymentAuthorizationId,
-    );
-  }
-
   PaymentAuthorizationEntity _createAuthorizationEntity({
     @required ProxyAccountEntity proxyAccount,
     @required List<PaymentAuthorizationPayeeEntity> payees,
@@ -237,10 +230,17 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     }
   }
 
-  Future<void> processLitePaymentAuthorizationUpdate(Map alert) {
+  Future<void> processPaymentAuthorizationUpdatedAlert(SignedMessage<PaymentAuthorizationUpdatedAlert> alert) {
     return refreshPaymentAuthorizationStatus(
-      proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
-      paymentAuthorizationId: alert[PaymentAuthorizationUpdatedAlert.FIELD_PAYMENT_AUTHORIZATION_ID],
+      proxyUniverse: alert.message.proxyUniverse,
+      paymentAuthorizationId: alert.message.paymentAuthorizationId,
+    );
+  }
+
+  Future<void> processPaymentAuthorizationUpdatedLiteAlert(PaymentAuthorizationUpdatedLiteAlert alert) {
+    return refreshPaymentAuthorizationStatus(
+      proxyUniverse: alert.proxyUniverse,
+      paymentAuthorizationId: alert.paymentAuthorizationId,
     );
   }
 }

@@ -151,17 +151,11 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     }
   }
 
-  Future<void> processAccountUpdate(SignedMessage<AccountUpdatedAlert> alert) {
+  Future<void> processAccountUpdatedAlert(SignedMessage<AccountUpdatedAlert> alert) {
     return refreshAccount(alert.message.proxyAccountId);
   }
 
-  Future<void> processLiteAccountUpdate(Map alert) {
-    return refreshAccount(
-      ProxyAccountId(
-        proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
-        accountId: alert[AccountUpdatedAlert.FIELD_ACCOUNT_ID],
-        bankProxyId: ProxyId.fromUniqueId(alert[AccountUpdatedAlert.FIELD_BANK_PROXY_ID]),
-      ),
-    );
+  Future<void> processAccountUpdatedLiteAlert(AccountUpdatedLiteAlert alert) {
+    return refreshAccount(alert.proxyAccountId);
   }
 }

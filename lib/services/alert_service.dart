@@ -74,8 +74,13 @@ class AlertService with ProxyUtils, HttpClientUtils {
 
   Future<void> processLiteAlert(Map alert) async {
     print("processAlert $alert");
-    await _processLiteAlert(alert);
-    await _deleteAlert(alert);
+    LiteAlert liteAlert = AlertFactory(appConfiguration).createLiteAlert(alert);
+    if (liteAlert == null) {
+      print("ignoring alert $alert");
+      return;
+    }
+    await _processLiteAlert(liteAlert);
+    await _deleteAlert(liteAlert);
   }
 
   Future<void> processPendingAlerts() async {
@@ -97,58 +102,57 @@ class AlertService with ProxyUtils, HttpClientUtils {
     await deviceStore.saveDevice(device.copy(alertsProcessedTill: processedTill));
   }
 
-  Future<void> _processAlert(SignedMessage<SignableAlertMessage> alert) async {
-    if (alert.message is AccountUpdatedAlert) {
-      return BankingServiceFactory.bankingService(appConfiguration).processAccountUpdate(alert);
+  Future<void> _processAlert(SignedMessage<SignableAlertMessage> signedAlert) async {
+    SignableAlertMessage alert = signedAlert.message;
+    if (alert is AccountUpdatedAlert) {
+      return BankingServiceFactory.bankingService(appConfiguration).processAccountUpdatedAlert(signedAlert);
     } else if (alert is DepositUpdatedAlert) {
-      return BankingServiceFactory.depositService(appConfiguration).processDepositUpdate(alert);
+      return BankingServiceFactory.depositService(appConfiguration).processDepositUpdatedAlert(signedAlert);
     } else if (alert is WithdrawalUpdatedAlert) {
-      return BankingServiceFactory.withdrawalService(appConfiguration).processWithdrawalUpdate(alert);
+      return BankingServiceFactory.withdrawalService(appConfiguration).processWithdrawalUpdatedAlert(signedAlert);
     } else if (alert is PaymentAuthorizationUpdatedAlert) {
       return BankingServiceFactory.paymentAuthorizationService(appConfiguration)
-          .processPaymentAuthorizationUpdate(alert);
+          .processPaymentAuthorizationUpdatedAlert(signedAlert);
     } else if (alert is PaymentEncashmentUpdatedAlert) {
-      return BankingServiceFactory.paymentEncashmentService(appConfiguration).processPaymentEncashmentUpdate(alert);
+      return BankingServiceFactory.paymentEncashmentService(appConfiguration)
+          .processPaymentEncashmentUpdatedAlert(signedAlert);
     } else {
       print("$alert is not handled");
     }
   }
 
-  Future<void> _processLiteAlert(Map alert) async {
-    switch (alert[SignableAlertMessage.FIELD_ALERT_TYPE]) {
-      case AccountUpdatedAlert.ALERT_TYPE:
-        return BankingServiceFactory.bankingService(appConfiguration).processLiteAccountUpdate(alert);
-      case DepositUpdatedAlert.ALERT_TYPE:
-        return BankingServiceFactory.depositService(appConfiguration).processLiteDepositUpdate(alert);
-      case WithdrawalUpdatedAlert.ALERT_TYPE:
-        return BankingServiceFactory.withdrawalService(appConfiguration).processLiteWithdrawalUpdate(alert);
-      case PaymentAuthorizationUpdatedAlert.ALERT_TYPE:
-        return BankingServiceFactory.paymentAuthorizationService(appConfiguration)
-            .processLitePaymentAuthorizationUpdate(alert);
-      case PaymentEncashmentUpdatedAlert.ALERT_TYPE:
-        return BankingServiceFactory.paymentEncashmentService(appConfiguration)
-            .processLitePaymentEncashmentUpdate(alert);
-      default:
-        print("Unknnown Alert $alert");
-        return null;
+  Future<void> _processLiteAlert(LiteAlert alert) async {
+    if (alert is AccountUpdatedLiteAlert) {
+      return BankingServiceFactory.bankingService(appConfiguration).processAccountUpdatedLiteAlert(alert);
+    } else if (alert is DepositUpdatedLiteAlert) {
+      return BankingServiceFactory.depositService(appConfiguration).processDepositUpdatedLiteAlert(alert);
+    } else if (alert is WithdrawalUpdatedLiteAlert) {
+      return BankingServiceFactory.withdrawalService(appConfiguration).processWithdrawalUpdatedLiteAlert(alert);
+    } else if (alert is PaymentAuthorizationUpdatedLiteAlert) {
+      return BankingServiceFactory.paymentAuthorizationService(appConfiguration)
+          .processPaymentAuthorizationUpdatedLiteAlert(alert);
+    } else if (alert is PaymentEncashmentUpdatedLiteAlert) {
+      return BankingServiceFactory.paymentEncashmentService(appConfiguration)
+          .processPaymentEncashmentUpdatedLiteAlert(alert);
+    } else {
+      print("$alert is not handled");
     }
   }
 
-  Future<void> _deleteAlert(Map alert) async {
-    ProxyId proxyId = ProxyId.fromUniqueId(alert[SignableAlertMessage.FIELD_RECEIVER_PROXY_ID]);
+  Future<void> _deleteAlert(LiteAlert alert) async {
     DeleteAlertsRequest deleteRequest = DeleteAlertsRequest(
-      proxyId: proxyId,
+      proxyId: alert.receiverProxyId,
       deviceId: appConfiguration.deviceId,
       alertIds: [
         AlertId(
-          alertId: alert[SignableAlertMessage.FIELD_ALERT_ID],
-          alertType: alert[SignableAlertMessage.FIELD_ALERT_TYPE],
-          proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
+          alertId: alert.alertId,
+          alertType: alert.alertType,
+          proxyUniverse: alert.proxyUniverse,
         ),
       ],
       requestId: uuidFactory.v4(),
     );
-    _processDeleteAlertRequest(proxyId, deleteRequest);
+    _processDeleteAlertRequest(alert.receiverProxyId, deleteRequest);
   }
 
   Future<void> _deleteAlerts(ProxyId proxyId, List<SignedMessage<SignableAlertMessage>> alerts) async {

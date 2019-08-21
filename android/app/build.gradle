@@ -76,9 +76,12 @@ android {
             signingConfig signingConfigs.release
 
             minifyEnabled true
-            useProguard true
+            useProguard false
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            dependencies {
+	        implementation 'androidx.fragment:fragment:1.0.0'
+	    }
         }
         debug {
             signingConfig signingConfigs.release

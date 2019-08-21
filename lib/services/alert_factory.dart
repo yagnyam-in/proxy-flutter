@@ -10,23 +10,44 @@ class AlertFactory {
   AlertFactory(this.appConfiguration);
 
   // TODO: Must be verified. Use MessageFactory instead of factory methods
-  Future<SignedMessage<SignableAlertMessage>> createAlert(Map json) async {
-    String type = json['type'];
-    switch (type) {
+  Future<SignedMessage<SignableAlertMessage>> createAlert(Map alertJson) async {
+    String alertType = alertJson['type'];
+    switch (alertType) {
       case AccountUpdatedAlert.ALERT_TYPE:
-        return AccountUpdatedAlert.signedMessageFromJson(json);
+        return AccountUpdatedAlert.signedMessageFromJson(alertJson);
       case DepositUpdatedAlert.ALERT_TYPE:
-        return DepositUpdatedAlert.signedMessageFromJson(json);
+        return DepositUpdatedAlert.signedMessageFromJson(alertJson);
       case WithdrawalUpdatedAlert.ALERT_TYPE:
-        return WithdrawalUpdatedAlert.signedMessageFromJson(json);
+        return WithdrawalUpdatedAlert.signedMessageFromJson(alertJson);
       case PaymentAuthorizationUpdatedAlert.ALERT_TYPE:
-        return PaymentAuthorizationUpdatedAlert.signedMessageFromJson(json);
+        return PaymentAuthorizationUpdatedAlert.signedMessageFromJson(alertJson);
       case PaymentEncashmentUpdatedAlert.ALERT_TYPE:
-        return PaymentEncashmentUpdatedAlert.signedMessageFromJson(json);
+        return PaymentEncashmentUpdatedAlert.signedMessageFromJson(alertJson);
       case EscrowAccountUpdatedAlert.ALERT_TYPE:
-        return EscrowAccountUpdatedAlert.signedMessageFromJson(json);
+        return EscrowAccountUpdatedAlert.signedMessageFromJson(alertJson);
       default:
-        print("Unknnown Alert Type $type");
+        print("Unknnown Alert Type $alertType");
+        return null;
+    }
+  }
+
+  LiteAlert createLiteAlert(Map alertJson) {
+    String alertType = alertJson[SignableAlertMessage.FIELD_ALERT_TYPE];
+    switch (alertType) {
+      case AccountUpdatedAlert.ALERT_TYPE:
+        return AccountUpdatedLiteAlert.fromJson(alertJson);
+      case DepositUpdatedAlert.ALERT_TYPE:
+        return DepositUpdatedLiteAlert.fromJson(alertJson);
+      case WithdrawalUpdatedAlert.ALERT_TYPE:
+        return WithdrawalUpdatedLiteAlert.fromJson(alertJson);
+      case PaymentAuthorizationUpdatedAlert.ALERT_TYPE:
+        return PaymentEncashmentUpdatedLiteAlert.fromJson(alertJson);
+      case PaymentEncashmentUpdatedAlert.ALERT_TYPE:
+        return PaymentEncashmentUpdatedLiteAlert.fromJson(alertJson);
+      case EscrowAccountUpdatedAlert.ALERT_TYPE:
+        return EscrowAccountUpdatedLiteAlert.fromJson(alertJson);
+      default:
+        print("Unknnown Alert Type $alertType");
         return null;
     }
   }

@@ -4,7 +4,6 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:quiver/strings.dart';
 
@@ -32,22 +31,22 @@ class DepositRequestInput with ProxyUtils {
     this.customerEmail,
   });
 
-  factory DepositRequestInput.forAccount(ProxyAccountEntity proxyAccount, [UserEntity user]) {
+  factory DepositRequestInput.forAccount(AppConfiguration appConfiguration, ProxyAccountEntity proxyAccount) {
     return DepositRequestInput._internal(
       currency: proxyAccount.balance.currency,
       accountName: proxyAccount.validAccountName,
-      customerName: user?.name,
-      customerPhone: user?.phone,
-      customerEmail: user?.email,
+      customerName: appConfiguration.displayName,
+      customerPhone: appConfiguration.phoneNumber,
+      customerEmail: appConfiguration.email,
     );
   }
 
-  factory DepositRequestInput.fromCustomer(UserEntity user) {
+  factory DepositRequestInput.fromCustomer(AppConfiguration appConfiguration) {
     return DepositRequestInput._internal(
       currency: null,
-      customerName: user?.name,
-      customerPhone: user?.phone,
-      customerEmail: user?.email,
+      customerName: appConfiguration.displayName,
+      customerPhone: appConfiguration.phoneNumber,
+      customerEmail: appConfiguration.email,
     );
   }
 
@@ -192,7 +191,8 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
       TextFormField(
         controller: amountController,
         focusNode: _amountFocusNode,
-        onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(_currency == Currency.INR ? _nameFocusNode : _submitFocusNode),
+        onFieldSubmitted: (val) =>
+            FocusScope.of(context).requestFocus(_currency == Currency.INR ? _nameFocusNode : _submitFocusNode),
         decoration: InputDecoration(
           labelText: localizations.amount,
         ),

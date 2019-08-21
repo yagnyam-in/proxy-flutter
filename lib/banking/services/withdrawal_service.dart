@@ -73,13 +73,6 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
     return _withdrawalStore.saveWithdrawal(withdrawalEntity.copy(status: status));
   }
 
-  Future<void> processWithdrawalUpdate(SignedMessage<WithdrawalUpdatedAlert> alert) {
-    return refreshWithdrawalStatus(
-      proxyUniverse: alert.message.proxyUniverse,
-      withdrawalId: alert.message.withdrawalId,
-    );
-  }
-
   Future<void> refreshWithdrawalStatus({
     @required String proxyUniverse,
     @required String withdrawalId,
@@ -146,10 +139,17 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
     return clone;
   }
 
-  Future<void> processLiteWithdrawalUpdate(Map alert) {
+  Future<void> processWithdrawalUpdatedAlert(SignedMessage<WithdrawalUpdatedAlert> alert) {
     return refreshWithdrawalStatus(
-      proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
-      withdrawalId: alert[WithdrawalUpdatedAlert.FIELD_WITHDRAWAL_ID],
+      proxyUniverse: alert.message.proxyUniverse,
+      withdrawalId: alert.message.withdrawalId,
+    );
+  }
+
+  Future<void> processWithdrawalUpdatedLiteAlert(WithdrawalUpdatedLiteAlert alert) {
+    return refreshWithdrawalStatus(
+      proxyUniverse: alert.proxyUniverse,
+      withdrawalId: alert.withdrawalId,
     );
   }
 }

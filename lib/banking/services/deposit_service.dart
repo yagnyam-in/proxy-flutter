@@ -64,13 +64,6 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     return depositEntity.depositLink;
   }
 
-  Future<void> processDepositUpdate(SignedMessage<DepositUpdatedAlert> alert) {
-    return refreshDepositStatus(
-      proxyUniverse: alert.message.proxyUniverse,
-      depositId: alert.message.depositId,
-    );
-  }
-
   Future<void> refreshDepositStatus({
     @required String proxyUniverse,
     @required String depositId,
@@ -157,10 +150,17 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     return clone;
   }
 
-  Future<void> processLiteDepositUpdate(Map alert) {
+  Future<void> processDepositUpdatedAlert(SignedMessage<DepositUpdatedAlert> alert) {
     return refreshDepositStatus(
-      proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
-      depositId: alert[DepositUpdatedAlert.FIELD_DEPOSIT_ID],
+      proxyUniverse: alert.message.proxyUniverse,
+      depositId: alert.message.depositId,
+    );
+  }
+
+  Future<void> processDepositUpdatedLiteAlert(DepositUpdatedLiteAlert alert) {
+    return refreshDepositStatus(
+      proxyUniverse: alert.proxyUniverse,
+      depositId: alert.depositId,
     );
   }
 }

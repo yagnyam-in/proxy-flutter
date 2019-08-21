@@ -181,14 +181,6 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     return clone;
   }
 
-  Future<void> processPaymentEncashmentUpdate(SignedMessage<PaymentEncashmentUpdatedAlert> alert) {
-    return refreshPaymentEncashmentStatus(
-      proxyUniverse: alert.message.proxyUniverse,
-      paymentEncashmentId: alert.message.paymentEncashmentId,
-      paymentAuthorizationId: alert.message.paymentAuthorizationId,
-    );
-  }
-
   Future<void> _refreshPaymentEncashmentStatus(
     PaymentEncashmentEntity encashmentEntity,
   ) async {
@@ -224,11 +216,19 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     }
   }
 
-  Future<void> processLitePaymentEncashmentUpdate(Map alert) {
+  Future<void> processPaymentEncashmentUpdatedAlert(SignedMessage<PaymentEncashmentUpdatedAlert> alert) {
     return refreshPaymentEncashmentStatus(
-      proxyUniverse: alert[SignableAlertMessage.FIELD_PROXY_UNIVERSE],
-      paymentEncashmentId: alert[PaymentEncashmentUpdatedAlert.FIELD_PAYMENT_ENCASHMENT_ID],
-      paymentAuthorizationId: alert[PaymentEncashmentUpdatedAlert.FIELD_PAYMENT_AUTHORIZATION_ID],
+      proxyUniverse: alert.message.proxyUniverse,
+      paymentEncashmentId: alert.message.paymentEncashmentId,
+      paymentAuthorizationId: alert.message.paymentAuthorizationId,
+    );
+  }
+
+  Future<void> processPaymentEncashmentUpdatedLiteAlert(PaymentEncashmentUpdatedLiteAlert alert) {
+    return refreshPaymentEncashmentStatus(
+      proxyUniverse: alert.proxyUniverse,
+      paymentEncashmentId: alert.paymentEncashmentId,
+      paymentAuthorizationId: alert.paymentAuthorizationId,
     );
   }
 }

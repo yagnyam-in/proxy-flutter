@@ -112,15 +112,15 @@ class AppConfiguration {
   }
 
   String get displayName {
-    return appUser?.name ?? firebaseUser?.displayName;
+    return account?.name ?? appUser?.name ?? firebaseUser?.displayName;
   }
 
   String get phoneNumber {
-    return appUser?.phone ?? firebaseUser?.phoneNumber;
+    return account?.phone ?? appUser?.phone ?? firebaseUser?.phoneNumber;
   }
 
   String get email {
-    return appUser?.email ?? firebaseUser?.email;
+    return account?.email ?? appUser?.email ?? firebaseUser?.email;
   }
 
   bool get isComplete {
