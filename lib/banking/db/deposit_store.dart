@@ -4,22 +4,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
-import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
+
+import 'cleanup_service.dart';
 
 class DepositStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;
   final DocumentReference root;
   final EventStore _eventStore;
+  final CleanupService _cleanupService;
 
   DepositStore(this.appConfiguration)
       : root = FirestoreUtils.accountRootRef(appConfiguration.accountId),
-        _eventStore = EventStore(appConfiguration);
+        _eventStore = EventStore(appConfiguration),
+        _cleanupService = CleanupService(appConfiguration);
 
-  DocumentReference ref({
+  DocumentReference _ref({
     @required String proxyUniverse,
     @required String depositId,
   }) {
@@ -34,7 +38,7 @@ class DepositStore with ProxyUtils, FirestoreUtils {
     @required String proxyUniverse,
     @required String depositId,
   }) async {
-    DocumentSnapshot snapshot = await ref(
+    DocumentSnapshot snapshot = await _ref(
       proxyUniverse: proxyUniverse,
       depositId: depositId,
     ).get();
@@ -48,7 +52,7 @@ class DepositStore with ProxyUtils, FirestoreUtils {
     @required String proxyUniverse,
     @required String depositId,
   }) {
-    return ref(
+    return _ref(
       proxyUniverse: proxyUniverse,
       depositId: depositId,
     ).snapshots().map(
@@ -57,11 +61,12 @@ class DepositStore with ProxyUtils, FirestoreUtils {
   }
 
   Future<DepositEntity> saveDeposit(DepositEntity deposit) async {
-    await ref(
-      proxyUniverse: deposit.proxyUniverse,
-      depositId: deposit.depositId,
-    ).setData(deposit.toJson());
-    await _eventStore.saveEvent(DepositEvent.fromDepositEntity(deposit));
+    final ref = _ref(proxyUniverse: deposit.proxyUniverse, depositId: deposit.depositId);
+    await Future.wait([
+      ref.setData(deposit.toJson()),
+      _eventStore.saveEvent(DepositEvent.fromDepositEntity(deposit)),
+      _cleanupService.onDeposit(deposit)
+    ]);
     return deposit;
   }
 }

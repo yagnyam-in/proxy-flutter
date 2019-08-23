@@ -16,45 +16,40 @@ import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
 
 class AccountRequest {
-  final String encryptionKey;
-
-  AccountRequest({
-    @required this.encryptionKey,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'encryptionKey': encryptionKey,
-    };
-  }
-
-  factory AccountRequest.fromJson(Map json) {
-    return AccountRequest(
-      encryptionKey: json['encryptionKey'] as String,
-    );
-  }
-}
-
-class AccountResponse {
-  final String accountId;
+  // Not required. But due to firestore limits (max 1 per 1 sec), we may not be able to update it just after it is created
   final HashValue encryptionKeyHash;
 
-  AccountResponse({
-    @required this.accountId,
+  AccountRequest({
     @required this.encryptionKeyHash,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'accountId': accountId,
-      'encryptionKeyHash': encryptionKeyHash,
+      'encryptionKeyHash': encryptionKeyHash.toJson(),
     };
+  }
+
+  @override
+  String toString() {
+    return "AccountRequest(encryptionKeyHash: $encryptionKeyHash)";
+  }
+}
+
+class AccountResponse {
+  final String accountId;
+
+  AccountResponse({
+    @required this.accountId,
+  });
+
+  @override
+  String toString() {
+    return "AccountResponse(accountId: $accountId)";
   }
 
   factory AccountResponse.fromJson(Map json) {
     return AccountResponse(
       accountId: json['accountId'] as String,
-      encryptionKeyHash: HashValue.fromJson(json['encryptionKeyHash'] as Map),
     );
   }
 }
@@ -79,24 +74,37 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
   }
 
   factory AccountService.fromAppConfig(AppConfiguration appConfiguration) {
-    return AccountService(firebaseUser: appConfiguration.firebaseUser, appUser: appConfiguration.appUser,);
+    return AccountService(
+      firebaseUser: appConfiguration.firebaseUser,
+      appUser: appConfiguration.appUser,
+    );
   }
 
   Future<AccountEntity> createAccount({@required String encryptionKey}) async {
     AccountRequest request = AccountRequest(
-      encryptionKey: encryptionKey,
+      encryptionKeyHash: await ServiceFactory.cryptographyService.getHash(
+        hashAlgorithm: 'SHA256',
+        input: encryptionKey,
+      ),
     );
     String response = await post(
       httpClientFactory(),
       appBackendUrl,
       body: jsonEncode(request.toJson()),
-      basicAuthorization: _basicAuthorizationHeader(),
+      bearerAuthorization: (await firebaseUser.getIdToken()).token,
     );
     AccountResponse accountResponse = AccountResponse.fromJson(jsonDecode(response));
-    return AccountEntity(
+    AccountEntity account = AccountEntity(
       accountId: accountResponse.accountId,
-      encryptionKeyHash: accountResponse.encryptionKeyHash,
+      encryptionKeyHash: request.encryptionKeyHash,
     );
+    try {
+      // Good to have. Not mandatory to save
+      await AccountStore().saveAccount(account);
+    } catch (e) {
+      print("Failed to update Account $account: $e");
+    }
+    return account;
   }
 
   Future<bool> validateEncryptionKey({
@@ -144,10 +152,6 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     return account;
   }
 
-  String _basicAuthorizationHeader() {
-    return base64Encode(utf8.encode("${appUser.uid}:${appUser.password}"));
-  }
-
   Future<ProxyKey> _createProxyKey(String proxyId) {
     print("createProxyKey");
     return ServiceFactory.proxyKeyFactory.createProxyKey(
@@ -169,17 +173,23 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
   }
 
-  Future<void> updatePreferences(
+  static Future<AccountEntity> updatePreferences(
+    AppConfiguration appConfiguration,
     AccountEntity account, {
+    String name,
     String currency,
     String email,
     String phone,
   }) async {
-    await AccountStore().saveAccount(account.copy(
+    AccountEntity updatedAccount = account.copy(
+      name: name,
       email: email,
       phone: phone,
       preferredCurrency: currency,
-    ));
+    );
+    await AccountStore().saveAccount(updatedAccount);
+    appConfiguration.account = updatedAccount;
+    return updatedAccount;
   }
 
   Future<Proxy> _createProxy(ProxyRequest proxyRequest) {

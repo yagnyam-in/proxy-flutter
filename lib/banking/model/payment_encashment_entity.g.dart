@@ -58,21 +58,28 @@ Map<String, dynamic> _$PaymentEncashmentEntityToJson(
   return val;
 }
 
-T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
+T _$enumDecode<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
   if (source == null) {
     throw ArgumentError('A value must be provided. Supported values: '
         '${enumValues.values.join(', ')}');
   }
-  return enumValues.entries
-      .singleWhere((e) => e.value == source,
-          orElse: () => throw ArgumentError(
-              '`$source` is not one of the supported values: '
-              '${enumValues.values.join(', ')}'))
-      .key;
+
+  final value = enumValues.entries
+      .singleWhere((e) => e.value == source, orElse: () => null)
+      ?.key;
+
+  if (value == null && unknownValue == null) {
+    throw ArgumentError('`$source` is not one of the supported values: '
+        '${enumValues.values.join(', ')}');
+  }
+  return value ?? unknownValue;
 }
 
-const _$PaymentEncashmentStatusEnumEnumMap =
-    <PaymentEncashmentStatusEnum, dynamic>{
+const _$PaymentEncashmentStatusEnumEnumMap = {
   PaymentEncashmentStatusEnum.Created: 'Created',
   PaymentEncashmentStatusEnum.Registered: 'Registered',
   PaymentEncashmentStatusEnum.Rejected: 'Rejected',
@@ -82,5 +89,5 @@ const _$PaymentEncashmentStatusEnumEnumMap =
   PaymentEncashmentStatusEnum.InProcess: 'InProcess',
   PaymentEncashmentStatusEnum.Processed: 'Processed',
   PaymentEncashmentStatusEnum.Expired: 'Expired',
-  PaymentEncashmentStatusEnum.Error: 'Error'
+  PaymentEncashmentStatusEnum.Error: 'Error',
 };

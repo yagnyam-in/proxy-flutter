@@ -13,12 +13,14 @@ class DepositPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final String proxyUniverse;
   final String depositId;
+  final DepositEntity deposit;
 
   const DepositPage(
     this.appConfiguration, {
     Key key,
     @required this.proxyUniverse,
     @required this.depositId,
+    this.deposit,
   }) : super(key: key);
 
   @override
@@ -95,11 +97,11 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
         loading: loading,
         child: Padding(
           padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-          child: StreamBuilder<DepositEntity>(
+          child: streamBuilder(
+            initialData: widget.deposit,
             stream: _depositStream,
-            builder: (BuildContext context, AsyncSnapshot<DepositEntity> snapshot) {
-              return body(context, localizations, snapshot);
-            },
+            builder: body,
+            emptyWidget: _noDepositFound(context),
           ),
         ),
       ),
@@ -108,14 +110,10 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
 
   Widget body(
     BuildContext context,
-    ProxyLocalizations localizations,
-    AsyncSnapshot<DepositEntity> snapshot,
+    DepositEntity depositEntity,
   ) {
-    if (!snapshot.hasData) {
-      return _noDepositFound(context);
-    }
     ThemeData themeData = Theme.of(context);
-    DepositEntity depositEntity = snapshot.data;
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
 
     List<Widget> rows = [
       const SizedBox(height: 16.0),

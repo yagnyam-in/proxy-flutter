@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/utils/random_utils.dart';
 
 part 'user_entity.g.dart';
 
@@ -10,9 +9,6 @@ part 'user_entity.g.dart';
 class UserEntity {
   @JsonKey(nullable: false)
   final String uid;
-
-  @JsonKey(nullable: false)
-  final String password;
 
   @JsonKey(nullable: true)
   final String accountId;
@@ -34,7 +30,6 @@ class UserEntity {
 
   UserEntity({
     @required this.uid,
-    @required this.password,
     this.accountId,
     this.masterProxyId,
     this.name,
@@ -53,7 +48,6 @@ class UserEntity {
   }) {
     return UserEntity(
       uid: uid,
-      password: password,
       accountId: accountId ?? this.accountId,
       masterProxyId: masterProxyId ?? this.masterProxyId,
       name: name ?? this.name,
@@ -81,7 +75,6 @@ class UserEntity {
   factory UserEntity.from(FirebaseUser firebaseUser) {
     return UserEntity(
       uid: firebaseUser.uid,
-      password: RandomUtils.randomSecret(32),
       name: firebaseUser.displayName == null || firebaseUser.displayName.isEmpty
           ? null
           : firebaseUser.displayName,

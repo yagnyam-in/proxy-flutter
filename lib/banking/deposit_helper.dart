@@ -81,7 +81,8 @@ mixin DepositHelper {
   Future<void> _updatePreferences(DepositRequestInput depositInput) async {
     if (isNotEmpty(depositInput.customerPhone) && isEmpty(appConfiguration.phoneNumber)) {
       print("Updating User Phone Number to ${depositInput.customerPhone}");
-      return AccountService.fromAppConfig(appConfiguration).updatePreferences(
+      return AccountService.updatePreferences(
+        appConfiguration,
         appConfiguration.account,
         phone: depositInput.customerPhone,
       );

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:proxy_flutter/localizations.dart';
 
 mixin WidgetHelper {
-  Future<String> acceptStringDialog(
+  Future<String> acceptInputDialog(
     BuildContext context, {
     @required String pageTitle,
     @required String fieldName,
     String fieldInitialValue,
     String buttonLabel,
+    TextInputType keyboardType,
   }) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     var valueController = new TextEditingController(text: fieldInitialValue);
@@ -24,6 +25,7 @@ mixin WidgetHelper {
                   controller: valueController,
                   autofocus: true,
                   decoration: new InputDecoration(labelText: fieldName),
+                  keyboardType: keyboardType,
                 ),
               )
             ],
@@ -38,6 +40,40 @@ mixin WidgetHelper {
           ],
         );
       },
+    );
+  }
+
+  Future<String> acceptPhoneNumberDialog(
+    BuildContext context, {
+    @required String pageTitle,
+    @required String fieldName,
+    String fieldInitialValue,
+    String buttonLabel,
+  }) async {
+    return acceptInputDialog(
+      context,
+      pageTitle: pageTitle,
+      fieldName: fieldName,
+      fieldInitialValue: fieldInitialValue,
+      buttonLabel: buttonLabel,
+      keyboardType: TextInputType.phone,
+    );
+  }
+
+  Future<String> acceptNameDialog(
+    BuildContext context, {
+    @required String pageTitle,
+    @required String fieldName,
+    String fieldInitialValue,
+    String buttonLabel,
+  }) async {
+    return acceptInputDialog(
+      context,
+      pageTitle: pageTitle,
+      fieldName: fieldName,
+      fieldInitialValue: fieldInitialValue,
+      buttonLabel: buttonLabel,
+      keyboardType: TextInputType.text,
     );
   }
 }

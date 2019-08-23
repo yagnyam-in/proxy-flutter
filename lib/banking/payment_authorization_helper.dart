@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
+import 'package:proxy_flutter/banking/payment_authorization_page.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/basic_types.dart';
-import 'package:quiver/strings.dart';
-import 'package:share/share.dart';
 
 import 'model/proxy_account_entity.dart';
 import 'payment_authorization_input_dialog.dart';
@@ -24,23 +24,29 @@ mixin PaymentAuthorizationHelper {
     VoidCallback onError,
   });
 
-  Future<Uri> createAccountAndPay(BuildContext context) async {
-    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+  Future<PaymentAuthorizationEntity> createPaymentAuthorization(BuildContext context) async {
     PaymentAuthorizationInput paymentInput = await _acceptPaymentInput(context);
     if (paymentInput != null) {
-      Uri paymentLink = await invoke(
-        () => _createPaymentLink(context, paymentInput),
-        name: 'Create Account & Pay',
+      final paymentAuthorization = await invoke(
+        () => _createPaymentAuthorization(context, paymentInput),
+        name: 'Create Payment Authorization',
       );
-      if (paymentLink != null) {
-        String customerName = appConfiguration.displayName;
-        var from = isNotEmpty(customerName) ? ' - $customerName' : '';
-        var message = localizations.acceptPayment(paymentLink.toString() + from);
-        await Share.share(message);
-      }
-      return paymentLink;
+      return paymentAuthorization;
     }
     return null;
+  }
+
+  Future<void> launchPaymentAuthorization(BuildContext context, PaymentAuthorizationEntity paymentAuthorization) async {
+    if (paymentAuthorization != null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute<PaymentAuthorizationInput>(
+          builder: (context) => PaymentAuthorizationPage.forPaymentAuthorization(
+            appConfiguration,
+            paymentAuthorization,
+          ),
+        ),
+      );
+    }
   }
 
   Future<PaymentAuthorizationInput> _acceptPaymentInput(BuildContext context, [ProxyAccountEntity proxyAccount]) async {
@@ -64,17 +70,13 @@ mixin PaymentAuthorizationHelper {
     return result;
   }
 
-  Future<Uri> _createPaymentLink(
+  Future<PaymentAuthorizationEntity> _createPaymentAuthorization(
     BuildContext context,
     PaymentAuthorizationInput paymentInput,
   ) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-
-    ProxyAccountEntity proxyAccount = await fetchOrCreateAccount(localizations, paymentInput.currency);
-    return BankingServiceFactory.paymentAuthorizationService(appConfiguration).createPaymentAuthorization(
-      localizations,
-      proxyAccount,
-      paymentInput,
-    );
+    final proxyAccount = await fetchOrCreateAccount(localizations, paymentInput.currency);
+    return BankingServiceFactory.paymentAuthorizationService(appConfiguration)
+        .createPaymentAuthorization(localizations, proxyAccount, paymentInput);
   }
 }

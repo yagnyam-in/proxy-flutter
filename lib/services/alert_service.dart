@@ -6,6 +6,7 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/constants.dart';
 import 'package:proxy_flutter/db/device_store.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/model/device_entity.dart';
@@ -13,8 +14,11 @@ import 'package:proxy_flutter/services/alert_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
+import 'package:quiver/collection.dart';
 import 'package:quiver/strings.dart';
 import 'package:uuid/uuid.dart';
+
+import 'service_factory.dart';
 
 class AlertService with ProxyUtils, HttpClientUtils {
   final AppConfiguration appConfiguration;
@@ -24,10 +28,11 @@ class AlertService with ProxyUtils, HttpClientUtils {
   final DeviceStore deviceStore;
   final ProxyKeyStore proxyKeyStore;
   final String appBackendUrl;
+  final ProxyId alertProviderProxyId = Constants.PROXY_APP_BACKEND_PROXY_ID;
 
-  String get fetchAlertsUrl => appBackendUrl + "/alerts/get";
+  String get fetchAlertsUrl => appBackendUrl;
 
-  String get deleteAlertsUrl => appBackendUrl + "/alerts";
+  String get deleteAlertsUrl => appBackendUrl;
 
   AlertService(
     this.appConfiguration, {
@@ -36,47 +41,19 @@ class AlertService with ProxyUtils, HttpClientUtils {
     @required this.messageSigningService,
     @required this.deviceStore,
     @required this.proxyKeyStore,
-  })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/app",
+  })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
     assert(isNotEmpty(this.appBackendUrl));
   }
 
-  Future<void> _processPendingAlertsForProxy({
-    @required String deviceId,
-    @required ProxyId proxyId,
-    DateTime fromTime,
-  }) async {
-    PendingAlertsRequest request = PendingAlertsRequest(
-      proxyId: proxyId,
-      deviceId: deviceId,
-      fromTime: fromTime,
-      requestId: uuidFactory.v4(),
-    );
-    ProxyKey proxyKey = await proxyKeyStore.fetchProxyKey(proxyId);
-    if (proxyKey == null) {
+  Future<void> processLiteAlert(Map alert) async {
+    LiteAlert liteAlert = AlertFactory().createLiteAlert(alert);
+    if (liteAlert == null) {
+      print("ignoring alert $alert it can't be parsed");
       return;
     }
-    SignedMessage<PendingAlertsRequest> signedRequest = await messageSigningService.sign(request, proxyKey);
-    String signedRequestJson = jsonEncode(signedRequest.toJson());
-    // print("Sending $signedRequestJson to $fetchAlertsUrl");
-    String jsonResponse = await post(
-      httpClientFactory(),
-      fetchAlertsUrl,
-      body: signedRequestJson,
-    );
-    List alertsJson = jsonDecode(jsonResponse);
-    List<SignedMessage<SignableAlertMessage>> alerts = await Future.wait(
-        alertsJson.map((alertJson) => AlertFactory(appConfiguration).createAlert(alertJson)).toList());
-    alerts.forEach(_processAlert);
-    _deleteAlerts(proxyId, alerts);
-    // print("Received $jsonResponse from $fetchAlertsUrl");
-  }
-
-  Future<void> processLiteAlert(Map alert) async {
-    print("processAlert $alert");
-    LiteAlert liteAlert = AlertFactory(appConfiguration).createLiteAlert(alert);
-    if (liteAlert == null) {
-      print("ignoring alert $alert");
+    if (_isAlertProcessed(alertId: liteAlert.alertId, alertType: liteAlert.alertType)) {
+      print("ignoring alert $alert as it is just processed");
       return;
     }
     await _processLiteAlert(liteAlert);
@@ -102,26 +79,76 @@ class AlertService with ProxyUtils, HttpClientUtils {
     await deviceStore.saveDevice(device.copy(alertsProcessedTill: processedTill));
   }
 
-  Future<void> _processAlert(SignedMessage<SignableAlertMessage> signedAlert) async {
-    SignableAlertMessage alert = signedAlert.message;
+  Future<void> _processPendingAlertsForProxy({
+    @required String deviceId,
+    @required ProxyId proxyId,
+    DateTime fromTime,
+  }) async {
+    print("Process Alerts for $proxyId on $deviceId from $fromTime");
+    PendingAlertsRequest request = PendingAlertsRequest(
+      proxyId: proxyId,
+      deviceId: deviceId,
+      fromTime: fromTime,
+      requestId: uuidFactory.v4(),
+      alertProviderProxyId: alertProviderProxyId,
+    );
+    ProxyKey proxyKey = await proxyKeyStore.fetchProxyKey(proxyId);
+    if (proxyKey == null) {
+      return;
+    }
+    SignedMessage<PendingAlertsRequest> signedRequest = await messageSigningService.sign(request, proxyKey);
+    String signedRequestJson = jsonEncode(signedRequest.toJson());
+    // print("Sending $signedRequestJson to $fetchAlertsUrl");
+    String jsonResponse = await post(
+      httpClientFactory(),
+      fetchAlertsUrl,
+      body: signedRequestJson,
+    );
+    SignedMessage<PendingAlertsResponse> response = ServiceFactory.messageBuilder().buildSignedMessage(
+      jsonResponse,
+      PendingAlertsResponse.fromJson,
+    );
+
+    List<SignableAlertMessage> alerts = response.message.alerts
+        .map((signedAlert) {
+          return AlertFactory().createAlert(signedAlert.type, jsonDecode(signedAlert.payload));
+        })
+        .where((alert) => alert != null)
+        .toList();
+
+    print("Got ${alerts.length} alerts to process");
+    alerts.forEach((alert) {
+      if (_isAlertProcessed(alertId: alert.alertId, alertType: alert.messageType)) {
+        print("ignoring alert $alert as it is just processed");
+      } else {
+        _processAlert(alert);
+      }
+    });
+    _deleteAlerts(proxyId, alerts);
+    // print("Received $jsonResponse from $fetchAlertsUrl");
+  }
+
+  Future<void> _processAlert(SignableAlertMessage alert) async {
+    print("processAlert $alert");
     if (alert is AccountUpdatedAlert) {
-      return BankingServiceFactory.bankingService(appConfiguration).processAccountUpdatedAlert(signedAlert);
+      return BankingServiceFactory.bankingService(appConfiguration).processAccountUpdatedAlert(alert);
     } else if (alert is DepositUpdatedAlert) {
-      return BankingServiceFactory.depositService(appConfiguration).processDepositUpdatedAlert(signedAlert);
+      return BankingServiceFactory.depositService(appConfiguration).processDepositUpdatedAlert(alert);
     } else if (alert is WithdrawalUpdatedAlert) {
-      return BankingServiceFactory.withdrawalService(appConfiguration).processWithdrawalUpdatedAlert(signedAlert);
+      return BankingServiceFactory.withdrawalService(appConfiguration).processWithdrawalUpdatedAlert(alert);
     } else if (alert is PaymentAuthorizationUpdatedAlert) {
       return BankingServiceFactory.paymentAuthorizationService(appConfiguration)
-          .processPaymentAuthorizationUpdatedAlert(signedAlert);
+          .processPaymentAuthorizationUpdatedAlert(alert);
     } else if (alert is PaymentEncashmentUpdatedAlert) {
       return BankingServiceFactory.paymentEncashmentService(appConfiguration)
-          .processPaymentEncashmentUpdatedAlert(signedAlert);
+          .processPaymentEncashmentUpdatedAlert(alert);
     } else {
       print("$alert is not handled");
     }
   }
 
   Future<void> _processLiteAlert(LiteAlert alert) async {
+    print("processLiteAlert $alert");
     if (alert is AccountUpdatedLiteAlert) {
       return BankingServiceFactory.bankingService(appConfiguration).processAccountUpdatedLiteAlert(alert);
     } else if (alert is DepositUpdatedLiteAlert) {
@@ -143,6 +170,7 @@ class AlertService with ProxyUtils, HttpClientUtils {
     DeleteAlertsRequest deleteRequest = DeleteAlertsRequest(
       proxyId: alert.receiverProxyId,
       deviceId: appConfiguration.deviceId,
+      alertProviderProxyId: alertProviderProxyId,
       alertIds: [
         AlertId(
           alertId: alert.alertId,
@@ -155,18 +183,19 @@ class AlertService with ProxyUtils, HttpClientUtils {
     _processDeleteAlertRequest(alert.receiverProxyId, deleteRequest);
   }
 
-  Future<void> _deleteAlerts(ProxyId proxyId, List<SignedMessage<SignableAlertMessage>> alerts) async {
+  Future<void> _deleteAlerts(ProxyId proxyId, List<SignableAlertMessage> alerts) async {
     if (alerts.isEmpty) {
       return;
     }
     DeleteAlertsRequest deleteRequest = DeleteAlertsRequest(
       proxyId: proxyId,
       deviceId: appConfiguration.deviceId,
+      alertProviderProxyId: alertProviderProxyId,
       alertIds: alerts
           .map((a) => AlertId(
-                alertType: a.type,
-                alertId: a.message.alertId,
-                proxyUniverse: a.message.proxyUniverse,
+                alertType: a.messageType,
+                alertId: a.alertId,
+                proxyUniverse: a.proxyUniverse,
               ))
           .toList(),
       requestId: uuidFactory.v4(),
@@ -187,5 +216,19 @@ class AlertService with ProxyUtils, HttpClientUtils {
       deleteAlertsUrl,
       body: signedRequestJson,
     );
+  }
+
+  // Its possible same alert is sent twice. Saving processing time
+  static final LruMap<String, String> _recentlyProcessedAlerts = LruMap<String, String>(maximumSize: 16);
+
+  static bool _isAlertProcessed({
+    @required String alertId,
+    @required String alertType,
+  }) {
+    if (_recentlyProcessedAlerts[alertId] == alertType) {
+      return true;
+    }
+    _recentlyProcessedAlerts[alertId] = alertType;
+    return false;
   }
 }

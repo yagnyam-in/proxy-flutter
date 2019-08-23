@@ -216,11 +216,11 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     }
   }
 
-  Future<void> processPaymentEncashmentUpdatedAlert(SignedMessage<PaymentEncashmentUpdatedAlert> alert) {
+  Future<void> processPaymentEncashmentUpdatedAlert(PaymentEncashmentUpdatedAlert alert) {
     return refreshPaymentEncashmentStatus(
-      proxyUniverse: alert.message.proxyUniverse,
-      paymentEncashmentId: alert.message.paymentEncashmentId,
-      paymentAuthorizationId: alert.message.paymentAuthorizationId,
+      proxyUniverse: alert.proxyUniverse,
+      paymentEncashmentId: alert.paymentEncashmentId,
+      paymentAuthorizationId: alert.paymentAuthorizationId,
     );
   }
 

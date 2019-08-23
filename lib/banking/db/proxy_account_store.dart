@@ -9,11 +9,16 @@ import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 import 'package:proxy_messages/banking.dart';
 
+import 'cleanup_service.dart';
+
 class ProxyAccountStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;
   final DocumentReference root;
+  final CleanupService _cleanupService;
 
-  ProxyAccountStore(this.appConfiguration) : root = FirestoreUtils.accountRootRef(appConfiguration.accountId) {
+  ProxyAccountStore(this.appConfiguration)
+      : root = FirestoreUtils.accountRootRef(appConfiguration.accountId),
+        _cleanupService = CleanupService(appConfiguration) {
     assert(appConfiguration != null);
   }
 
@@ -78,10 +83,11 @@ class ProxyAccountStore with ProxyUtils, FirestoreUtils {
   }
 
   Future<ProxyAccountEntity> saveAccount(ProxyAccountEntity account) async {
-    await _ref(
-      proxyUniverse: account.proxyUniverse,
-      accountId: account.accountId.accountId,
-    ).setData(account.toJson());
+    final ref = _ref(proxyUniverse: account.proxyUniverse, accountId: account.accountId.accountId);
+    await Future.wait([
+      ref.setData(account.toJson()),
+      _cleanupService.onProxyAccount(account),
+    ]);
     return account;
   }
 

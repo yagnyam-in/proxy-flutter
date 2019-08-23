@@ -11,7 +11,7 @@ import 'package:proxy_flutter/services/enticement_service.dart';
 mixin EnticementHelper {
   AppConfiguration get appConfiguration;
 
-  Future<Uri> createAccountAndPay(BuildContext context);
+  Future<void> createPaymentAuthorization(BuildContext context);
 
   Future<void> createAccountAndDeposit(BuildContext context);
 
@@ -32,12 +32,12 @@ mixin EnticementHelper {
     return EnticementCard(
       enticement: enticement,
       setup: () => launchEnticement(context, enticement),
-      dismiss: () => dismissEnticement(context, enticement),
+      dismiss: () => _dismissEnticement(context, enticement),
       dismissable: cancellable,
     );
   }
 
-  void dismissEnticement(BuildContext context, Enticement enticement) {
+  void _dismissEnticement(BuildContext context, Enticement enticement) {
     print("Dimissing $enticement");
     EnticementService(appConfiguration).dismissEnticement(
       enticementId: enticement.id,
@@ -73,16 +73,13 @@ mixin EnticementHelper {
     print("Add Test Accounts");
     ReceivingAccountStore store = ReceivingAccountStore(appConfiguration);
     TestReceivingAccounts.allTestAccounts.forEach((a) async => await store.saveAccount(a));
-    dismissEnticement(context, enticement);
+    _dismissEnticement(context, enticement);
   }
 
   void _makePayment(BuildContext context, Enticement enticement) async {
     print("Make Payment");
     try {
-      Uri uri = await createAccountAndPay(context);
-      if (uri != null) {
-        dismissEnticement(context, enticement);
-      }
+      await createPaymentAuthorization(context);
     } catch (e, s) {
       print("Error creating Payment: $e, $s");
     }
@@ -93,7 +90,7 @@ mixin EnticementHelper {
     try {
       ReceivingAccountEntity account = await createReceivingAccount(context);
       if (account != null) {
-        dismissEnticement(context, enticement);
+        _dismissEnticement(context, enticement);
       }
     } catch (e) {
       print("Error Creating new Receiving Account: $e");
@@ -102,7 +99,7 @@ mixin EnticementHelper {
 
   void _addBunqAccount(BuildContext context, Enticement enticement) {
     showToast("Not yet ready");
-    dismissEnticement(context, enticement);
+    _dismissEnticement(context, enticement);
   }
 
   void _addFunds(BuildContext context, Enticement enticement) {

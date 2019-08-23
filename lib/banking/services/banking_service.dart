@@ -151,8 +151,8 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     }
   }
 
-  Future<void> processAccountUpdatedAlert(SignedMessage<AccountUpdatedAlert> alert) {
-    return refreshAccount(alert.message.proxyAccountId);
+  Future<void> processAccountUpdatedAlert(AccountUpdatedAlert alert) {
+    return refreshAccount(alert.proxyAccountId);
   }
 
   Future<void> processAccountUpdatedLiteAlert(AccountUpdatedLiteAlert alert) {

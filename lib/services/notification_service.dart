@@ -7,6 +7,7 @@ import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/constants.dart';
 import 'package:proxy_flutter/db/device_store.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/services/app_configuration_bloc.dart';
@@ -19,7 +20,9 @@ class NotificationService with ProxyUtils, HttpClientUtils {
   final HttpClientFactory httpClientFactory;
   final MessageSigningService messageSigningService;
   final String appBackendUrl;
-  String get subscribeForAlertsUrl => appBackendUrl + "/alerts";
+  final ProxyId alertProviderProxyId = Constants.PROXY_APP_BACKEND_PROXY_ID;
+
+  String get subscribeForAlertsUrl => appBackendUrl;
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   bool _started = false;
@@ -28,7 +31,7 @@ class NotificationService with ProxyUtils, HttpClientUtils {
     String appBackendUrl,
     HttpClientFactory httpClientFactory,
     @required this.messageSigningService,
-  })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/app",
+  })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
     assert(isNotEmpty(this.appBackendUrl));
   }
@@ -66,11 +69,13 @@ class NotificationService with ProxyUtils, HttpClientUtils {
         fcmToken: newToken,
       );
       List<ProxyKey> allProxies = await proxyKeyStore.fetchProxyKeys(exclusion: uptoDateProxies);
-      allProxies.forEach(
-        (key) => _updateToken(
-          key,
-          deviceId: appConfiguration.deviceId,
-          fcmToken: newToken,
+      await Future.wait(
+        allProxies.map(
+          (key) => _updateToken(
+            key,
+            deviceId: appConfiguration.deviceId,
+            fcmToken: newToken,
+          ),
         ),
       );
       deviceStore.updateFcmToken(
@@ -83,7 +88,7 @@ class NotificationService with ProxyUtils, HttpClientUtils {
     }
   }
 
-  void _updateToken(
+  Future<void> _updateToken(
     ProxyKey proxyKey, {
     @required String deviceId,
     @required String fcmToken,
@@ -91,6 +96,7 @@ class NotificationService with ProxyUtils, HttpClientUtils {
     print("Updating FCM Token for ${proxyKey.id} on Device $deviceId");
     SubscribeForAlertsRequest request = new SubscribeForAlertsRequest(
       requestId: uuidFactory.v4(),
+      alertProviderProxyId: alertProviderProxyId,
       proxyId: proxyKey.id,
       deviceId: deviceId,
       fcmToken: fcmToken,

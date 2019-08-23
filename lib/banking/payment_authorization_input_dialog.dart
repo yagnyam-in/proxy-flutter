@@ -242,7 +242,8 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     if (_currency == null) {
       showError(localizations.fieldIsMandatory(localizations.currency));
     } else if (_formKey.currentState.validate()) {
-      AccountService.fromAppConfig(appConfiguration).updatePreferences(
+      AccountService.updatePreferences(
+        appConfiguration,
         appConfiguration.account,
         currency: _currency,
       );

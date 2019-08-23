@@ -58,22 +58,30 @@ Map<String, dynamic> _$PaymentAuthorizationPayeeEntityToJson(
   return val;
 }
 
-T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
+T _$enumDecode<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
   if (source == null) {
     throw ArgumentError('A value must be provided. Supported values: '
         '${enumValues.values.join(', ')}');
   }
-  return enumValues.entries
-      .singleWhere((e) => e.value == source,
-          orElse: () => throw ArgumentError(
-              '`$source` is not one of the supported values: '
-              '${enumValues.values.join(', ')}'))
-      .key;
+
+  final value = enumValues.entries
+      .singleWhere((e) => e.value == source, orElse: () => null)
+      ?.key;
+
+  if (value == null && unknownValue == null) {
+    throw ArgumentError('`$source` is not one of the supported values: '
+        '${enumValues.values.join(', ')}');
+  }
+  return value ?? unknownValue;
 }
 
-const _$PayeeTypeEnumEnumMap = <PayeeTypeEnum, dynamic>{
+const _$PayeeTypeEnumEnumMap = {
   PayeeTypeEnum.ProxyId: 'ProxyId',
   PayeeTypeEnum.Email: 'Email',
   PayeeTypeEnum.Phone: 'Phone',
-  PayeeTypeEnum.AnyoneWithSecret: 'AnyoneWithSecret'
+  PayeeTypeEnum.AnyoneWithSecret: 'AnyoneWithSecret',
 };

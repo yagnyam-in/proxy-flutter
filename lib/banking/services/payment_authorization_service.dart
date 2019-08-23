@@ -95,7 +95,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     );
   }
 
-  Future<Uri> createPaymentAuthorization(
+  Future<PaymentAuthorizationEntity> createPaymentAuthorization(
     ProxyLocalizations localizations,
     ProxyAccountEntity proxyAccount,
     PaymentAuthorizationInput input,
@@ -117,8 +117,8 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     );
     final signedPaymentAuthorization = await signMessage(request: request);
     Uri paymentLink = await ServiceFactory.deepLinkService().createDeepLink(
-      Uri.parse(
-          '${UrlConfig.PROXY_BANKING}/actions/accept-payment?proxyUniverse=$proxyUniverse&paymentAuthorizationId=$paymentAuthorizationId'),
+      Uri.parse('${UrlConfig.PROXY_BANKING}/actions/accept-payment'
+          '?proxyUniverse=$proxyUniverse&paymentAuthorizationId=$paymentAuthorizationId'),
       title: localizations.sharePaymentTitle,
       description: localizations.sharePaymentDescription,
     );
@@ -129,7 +129,6 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
       paymentLink: paymentLink.toString(),
       payees: payeeEntityList,
     );
-    PaymentAuthorizationStatusEnum status = paymentAuthorizationEntity.status;
 
     try {
       final signedResponse = await sendAndReceive(
@@ -137,13 +136,15 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
         signedRequest: signedPaymentAuthorization,
         responseParser: PaymentAuthorizationRegistered.fromJson,
       );
-      status = signedResponse.message.paymentAuthorizationStatus;
+      paymentAuthorizationEntity = paymentAuthorizationEntity.copy(
+        status: signedResponse.message.paymentAuthorizationStatus,
+      );
     } catch (e) {
       print("Error while registering Payment Authorization: $e");
     }
 
-    await _paymentAuthorizationStore.savePaymentAuthorization(paymentAuthorizationEntity.copy(status: status));
-    return paymentLink;
+    await _paymentAuthorizationStore.savePaymentAuthorization(paymentAuthorizationEntity);
+    return paymentAuthorizationEntity;
   }
 
   Future<void> _refreshPaymentAuthorizationStatus(
@@ -230,10 +231,10 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     }
   }
 
-  Future<void> processPaymentAuthorizationUpdatedAlert(SignedMessage<PaymentAuthorizationUpdatedAlert> alert) {
+  Future<void> processPaymentAuthorizationUpdatedAlert(PaymentAuthorizationUpdatedAlert alert) {
     return refreshPaymentAuthorizationStatus(
-      proxyUniverse: alert.message.proxyUniverse,
-      paymentAuthorizationId: alert.message.paymentAuthorizationId,
+      proxyUniverse: alert.proxyUniverse,
+      paymentAuthorizationId: alert.paymentAuthorizationId,
     );
   }
 

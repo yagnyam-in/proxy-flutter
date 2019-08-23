@@ -137,7 +137,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => createAccountAndPay(context),
+        onPressed: () => _createPaymentAuthorizationAndLaunch(context),
         icon: Icon(Icons.payment),
         label: Text(localizations.payFabLabel),
       ),
@@ -148,6 +148,11 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         changeHomePage: changeHomePage,
       ),
     );
+  }
+
+  Future<void> _createPaymentAuthorizationAndLaunch(BuildContext context) async {
+    final paymentAuthorization = await createPaymentAuthorization(context);
+    await launchPaymentAuthorization(context, paymentAuthorization);
   }
 
   Widget _accounts(

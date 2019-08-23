@@ -32,7 +32,6 @@ class EmailLinkLoginPage extends StatefulWidget {
 class _EmailLinkLoginPageState extends LoadingSupportState<EmailLinkLoginPage> with WidgetsBindingObserver {
   final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  Timer _timerLink;
   String loginFailedMessage;
   String status;
   bool loading = false;

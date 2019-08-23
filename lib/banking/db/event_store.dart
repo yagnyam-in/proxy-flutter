@@ -34,6 +34,7 @@ class EventStore with ProxyUtils, FirestoreUtils {
   Stream<List<EventEntity>> subscribeForEvents() {
     return eventsRef(proxyUniverse: appConfiguration.proxyUniverse)
         .orderBy("creationTime", descending: true)
+        // .limit(32)
         .snapshots()
         .map(_querySnapshotToAccounts);
   }

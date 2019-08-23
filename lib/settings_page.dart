@@ -1,10 +1,10 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/db/user_store.dart';
+import 'package:proxy_flutter/about_page.dart';
+import 'package:proxy_flutter/db/account_store.dart';
 import 'package:proxy_flutter/home_page_navigation.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
+import 'package:proxy_flutter/services/account_service.dart';
 import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/url_config.dart';
@@ -14,6 +14,7 @@ import 'package:quiver/strings.dart';
 import 'package:share/share.dart';
 
 import 'config/app_configuration.dart';
+import 'model/account_entity.dart';
 import 'widgets/widget_helper.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -35,17 +36,16 @@ class SettingsPage extends StatefulWidget {
 class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageNavigation {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
-  final UserStore _userStore;
-  Stream<UserEntity> _userStream;
+  final AccountStore _accountStore;
+  Stream<AccountEntity> _accountStream;
   bool loading = false;
 
-  SettingsPageState(this.appConfiguration, this.changeHomePage)
-      : _userStore = UserStore.forUser(appConfiguration.firebaseUser);
+  SettingsPageState(this.appConfiguration, this.changeHomePage) : _accountStore = AccountStore();
 
   @override
   void initState() {
     super.initState();
-    _userStream = _userStore.subscribeForUser();
+    _accountStream = _accountStore.subscribeForAccount(appConfiguration.accountId);
   }
 
   @override
@@ -67,8 +67,8 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
         loading: loading,
         child: streamBuilder(
           name: "Profile Loading",
-          stream: _userStream,
-          builder: (context, user) => _SettingsWidget(appConfiguration, user),
+          stream: _accountStream,
+          builder: (context, account) => _SettingsWidget(appConfiguration, account),
         ),
       ),
       bottomNavigationBar: navigationBar(
@@ -88,36 +88,36 @@ class SettingsPageState extends LoadingSupportState<SettingsPage> with HomePageN
 
 class _SettingsWidget extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final UserEntity userEntity;
+  final AccountEntity accountEntity;
 
-  const _SettingsWidget(this.appConfiguration, this.userEntity, {Key key}) : super(key: key);
+  const _SettingsWidget(this.appConfiguration, this.accountEntity, {Key key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _SettingsWidgetState(appConfiguration, userEntity);
+    return _SettingsWidgetState(appConfiguration, accountEntity);
   }
 }
 
 class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
   final AppConfiguration appConfiguration;
-  UserEntity userEntity;
+  AccountEntity accountEntity;
 
-  _SettingsWidgetState(this.appConfiguration, this.userEntity);
+  _SettingsWidgetState(this.appConfiguration, this.accountEntity);
 
   String _nullIfEmpty(String value) {
     return value == null || value.trim().isEmpty ? null : value;
   }
 
   String get displayName {
-    return userEntity.name ?? _nullIfEmpty(appConfiguration.firebaseUser.displayName);
+    return accountEntity.name ?? _nullIfEmpty(appConfiguration.firebaseUser.displayName);
   }
 
   String get phoneNumber {
-    return userEntity.phone ?? _nullIfEmpty(appConfiguration.firebaseUser.phoneNumber);
+    return accountEntity.phone ?? _nullIfEmpty(appConfiguration.firebaseUser.phoneNumber);
   }
 
   String get email {
-    return userEntity.email ?? _nullIfEmpty(appConfiguration.firebaseUser.email);
+    return accountEntity.email ?? _nullIfEmpty(appConfiguration.firebaseUser.email);
   }
 
   @override
@@ -136,8 +136,10 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       _PassPhraseWidget(appConfiguration: appConfiguration),
       const Divider(),
       _proxyUniverseWidget(context),
-      if (appConfiguration.proxyUniverse != ProxyUniverse.PRODUCTION) const Divider(),
-      if (appConfiguration.proxyUniverse != ProxyUniverse.PRODUCTION) _crashWidget(context),
+      const Divider(),
+      _aboutWidget(context),
+      // if (appConfiguration.proxyUniverse != ProxyUniverse.PRODUCTION) const Divider(),
+      // if (appConfiguration.proxyUniverse != ProxyUniverse.PRODUCTION) _crashWidget(context),
     ]);
   }
 
@@ -190,14 +192,20 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
   Widget _phoneNumberWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
-      title: Text(
-        phoneNumber ?? localizations.authorizePhoneNumber,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Padding(
-        padding: EdgeInsets.only(top: 8.0),
+      title: GestureDetector(
+        onTap: () => _changePhoneNumber(context),
         child: Text(
-          localizations.customerPhone,
+          phoneNumber ?? localizations.authorizePhoneNumber,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      subtitle: GestureDetector(
+        onTap: () => _changePhoneNumber(context),
+        child: Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Text(
+            localizations.customerPhone,
+          ),
         ),
       ),
       trailing: Icon(
@@ -225,21 +233,28 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
     );
   }
 
-  Widget _crashWidget(BuildContext context) {
-    return ListTile(
-      title: Text(
-        'Send a Crash',
-      ),
-      subtitle: Padding(
-        padding: EdgeInsets.only(top: 8.0),
-        child: Text(
-          'Only for testing',
+  Widget _aboutWidget(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        new MaterialPageRoute(
+          builder: (context) => AboutPage(appConfiguration),
         ),
       ),
-      trailing: GestureDetector(
-        onTap: () => Crashlytics.instance.crash(),
-        child: Icon(
-          Icons.error,
+      child: ListTile(
+        title: Text(
+          localizations.about,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Text(
+            localizations.aboutDescription,
+          ),
+        ),
+        trailing: Icon(
+          Icons.help,
         ),
       ),
     );
@@ -247,18 +262,42 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
 
   void _changeName(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    String newName = await acceptStringDialog(
+    String newName = await acceptNameDialog(
       context,
       pageTitle: localizations.changeNameTitle,
       fieldName: localizations.customerName,
       fieldInitialValue: displayName,
     );
     if (isNotEmpty(newName)) {
-      UserEntity newUser = userEntity.copy(name: newName);
-      await UserStore.forUser(appConfiguration.firebaseUser).saveUser(newUser);
-      appConfiguration.appUser = newUser;
+      AccountEntity updatedAccount = await AccountService.updatePreferences(
+        appConfiguration,
+        accountEntity,
+        name: newName,
+      );
+      appConfiguration.account = updatedAccount;
       setState(() {
-        userEntity = newUser;
+        accountEntity = updatedAccount;
+      });
+    }
+  }
+
+  void _changePhoneNumber(BuildContext context) async {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    String newPhoneNumber = await acceptPhoneNumberDialog(
+      context,
+      pageTitle: localizations.changePhoneNumberTitle,
+      fieldName: localizations.customerPhone,
+      fieldInitialValue: phoneNumber,
+    );
+    if (isNotEmpty(newPhoneNumber)) {
+      AccountEntity updatedAccount = await AccountService.updatePreferences(
+        appConfiguration,
+        accountEntity,
+        phone: newPhoneNumber,
+      );
+      appConfiguration.account = updatedAccount;
+      setState(() {
+        accountEntity = updatedAccount;
       });
     }
   }

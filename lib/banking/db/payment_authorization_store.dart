@@ -10,16 +10,20 @@ import 'package:proxy_flutter/banking/model/payment_authorization_event.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/firestore_utils.dart';
 
+import 'cleanup_service.dart';
+
 class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;
   final DocumentReference root;
   final EventStore _eventStore;
+  final CleanupService _cleanupService;
 
   PaymentAuthorizationStore(this.appConfiguration)
       : root = FirestoreUtils.accountRootRef(appConfiguration.accountId),
-        _eventStore = EventStore(appConfiguration);
+        _eventStore = EventStore(appConfiguration),
+        _cleanupService = CleanupService(appConfiguration);
 
-  DocumentReference ref({
+  DocumentReference _ref({
     @required String proxyUniverse,
     @required String paymentAuthorizationId,
   }) {
@@ -34,7 +38,7 @@ class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
     @required String proxyUniverse,
     @required String paymentAuthorizationId,
   }) async {
-    DocumentSnapshot snapshot = await ref(
+    DocumentSnapshot snapshot = await _ref(
       proxyUniverse: proxyUniverse,
       paymentAuthorizationId: paymentAuthorizationId,
     ).get();
@@ -45,18 +49,22 @@ class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
     @required String proxyUniverse,
     @required String paymentAuthorizationId,
   }) {
-    return ref(
+    return _ref(
       proxyUniverse: proxyUniverse,
       paymentAuthorizationId: paymentAuthorizationId,
     ).snapshots().map(_documentSnapshotToProxyKey);
   }
 
   Future<PaymentAuthorizationEntity> savePaymentAuthorization(PaymentAuthorizationEntity paymentAuthorization) async {
-    await ref(
+    final ref = _ref(
       proxyUniverse: paymentAuthorization.proxyUniverse,
       paymentAuthorizationId: paymentAuthorization.paymentAuthorizationId,
-    ).setData(paymentAuthorization.toJson());
-    await _eventStore.saveEvent(PaymentAuthorizationEvent.fromPaymentAuthorizationEntity(paymentAuthorization));
+    );
+    await Future.wait([
+      ref.setData(paymentAuthorization.toJson()),
+      _eventStore.saveEvent(PaymentAuthorizationEvent.fromPaymentAuthorizationEntity(paymentAuthorization)),
+      _cleanupService.onPaymentAuthorization(paymentAuthorization),
+    ]);
     return paymentAuthorization;
   }
 

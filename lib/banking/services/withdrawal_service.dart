@@ -139,10 +139,10 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
     return clone;
   }
 
-  Future<void> processWithdrawalUpdatedAlert(SignedMessage<WithdrawalUpdatedAlert> alert) {
+  Future<void> processWithdrawalUpdatedAlert(WithdrawalUpdatedAlert alert) {
     return refreshWithdrawalStatus(
-      proxyUniverse: alert.message.proxyUniverse,
-      withdrawalId: alert.message.withdrawalId,
+      proxyUniverse: alert.proxyUniverse,
+      withdrawalId: alert.withdrawalId,
     );
   }
 

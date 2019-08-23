@@ -150,10 +150,10 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     return clone;
   }
 
-  Future<void> processDepositUpdatedAlert(SignedMessage<DepositUpdatedAlert> alert) {
+  Future<void> processDepositUpdatedAlert(DepositUpdatedAlert alert) {
     return refreshDepositStatus(
-      proxyUniverse: alert.message.proxyUniverse,
-      depositId: alert.message.depositId,
+      proxyUniverse: alert.proxyUniverse,
+      depositId: alert.depositId,
     );
   }
 

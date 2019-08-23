@@ -694,6 +694,12 @@ class ProxyLocalizations {
         desc: 'Change Name Alert Dialog Title',
       );
 
+  String get changePhoneNumberTitle => Intl.message(
+        'Enter Phone Number',
+        name: 'changePhoneNumberTitle',
+        desc: 'Change Phone Number Alert Dialog Title',
+      );
+
   String get contactName => Intl.message(
         'Name',
         name: 'contactName',
@@ -731,7 +737,7 @@ class ProxyLocalizations {
       );
 
   String get cancelledByPayerStatus => Intl.message(
-    'Cancelled by Payer',
+        'Cancelled by Payer',
         name: 'cancelledByPayerStatus',
         desc: 'Cancelled by Payer',
       );
@@ -855,6 +861,8 @@ class ProxyLocalizations {
         name: 'sharePaymentTitle',
         desc: 'Title for Share Payment Action',
       );
+
+  String get sharePaymentButtonTitle => Intl.message('Share Payment');
 
   String get acceptPaymentPageTitle => Intl.message(
         'Accept Payment',
@@ -990,11 +998,9 @@ class ProxyLocalizations {
 
   String get registerUserTitle => Intl.message('Register');
 
-  String get newPassPhraseDescription => Intl.message(
-      'Setup strong pass phrase to encrypt all your sensitive data.');
+  String get newPassPhraseDescription => Intl.message('Setup strong pass phrase to encrypt all your sensitive data.');
 
-  String get recoverPassPhraseDescription =>
-      Intl.message('Enter your pass phrase to proceed.');
+  String get recoverPassPhraseDescription => Intl.message('Enter your pass phrase to proceed.');
 
   String get wrongPassPhraseDescription => Intl.message('Wrong Pass Phrase');
 
@@ -1083,11 +1089,9 @@ class ProxyLocalizations {
   String get noReceivingAccountsDescription =>
       Intl.message('Start by adding your Bank Account. So that, you can withdraw money to your Bank Account');
 
-  String get setupPassPhraseButtonLabel =>
-      Intl.message('Setup');
+  String get setupPassPhraseButtonLabel => Intl.message('Setup');
 
-  String get recoverPassPhraseButtonLabel =>
-      Intl.message('Recover');
+  String get recoverPassPhraseButtonLabel => Intl.message('Recover');
 
   String get chooseProxyUniverseTitle => Intl.message('Choose Universe');
 
@@ -1105,6 +1109,19 @@ class ProxyLocalizations {
 
   String get profilePageNavigationLabel => Intl.message('Profile');
 
+  String get about => Intl.message('About');
+
+  String get aboutDescription => Intl.message('Version, Account Id, Proxy Id ...');
+
+  String get appVersion => Intl.message('App Version');
+
+  String get masterProxyId => Intl.message('Proxy Id');
+
+  String get accountId => Intl.message('Account Id');
+
+  String get deviceId => Intl.message('Device Id');
+
+  String get unknown => Intl.message('Unknown');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {
