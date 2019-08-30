@@ -15,7 +15,6 @@ class EventAction {
 }
 
 abstract class EventEntity {
-
   @JsonKey(nullable: false)
   final String proxyUniverse;
 

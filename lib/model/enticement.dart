@@ -29,10 +29,14 @@ class Enticement {
   static const String ADD_BUNQ_ACCOUNT = "add-bunq-account";
   static const String ADD_RECEIVING_ACCOUNT = "add-receiving-account";
   static const String ADD_FUNDS = "add-funds";
+  static const String VERIFY_EMAIL = "verify-email";
+  static const String VERIFY_PHONE = "verify-phone";
 
   static const String NO_EVENTS = "no-events";
   static const String NO_PROXY_ACCOUNTS = "no-proxy-accounts";
   static const String NO_RECEIVING_ACCOUNTS = "no-receiving-accounts";
+  static const String NO_PHONE_NUMBER_AUTHORIZATIONS = "no-phone-number-authorizations";
+  static const String NO_EMAIL_AUTHORIZATIONS = "no-email-authorizations";
 
   static const String ADD_TEST_RECEIVING_ACCOUNTS = "add-test-receiving-accounts";
 }

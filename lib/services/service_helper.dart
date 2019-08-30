@@ -52,4 +52,18 @@ mixin ServiceHelper on ProxyUtils, HttpClientUtils {
       responseParser,
     );
   }
+
+  Future<void> send<T extends SignableMessage>({
+    @required String url,
+    @required SignedMessage<T> signedRequest,
+  }) async {
+    String signedRequestJson = jsonEncode(signedRequest.toJson());
+    // print("Sending $signedRequestJson to $url");
+    String jsonResponse = await post(
+      httpClientFactory(),
+      url,
+      body: signedRequestJson,
+    );
+    // print("Received $jsonResponse from $url");
+  }
 }

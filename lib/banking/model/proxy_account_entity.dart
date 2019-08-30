@@ -54,7 +54,9 @@ class ProxyAccountEntity with ProxyUtils {
     String idOfOwnerProxyId,
     String currency,
     bool active,
-  }) : this.active = active ?? true, this.currency = balance.currency, this.idOfOwnerProxyId = ownerProxyId.id {
+  })  : this.active = active ?? true,
+        this.currency = balance.currency,
+        this.idOfOwnerProxyId = ownerProxyId.id {
     assert(currency == null || this.currency == currency);
     assert(idOfOwnerProxyId == null || this.idOfOwnerProxyId == idOfOwnerProxyId);
   }

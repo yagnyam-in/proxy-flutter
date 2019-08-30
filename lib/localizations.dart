@@ -352,6 +352,14 @@ class ProxyLocalizations {
     );
   }
 
+  String get yesButtonLabel {
+    return Intl.message(
+      'Yes',
+      name: 'yesButtonLabel',
+      desc: 'Yes',
+    );
+  }
+
   String get refreshButtonHint {
     return Intl.message(
       'Refresh',
@@ -718,10 +726,12 @@ class ProxyLocalizations {
         desc: 'Share Profile',
       );
 
+  String get contactsItemTitle => Intl.message('Contacts');
+
   String get saveContactTitle => Intl.message(
-        'Save Proxy',
+        'Save Contact',
         name: 'saveContactTitle',
-        desc: 'Save Proxy Page Title',
+        desc: 'Save Contact Page Title',
       );
 
   String get insufficientFundsStatus => Intl.message(
@@ -802,10 +812,10 @@ class ProxyLocalizations {
         desc: 'Message',
       );
 
-  String get secret => Intl.message(
-        'Secret',
-        name: 'secret',
-        desc: 'Secret',
+  String get secretPin => Intl.message(
+        'Secret PIN',
+        name: 'secretPin',
+        desc: 'Secret PIN',
       );
 
   String get eventDeleted => Intl.message(
@@ -1036,7 +1046,9 @@ class ProxyLocalizations {
 
   String get payees => Intl.message('Payees');
 
-  String get anyoneWithSecret => Intl.message('Anyone');
+  String get anyoneWithSecret => Intl.message('Anyone with PIN');
+
+  String get chooseFromContacts => Intl.message('Choose from Contacts');
 
   String get sharePaymentTooltip => Intl.message('Share Payment');
 
@@ -1122,6 +1134,83 @@ class ProxyLocalizations {
   String get deviceId => Intl.message('Device Id');
 
   String get unknown => Intl.message('Unknown');
+
+  String get emailAuthorizedTitle => Intl.message('Email Verified');
+
+  String emailAuthorizedDescription(String email) {
+    return Intl.message(
+      'Email $email successfully verified.',
+      name: 'emailAuthorizedDescription',
+      args: [email],
+      desc: 'Email Verified Successfully',
+      examples: {
+        'email': 'hello@world.un',
+      },
+    );
+  }
+
+  String get verifyPhoneTitle => Intl.message('Verify Phone');
+
+  String get verifyPhoneDescription => Intl.message('Verify your phone number to easily encash payments received');
+
+  String get verifyEmailTitle => Intl.message('Verify Email');
+
+  String get verifyEmailDescription => Intl.message('Verify your email address to easily encash payments received');
+
+  String get followMailInstructions => Intl.message('Check your mail');
+
+  String get authorizationsTitle => Intl.message('Authorizations');
+
+  String get authorizationsDescription => Intl.message('Verified phone numbers and emal address');
+
+  String get noPhoneNumberAuthorizationsTitle => Intl.message('Phone not verified');
+
+  String get noPhoneNumberAuthorizationsDescription =>
+      Intl.message('Verify you phone number to easily encash payments received');
+
+  String get noEmailAuthorizationsTitle => Intl.message('Email not verified');
+
+  String get noEmailAuthorizationsDescription =>
+      Intl.message('Verify you email address to easily encash payments received');
+
+  String get invalidEmailAuthorization => Intl.message('Unknown Email Verification');
+
+  String get invalidPhoneNumberAuthorization => Intl.message('Unknown Phone Verification');
+
+  String get verified => Intl.message('Verified');
+
+  String get notVerified => Intl.message('Not Verified');
+
+  String get verifyFabLabel => Intl.message('Verify');
+
+  String get emailOrPhoneNumber => Intl.message('Email or Phone Number');
+
+  String get invalidEmailOrPhoneNumber => Intl.message('Invalid input. Phone Number must start with +');
+
+  String get enterVerificationCode => Intl.message('Verification Code');
+
+  String get invalidVerificationCode => Intl.message('Invalid Verification Code');
+
+  String get emailAuthorizationFailedDescription => Intl.message('Something went wronng with email verification');
+
+  String get phoneNumberAuthorizationFailedDescription =>
+      Intl.message('Something went wronng with phone number verification');
+
+  String get invalidPhoneNumber => Intl.message('Invalid phone number. Should start with +<country code>');
+
+  String get newContactFabLabel => Intl.message('Contact');
+
+  String get sendPaymentToLabel => Intl.message('Send To');
+
+  String get payee => Intl.message('Payee');
+
+  String get phoneNumberIsNotValidForThisPayment => Intl.message('Not a valid phone number for this payment');
+
+  String get emailIsNotValidForThisPayment => Intl.message('Not a valid email address for this payment');
+
+  String get emailNotAuthorized => Intl.message('Email not verified');
+
+  String get phoneNumberNotAuthorized => Intl.message('Phone number not verified');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

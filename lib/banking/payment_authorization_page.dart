@@ -163,7 +163,7 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
         ),
       ),
       const SizedBox(height: 24.0),
-      if (paymentAuthorization.payees.length == 1)
+      if (paymentAuthorization.payees.length == 1000)
         ..._singlePayee(context, paymentAuthorization.payees.first)
       else
         ..._multiplePayees(context, paymentAuthorization.payees)
@@ -198,7 +198,7 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
     return [
       Center(
         child: Text(
-          localizations.secret,
+          localizations.secretPin,
         ),
       ),
       const SizedBox(height: 8.0),

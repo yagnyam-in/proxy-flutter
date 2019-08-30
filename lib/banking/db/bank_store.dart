@@ -23,7 +23,8 @@ class BankStore with ProxyUtils, FirestoreUtils {
     } else {
       throw ArgumentError("Either bankId or bankProxyId must be specified");
     }
-    print("fetchBank(proxyUniverse: $proxyUniverse, bankProxyId: $bankProxyId, bankId: $bankId) => ${query.buildArguments()}");
+    print(
+        "fetchBank(proxyUniverse: $proxyUniverse, bankProxyId: $bankProxyId, bankId: $bankId) => ${query.buildArguments()}");
     return _querySnapshotToAccounts(await query.getDocuments()).first;
   }
 

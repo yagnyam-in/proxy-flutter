@@ -167,28 +167,45 @@ class PaymentEncashmentPageState extends LoadingSupportState<PaymentEncashmentPa
             style: themeData.textTheme.title,
           ),
         ),
-        const SizedBox(height: 24.0),
-        Center(
-          child: Text(
-            localizations.secret,
+        if (paymentEncashmentEntity.email != null || paymentEncashmentEntity.phone != null) ...[
+          const SizedBox(height: 24.0),
+          Center(
+            child: Text(
+              localizations.payee,
+            ),
           ),
-        ),
-        const SizedBox(height: 8.0),
-        Center(
-          child: FutureBuilder(
-            future: _secret(paymentEncashmentEntity),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Text(
-                  snapshot.data,
-                  style: Theme.of(context).textTheme.title,
-                );
-              } else {
-                return Text('******');
-              }
-            },
+          const SizedBox(height: 8.0),
+          Center(
+            child: Text(
+              paymentEncashmentEntity.phone ?? paymentEncashmentEntity.email,
+              style: themeData.textTheme.title,
+            ),
           ),
-        ),
+        ],
+        if (paymentEncashmentEntity.secretEncrypted != null) ...[
+          const SizedBox(height: 24.0),
+          Center(
+            child: Text(
+              localizations.secretPin,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Center(
+            child: FutureBuilder(
+              future: _secret(paymentEncashmentEntity),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Text(
+                    snapshot.data,
+                    style: Theme.of(context).textTheme.title,
+                  );
+                } else {
+                  return Text('******');
+                }
+              },
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -221,7 +238,7 @@ class PaymentEncashmentPageState extends LoadingSupportState<PaymentEncashmentPa
 
   Future<String> _secret(PaymentEncashmentEntity encashment) {
     final encryptionService = SymmetricKeyEncryptionService();
-    return encryptionService.decrypt(key: appConfiguration.passPhrase, cipherText: encashment.secretEncrypted);
+    return encashment.secret ?? encryptionService.decrypt(key: appConfiguration.passPhrase, cipherText: encashment.secretEncrypted);
   }
 
   void _onAction(BuildContext context, ActionMenuItem action) {

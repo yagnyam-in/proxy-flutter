@@ -6,11 +6,14 @@ import 'package:proxy_flutter/db/device_store.dart';
 import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/services/alert_service.dart';
 import 'package:proxy_flutter/services/boot_service.dart';
+import 'package:proxy_flutter/services/email_authorization_service.dart';
 import 'package:proxy_flutter/services/local_proxy_resolver.dart';
 import 'package:proxy_flutter/services/notification_service.dart';
 import 'package:proxy_flutter/services/register_service.dart';
+import 'package:proxy_flutter/services/secrets_service.dart';
 
 import 'deep_link_service.dart';
+import 'phone_number_authorization_service.dart';
 
 class ServiceFactory {
   static final NotificationService _notificationServiceInstance =
@@ -71,4 +74,23 @@ class ServiceFactory {
         proxyKeyStore: ProxyKeyStore(appConfiguration),
         deviceStore: DeviceStore(appConfiguration),
       );
+
+  static EmailAuthorizationService emailAuthorizationService(AppConfiguration appConfiguration) =>
+      EmailAuthorizationService(
+        appConfiguration,
+        cryptographyService: cryptographyService,
+      );
+
+  static PhoneNumberAuthorizationService phoneNumberAuthorizationService(AppConfiguration appConfiguration) =>
+      PhoneNumberAuthorizationService(
+        appConfiguration,
+        cryptographyService: cryptographyService,
+      );
+
+  static SecretsService secretsService(AppConfiguration appConfiguration) =>
+      SecretsService(
+        appConfiguration,
+        cryptographyService: cryptographyService,
+      );
+
 }

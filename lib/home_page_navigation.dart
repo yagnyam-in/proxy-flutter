@@ -112,7 +112,8 @@ class _BottomNavigationBarState extends State<_BottomNavigationBar> {
 }
 
 mixin HomePageNavigation {
-  Widget navigationBar(BuildContext context, HomePage homePage, {@required ChangeHomePage changeHomePage, @required bool busy}) {
+  Widget navigationBar(BuildContext context, HomePage homePage,
+      {@required ChangeHomePage changeHomePage, @required bool busy}) {
     return _BottomNavigationBar(changeHomePage, homePage, busy);
   }
 }

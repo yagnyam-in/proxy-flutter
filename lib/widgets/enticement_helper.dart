@@ -5,8 +5,11 @@ import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
 import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/widgets/enticement_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/enticement.dart';
 import 'package:proxy_flutter/services/enticement_service.dart';
+import 'package:proxy_flutter/widgets/widget_helper.dart';
+import 'package:quiver/strings.dart';
 
 mixin EnticementHelper {
   AppConfiguration get appConfiguration;
@@ -14,6 +17,10 @@ mixin EnticementHelper {
   Future<void> createPaymentAuthorization(BuildContext context);
 
   Future<void> createAccountAndDeposit(BuildContext context);
+
+  Future<void> verifyEmail(BuildContext context, String email);
+
+  Future<void> verifyPhoneNumber(BuildContext context, String phoneNumber);
 
   Future<ReceivingAccountEntity> createReceivingAccount(BuildContext context) {
     return Navigator.of(context).push(
@@ -37,9 +44,9 @@ mixin EnticementHelper {
     );
   }
 
-  void _dismissEnticement(BuildContext context, Enticement enticement) {
+  Future<void> _dismissEnticement(BuildContext context, Enticement enticement) async {
     print("Dimissing $enticement");
-    EnticementService(appConfiguration).dismissEnticement(
+    await EnticementService(appConfiguration).dismissEnticement(
       enticementId: enticement.id,
       proxyUniverse: appConfiguration.proxyUniverse,
     );
@@ -60,6 +67,14 @@ mixin EnticementHelper {
         break;
       case Enticement.ADD_BUNQ_ACCOUNT:
         _addBunqAccount(context, enticement);
+        break;
+      case Enticement.VERIFY_PHONE:
+      case Enticement.NO_PHONE_NUMBER_AUTHORIZATIONS:
+        _verifyPhoneNumber(context, enticement);
+        break;
+      case Enticement.VERIFY_EMAIL:
+      case Enticement.NO_EMAIL_AUTHORIZATIONS:
+        _verifyEmail(context, enticement);
         break;
       case Enticement.ADD_FUNDS:
       case Enticement.NO_PROXY_ACCOUNTS:
@@ -90,7 +105,7 @@ mixin EnticementHelper {
     try {
       ReceivingAccountEntity account = await createReceivingAccount(context);
       if (account != null) {
-        _dismissEnticement(context, enticement);
+        await _dismissEnticement(context, enticement);
       }
     } catch (e) {
       print("Error Creating new Receiving Account: $e");
@@ -108,6 +123,32 @@ mixin EnticementHelper {
       createAccountAndDeposit(context);
     } catch (e) {
       print("Error Adding funds: $e");
+    }
+  }
+
+  void _verifyPhoneNumber(BuildContext context, Enticement enticement) async {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    String phoneNumber = await acceptPhoneNumberDialog(
+      context,
+      pageTitle: localizations.authorizePhoneNumber,
+      fieldName: localizations.customerPhone,
+    );
+    if (isNotEmpty(phoneNumber)) {
+      _dismissEnticement(context, enticement);
+      verifyPhoneNumber(context, phoneNumber);
+    }
+  }
+
+  void _verifyEmail(BuildContext context, Enticement enticement) async {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    String email = await acceptEmailDialog(
+      context,
+      pageTitle: localizations.authorizeEmail,
+      fieldName: localizations.customerEmail,
+    );
+    if (isNotEmpty(email)) {
+      _dismissEnticement(context, enticement);
+      verifyEmail(context, email);
     }
   }
 }

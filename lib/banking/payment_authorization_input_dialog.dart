@@ -4,9 +4,11 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/banking/widgets/currency_input_form_field.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:proxy_flutter/contacts_page.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/services/account_service.dart';
-import 'package:proxy_messages/banking.dart';
+import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_messages/payments.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
@@ -27,10 +29,10 @@ class PaymentAuthorizationPayeeInput with ProxyUtils {
   PayeeTypeEnum get payeeType {
     if (payeeProxyId != null) {
       return PayeeTypeEnum.ProxyId;
-    } else if (isNotEmpty(customerEmail)) {
-      return PayeeTypeEnum.Email;
     } else if (isNotEmpty(customerPhone)) {
       return PayeeTypeEnum.Phone;
+    } else if (isNotEmpty(customerEmail)) {
+      return PayeeTypeEnum.Email;
     }
     return PayeeTypeEnum.AnyoneWithSecret;
   }
@@ -65,17 +67,8 @@ class PaymentAuthorizationInput with ProxyUtils {
     this.currency,
     this.amount,
     this.message,
-    this.payees,
+    this.payees = const [],
   });
-
-  void assertValid() {
-    assert(currency != null);
-    assert(Currency.isValidCurrency(currency));
-    assert(isNotEmpty(message));
-    assert(payees != null);
-    assert(payees.isNotEmpty);
-    payees.forEach((p) => p.assertValid());
-  }
 }
 
 class PaymentAuthorizationInputDialog extends StatefulWidget {
@@ -83,7 +76,8 @@ class PaymentAuthorizationInputDialog extends StatefulWidget {
   final PaymentAuthorizationInput paymentAuthorizationInput;
 
   PaymentAuthorizationInputDialog(this.appConfiguration, {Key key, this.paymentAuthorizationInput}) : super(key: key) {
-    print("Constructing PaymentAuthorizationInputDialog(proxyUniverse: ${appConfiguration.proxyUniverse}) with Input:$paymentAuthorizationInput");
+    print(
+        "Constructing PaymentAuthorizationInputDialog(proxyUniverse: ${appConfiguration.proxyUniverse}) with Input:$paymentAuthorizationInput");
   }
 
   @override
@@ -101,17 +95,21 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   final TextEditingController messageController;
   final TextEditingController amountController;
   final TextEditingController secretController;
+  final TextEditingController payeeController;
+  Set<ContactEntity> _payees = {};
 
   FocusNode _amountFocusNode;
   FocusNode _messageFocusNode;
   FocusNode _submitFocusNode;
 
   String _currency;
+  String payeeSelectionMode = ANY_ONE_WITH_SECRET;
 
   _PaymentAuthorizationInputDialogState(this.appConfiguration, this.paymentAuthorizationInput)
       : amountController = TextEditingController(),
         messageController = TextEditingController(text: paymentAuthorizationInput?.message),
-        secretController = TextEditingController(text: paymentAuthorizationInput?.payees?.first?.secret),
+        secretController = TextEditingController(text: RandomUtils.randomSecret()),
+        payeeController = TextEditingController(),
         _currency = paymentAuthorizationInput?.currency;
 
   void showError(String message) {
@@ -128,9 +126,10 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     _messageFocusNode = FocusNode();
     _submitFocusNode = FocusNode();
     if (isNotEmpty(_currency)) {
-      _validCurrenciesFuture =  Future.value({_currency});
+      _validCurrenciesFuture = Future.value({_currency});
     } else {
-      _validCurrenciesFuture =  BankingServiceFactory.bankingService(appConfiguration).supportedCurrenciesForDefaultBank();
+      _validCurrenciesFuture =
+          BankingServiceFactory.bankingService(appConfiguration).supportedCurrenciesForDefaultBank();
     }
   }
 
@@ -145,7 +144,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-
+    payeeController.text = _payeesAsString();
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -206,17 +205,69 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
 
     children.addAll([
       const SizedBox(height: 16.0),
-      AbsorbPointer(
-        absorbing: true,
-        child: TextFormField(
-          controller: secretController,
-          decoration: InputDecoration(
-            labelText: localizations.secret,
-          ),
-          keyboardType: TextInputType.text,
-        ),
+      FormField(
+        builder: (FormFieldState state) {
+          return InputDecorator(
+            decoration: InputDecoration(
+              labelText: localizations.sendPaymentToLabel,
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: payeeSelectionMode,
+                isDense: true,
+                onChanged: (value) {
+                  setState(() {
+                    payeeSelectionMode = value;
+                  });
+                },
+                items: [
+                  DropdownMenuItem(
+                    value: ANY_ONE_WITH_SECRET,
+                    child: new Text(localizations.anyoneWithSecret),
+                  ),
+                  DropdownMenuItem(
+                    value: CHOOSE_FROM_CONTACTS,
+                    child: new Text(localizations.chooseFromContacts),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     ]);
+
+    if (payeeSelectionMode == ANY_ONE_WITH_SECRET) {
+      children.addAll([
+        const SizedBox(height: 16.0),
+        TextFormField(
+          controller: secretController,
+          decoration: InputDecoration(
+            labelText: localizations.secretPin,
+          ),
+          keyboardType: TextInputType.visiblePassword,
+          textInputAction: TextInputAction.done,
+        ),
+      ]);
+    }
+
+    if (payeeSelectionMode == CHOOSE_FROM_CONTACTS) {
+      children.addAll([
+        const SizedBox(height: 16.0),
+        TextField(
+          readOnly: true,
+          controller: payeeController,
+          decoration: InputDecoration(
+            labelText: localizations.payees,
+            suffix: GestureDetector(
+              onTap: () => _choosePayees(context),
+              child: Icon(Icons.contacts),
+            ),
+          ),
+          textInputAction: TextInputAction.done,
+        ),
+      ]);
+    }
 
     children.addAll([
       Container(
@@ -241,27 +292,72 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   void _submit(ProxyLocalizations localizations) {
     if (_currency == null) {
       showError(localizations.fieldIsMandatory(localizations.currency));
-    } else if (_formKey.currentState.validate()) {
-      AccountService.updatePreferences(
-        appConfiguration,
-        appConfiguration.account,
-        currency: _currency,
-      );
-      PaymentAuthorizationInput result = PaymentAuthorizationInput(
-        currency: _currency,
-        amount: double.parse(amountController.text),
-        message: messageController.text,
-        payees: [
-          PaymentAuthorizationPayeeInput(
-            secret: secretController.text,
-          ),
-        ],
-      );
-      print("Accepting $result");
-      Navigator.of(context).pop(result);
-    } else {
-      print("Validation failure");
+      return;
     }
+    if (payeeSelectionMode == ANY_ONE_WITH_SECRET && isEmpty(secretController.text)) {
+      showError(localizations.fieldIsMandatory(localizations.secretPin));
+      return;
+    }
+    if (payeeSelectionMode == CHOOSE_FROM_CONTACTS && _payees.isEmpty) {
+      showError(localizations.fieldIsMandatory(localizations.payees));
+      return;
+    }
+    if (!_formKey.currentState.validate()) {
+      print("Validation failure");
+      return;
+    }
+    AccountService.updatePreferences(
+      appConfiguration,
+      appConfiguration.account,
+      currency: _currency,
+    );
+    List<PaymentAuthorizationPayeeInput> payees = [];
+    if (payeeSelectionMode == ANY_ONE_WITH_SECRET) {
+      payees = [
+        PaymentAuthorizationPayeeInput(
+          secret: secretController.text,
+        ),
+      ];
+    } else if (payeeSelectionMode == CHOOSE_FROM_CONTACTS) {
+      payees = _payees
+          .map(
+            (p) => PaymentAuthorizationPayeeInput(
+              customerEmail: p.email,
+              customerPhone: p.phoneNumber,
+              secret: RandomUtils.randomSecret(),
+            ),
+          )
+          .toList();
+    }
+    PaymentAuthorizationInput result = PaymentAuthorizationInput(
+      currency: _currency,
+      amount: double.parse(amountController.text),
+      message: messageController.text,
+      payees: payees,
+    );
+    print("Accepting $result");
+    Navigator.of(context).pop(result);
+  }
+
+  void _choosePayees(BuildContext context) async {
+    print("Choose Payees");
+    final contacts = await Navigator.push(
+      context,
+      new MaterialPageRoute<Set<ContactEntity>>(
+        builder: (context) => ContactsPage.multiSelection(
+          appConfiguration,
+        ),
+      ),
+    );
+    if (contacts != null) {
+      setState(() {
+        _payees = contacts;
+      });
+    }
+  }
+
+  String _payeesAsString() {
+    return _payees.map((p) => p.name ?? p.phoneNumber ?? p.email).join(", ");
   }
 
   String _amountValidator(ProxyLocalizations localizations, String value) {
@@ -279,4 +375,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     }
     return null;
   }
+
+  static const String ANY_ONE_WITH_SECRET = "ANY_ONE_WITH_SECRET";
+  static const String CHOOSE_FROM_CONTACTS = "CHOOSE_FROM_CONTACTS";
 }

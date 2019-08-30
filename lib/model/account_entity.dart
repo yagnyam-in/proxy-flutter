@@ -5,42 +5,6 @@ import 'package:proxy_core/core.dart';
 part 'account_entity.g.dart';
 
 @JsonSerializable()
-class PhoneAuthorization {
-  @JsonKey(nullable: false)
-  final String phone;
-
-  @JsonKey(nullable: false)
-  final String password;
-
-  PhoneAuthorization({
-    @required this.phone,
-    @required this.password,
-  });
-
-  Map<String, dynamic> toJson() => _$PhoneAuthorizationToJson(this);
-
-  static PhoneAuthorization fromJson(Map json) => _$PhoneAuthorizationFromJson(json);
-}
-
-@JsonSerializable()
-class EmailAuthorization {
-  @JsonKey(nullable: false)
-  final String phone;
-
-  @JsonKey(nullable: false)
-  final String password;
-
-  EmailAuthorization({
-    @required this.phone,
-    @required this.password,
-  });
-
-  Map<String, dynamic> toJson() => _$EmailAuthorizationToJson(this);
-
-  static EmailAuthorization fromJson(Map json) => _$EmailAuthorizationFromJson(json);
-}
-
-@JsonSerializable()
 class AccountEntity {
   @JsonKey(nullable: false)
   final String accountId;
@@ -62,12 +26,6 @@ class AccountEntity {
 
   @JsonKey(nullable: true)
   String email;
-
-  @JsonKey(nullable: true)
-  List<PhoneAuthorization> phoneAuthorizations;
-
-  @JsonKey(nullable: true)
-  List<EmailAuthorization> emailAuthorizations;
 
   AccountEntity({
     @required this.accountId,

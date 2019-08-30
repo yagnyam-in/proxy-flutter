@@ -16,14 +16,23 @@ class PaymentAuthorizationPayeeEntity {
   final String paymentAuthorizationId;
   @JsonKey(nullable: false)
   final String paymentEncashmentId;
-
+  @JsonKey(nullable: true)
   final ProxyId proxyId;
+  @JsonKey(nullable: true)
   final String email;
+  @JsonKey(nullable: true)
   final String phone;
+  @JsonKey(nullable: true)
   final CipherText secretEncrypted;
+  @JsonKey(nullable: true)
   final HashValue emailHash;
+  @JsonKey(nullable: true)
   final HashValue phoneHash;
+  @JsonKey(nullable: true)
   final HashValue secretHash;
+  // Don't store this
+  @JsonKey(ignore: true)
+  final String secret;
 
   PaymentAuthorizationPayeeEntity({
     @required this.payeeType,
@@ -37,6 +46,7 @@ class PaymentAuthorizationPayeeEntity {
     this.emailHash,
     this.phoneHash,
     this.secretHash,
+    this.secret,
   });
 
   @override

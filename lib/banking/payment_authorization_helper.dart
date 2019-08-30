@@ -4,7 +4,6 @@ import 'package:proxy_flutter/banking/payment_authorization_page.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/utils/random_utils.dart';
 import 'package:proxy_flutter/widgets/basic_types.dart';
 
 import 'model/proxy_account_entity.dart';
@@ -52,11 +51,6 @@ mixin PaymentAuthorizationHelper {
   Future<PaymentAuthorizationInput> _acceptPaymentInput(BuildContext context, [ProxyAccountEntity proxyAccount]) async {
     PaymentAuthorizationInput paymentAuthorizationInput = PaymentAuthorizationInput(
       currency: proxyAccount?.currency,
-      payees: [
-        PaymentAuthorizationPayeeInput(
-          secret: RandomUtils.randomSecret(),
-        ),
-      ],
     );
     PaymentAuthorizationInput result = await Navigator.of(context).push(
       MaterialPageRoute<PaymentAuthorizationInput>(

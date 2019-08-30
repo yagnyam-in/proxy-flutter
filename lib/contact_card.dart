@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:quiver/strings.dart';
 
 import 'model/contact_entity.dart';
 
 class ContactCard extends StatelessWidget {
   final ContactEntity contact;
+  final bool highlight;
 
-  const ContactCard({Key key, this.contact}) : super(key: key);
+  const ContactCard({
+    Key key,
+    this.contact,
+    this.highlight = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +25,17 @@ class ContactCard extends StatelessWidget {
       margin: new EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Container(
         decoration: BoxDecoration(
-            // color: Color.fromRGBO(64, 75, 96, .9),
-            ),
+          color: highlight ? Color.fromRGBO(64, 75, 96, .9) : null,
+        ),
         child: makeListTile(context),
       ),
     );
   }
 
   Widget makeListTile(BuildContext context) {
+    String phoneNumber = isNotEmpty(contact.phoneNumber) ? "📱 ${contact.phoneNumber}" : null;
+    String email = isNotEmpty(contact.email) ? "✉ ${contact.email}" : null;
+    String body = [phoneNumber, email].where((v) => v != null).join("\n");
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       title: Text(
@@ -36,10 +45,9 @@ class ContactCard extends StatelessWidget {
       subtitle: Padding(
         padding: EdgeInsets.only(top: 8.0),
         child: Text(
-          contact.proxyId.id,
+          body,
         ),
       ),
-      trailing: Text(contact.proxyUniverse),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/about_page.dart';
@@ -13,8 +15,11 @@ import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:quiver/strings.dart';
 import 'package:share/share.dart';
 
+import 'authorizations_page.dart';
 import 'config/app_configuration.dart';
 import 'model/account_entity.dart';
+import 'utils/conversion_utils.dart';
+import 'utils/data_validations.dart';
 import 'widgets/widget_helper.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -98,26 +103,23 @@ class _SettingsWidget extends StatefulWidget {
   }
 }
 
-class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
+class _SettingsWidgetState extends State<_SettingsWidget> {
   final AppConfiguration appConfiguration;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   AccountEntity accountEntity;
 
   _SettingsWidgetState(this.appConfiguration, this.accountEntity);
 
-  String _nullIfEmpty(String value) {
-    return value == null || value.trim().isEmpty ? null : value;
-  }
-
   String get displayName {
-    return accountEntity.name ?? _nullIfEmpty(appConfiguration.firebaseUser.displayName);
+    return accountEntity.name ?? nullIfEmpty(appConfiguration.firebaseUser.displayName);
   }
 
   String get phoneNumber {
-    return accountEntity.phone ?? _nullIfEmpty(appConfiguration.firebaseUser.phoneNumber);
+    return accountEntity.phone ?? nullIfEmpty(appConfiguration.firebaseUser.phoneNumber);
   }
 
   String get email {
-    return accountEntity.email ?? _nullIfEmpty(appConfiguration.firebaseUser.email);
+    return accountEntity.email ?? nullIfEmpty(appConfiguration.firebaseUser.email);
   }
 
   @override
@@ -135,11 +137,12 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       const Divider(),
       _PassPhraseWidget(appConfiguration: appConfiguration),
       const Divider(),
+      _authorizationWidget(context),
+      const Divider(),
       _proxyUniverseWidget(context),
       const Divider(),
       _aboutWidget(context),
-      // if (appConfiguration.proxyUniverse != ProxyUniverse.PRODUCTION) const Divider(),
-      // if (appConfiguration.proxyUniverse != ProxyUniverse.PRODUCTION) _crashWidget(context),
+      const Divider(),
     ]);
   }
 
@@ -149,13 +152,13 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       title: GestureDetector(
         onTap: () => _changeName(context),
         child: Text(
-          displayName?.toUpperCase() ?? '🖊️️ ' + localizations.changeNameTitle,
+          localizations.customerName,
         ),
       ),
       subtitle: GestureDetector(
         onTap: () => _changeName(context),
         child: Text(
-          localizations.customerName,
+          displayName?.toUpperCase() ?? '🖊️️ ' + localizations.changeNameTitle,
         ),
       ),
       trailing: GestureDetector(
@@ -171,13 +174,12 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
       title: Text(
-        appConfiguration.proxyUniverse.toUpperCase(),
-        overflow: TextOverflow.ellipsis,
+        localizations.proxyUniverse,
       ),
       subtitle: Padding(
         padding: EdgeInsets.only(top: 8.0),
         child: Text(
-          localizations.proxyUniverse,
+          appConfiguration.proxyUniverse.toUpperCase(),
         ),
       ),
       trailing: GestureDetector(
@@ -191,25 +193,21 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
 
   Widget _phoneNumberWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    return ListTile(
-      title: GestureDetector(
-        onTap: () => _changePhoneNumber(context),
-        child: Text(
-          phoneNumber ?? localizations.authorizePhoneNumber,
-          overflow: TextOverflow.ellipsis,
+    return GestureDetector(
+      onTap: () => _changePhoneNumber(context),
+      child: ListTile(
+        title: Text(
+          localizations.customerPhone,
         ),
-      ),
-      subtitle: GestureDetector(
-        onTap: () => _changePhoneNumber(context),
-        child: Padding(
+        subtitle: Padding(
           padding: EdgeInsets.only(top: 8.0),
           child: Text(
-            localizations.customerPhone,
+            phoneNumber ?? localizations.authorizePhoneNumber,
           ),
         ),
-      ),
-      trailing: Icon(
-        Icons.phone_android,
+        trailing: Icon(
+          Platform.isIOS ? Icons.phone_iphone : Icons.phone_android,
+        ),
       ),
     );
   }
@@ -218,13 +216,12 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
       title: Text(
-        email ?? localizations.authorizeEmail,
-        overflow: TextOverflow.ellipsis,
+        localizations.customerEmail,
       ),
       subtitle: Padding(
         padding: EdgeInsets.only(top: 8.0),
         child: Text(
-          localizations.customerEmail,
+          email ?? localizations.authorizeEmail,
         ),
       ),
       trailing: Icon(
@@ -245,7 +242,6 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       child: ListTile(
         title: Text(
           localizations.about,
-          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Padding(
           padding: EdgeInsets.only(top: 8.0),
@@ -255,6 +251,32 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
         ),
         trailing: Icon(
           Icons.help,
+        ),
+      ),
+    );
+  }
+
+  Widget _authorizationWidget(BuildContext context) {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        new MaterialPageRoute(
+          builder: (context) => AuthorizationsPage(appConfiguration),
+        ),
+      ),
+      child: ListTile(
+        title: Text(
+          localizations.authorizationsTitle,
+        ),
+        subtitle: Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Text(
+            localizations.authorizationsDescription,
+          ),
+        ),
+        trailing: Icon(
+          Icons.verified_user,
         ),
       ),
     );
@@ -281,6 +303,15 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
     }
   }
 
+  void _showToast(String message) {
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
   void _changePhoneNumber(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     String newPhoneNumber = await acceptPhoneNumberDialog(
@@ -290,6 +321,9 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
       fieldInitialValue: phoneNumber,
     );
     if (isNotEmpty(newPhoneNumber)) {
+      if (!isPhoneNumber(newPhoneNumber)) {
+        _showToast(localizations.invalidPhoneNumber);
+      }
       AccountEntity updatedAccount = await AccountService.updatePreferences(
         appConfiguration,
         accountEntity,
@@ -305,8 +339,10 @@ class _SettingsWidgetState extends State<_SettingsWidget> with WidgetHelper {
   Future<void> _shareProfile(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     ProxyId proxyId = appConfiguration.masterProxyId;
-    Uri link = Uri.parse(
-        '${UrlConfig.PROXY_CENTRAL}/actions/add-proxy?id=${proxyId.id}&sha256Thumbprint=${proxyId.sha256Thumbprint}');
+    Uri link = Uri.parse("${UrlConfig.PROXY_CENTRAL}/actions/add-me"
+        "?email=${email ?? ''}"
+        "&phoneNumber=${phoneNumber ?? ''}"
+        "&name=${displayName ?? ''}");
     var shortLink = await ServiceFactory.deepLinkService().createDeepLink(
       link,
       title: localizations.shareProfileTitle,
@@ -354,12 +390,12 @@ class _PassPhraseWidgetState extends State<_PassPhraseWidget> {
 
     return ListTile(
       title: Text(
-        _showPassPhrase ? appConfiguration.passPhrase : '*' * appConfiguration.passPhrase.length,
+        localizations.passPhrase,
       ),
       subtitle: Padding(
         padding: EdgeInsets.only(top: 8.0),
         child: Text(
-          localizations.passPhrase,
+          _showPassPhrase ? appConfiguration.passPhrase : '*' * appConfiguration.passPhrase.length,
         ),
       ),
       trailing: GestureDetector(

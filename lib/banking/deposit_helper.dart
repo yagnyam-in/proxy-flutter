@@ -75,6 +75,9 @@ mixin DepositHelper {
   Future<String> _createDepositLink(BuildContext context, DepositRequestInput depositInput) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     ProxyAccountEntity proxyAccount = await fetchOrCreateAccount(localizations, depositInput.currency);
+    if (isEmpty(depositInput.accountName)) {
+      depositInput = depositInput.copy(accountName: proxyAccount.validAccountName);
+    }
     return BankingServiceFactory.depositService(appConfiguration).depositLink(proxyAccount, depositInput);
   }
 

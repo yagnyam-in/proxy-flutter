@@ -48,8 +48,7 @@ class AppConfigurationContainer extends InheritedWidget {
     Key key,
     @required this.appConfiguration,
     @required Widget child,
-  }) : super (key:key, child: child);
-
+  }) : super(key: key, child: child);
 
   @override
   bool updateShouldNotify(AppConfigurationContainer oldContainer) {

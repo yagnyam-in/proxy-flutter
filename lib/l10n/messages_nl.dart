@@ -21,7 +21,6 @@ class MessageLookup extends MessageLookupByLibrary {
   get localeName => 'nl';
 
   final messages = _notInlinedMessages(_notInlinedMessages);
-  static _notInlinedMessages(_) => <String, Function> {
 
-  };
+  static _notInlinedMessages(_) => <String, Function>{};
 }

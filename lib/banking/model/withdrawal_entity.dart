@@ -159,7 +159,6 @@ class WithdrawalEntity {
     return cancellableStatuses.contains(status);
   }
 
-
   String getAmountAsText(ProxyLocalizations localizations) {
     return '${amount.value} ${Currency.currencySymbol(amount.currency)}';
   }
@@ -167,5 +166,4 @@ class WithdrawalEntity {
   String getStatusAsText(ProxyLocalizations localizations) {
     return statusAsText(localizations, status);
   }
-
 }

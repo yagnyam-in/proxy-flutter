@@ -9,19 +9,19 @@ import 'model/contact_entity.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
-class ModifyProxyPage extends StatefulWidget {
+class ModifyContactPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final ContactEntity contactEntity;
 
-  ModifyProxyPage(this.appConfiguration, this.contactEntity, {Key key}) : super(key: key) {
+  ModifyContactPage(this.appConfiguration, this.contactEntity, {Key key}) : super(key: key) {
     print("Constructing ModifyProxyPage");
   }
 
   @override
-  _ModifyProxyPageState createState() => _ModifyProxyPageState(appConfiguration, contactEntity);
+  _ModifyContactPageState createState() => _ModifyContactPageState(appConfiguration, contactEntity);
 }
 
-class _ModifyProxyPageState extends LoadingSupportState<ModifyProxyPage> with ProxyUtils {
+class _ModifyContactPageState extends LoadingSupportState<ModifyContactPage> with ProxyUtils {
   final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -35,11 +35,11 @@ class _ModifyProxyPageState extends LoadingSupportState<ModifyProxyPage> with Pr
 
   bool loading = false;
 
-  _ModifyProxyPageState(this.appConfiguration, this.contactEntity)
+  _ModifyContactPageState(this.appConfiguration, this.contactEntity)
       : _contactStore = ContactStore(appConfiguration),
         nameController = TextEditingController(text: contactEntity?.name),
         emailController = TextEditingController(text: contactEntity?.email),
-        phoneController = TextEditingController(text: contactEntity?.phone);
+        phoneController = TextEditingController(text: contactEntity?.phoneNumber);
 
   void showError(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -89,14 +89,6 @@ class _ModifyProxyPageState extends LoadingSupportState<ModifyProxyPage> with Pr
           ),
           const SizedBox(height: 8.0),
           new TextFormField(
-            controller: nameController,
-            decoration: InputDecoration(
-              labelText: localizations.contactName,
-            ),
-            validator: (value) => _mandatoryFieldValidator(localizations, value),
-          ),
-          const SizedBox(height: 8.0),
-          new TextFormField(
             controller: emailController,
             decoration: InputDecoration(
               labelText: localizations.customerEmail,
@@ -121,7 +113,6 @@ class _ModifyProxyPageState extends LoadingSupportState<ModifyProxyPage> with Pr
       print("Validation failure");
     } else {
       ContactEntity updatedContact = contactEntity.copy(
-        proxyUniverse: appConfiguration.proxyUniverse,
         name: nameController.text,
         email: emailController.text,
         phone: phoneController.text,

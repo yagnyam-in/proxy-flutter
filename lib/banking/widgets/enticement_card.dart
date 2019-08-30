@@ -53,10 +53,11 @@ class EnticementCard extends StatelessWidget {
             ),
             ButtonBar(
               children: <Widget>[
-                if (dismissable) FlatButton(
-                  child: Text(localizations.dismissButtonLabel),
-                  onPressed: dismiss,
-                ),
+                if (dismissable)
+                  FlatButton(
+                    child: Text(localizations.dismissButtonLabel),
+                    onPressed: dismiss,
+                  ),
                 RaisedButton(
                   child: Text(localizations.proceedButtonLabel),
                   onPressed: setup,

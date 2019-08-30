@@ -51,6 +51,10 @@ class PaymentEncashmentEntity {
   @JsonKey(nullable: true)
   final CipherText secretEncrypted;
 
+  // Don't store this
+  @JsonKey(ignore: true)
+  final String secret;
+
   @JsonKey(nullable: true)
   final String email;
 
@@ -73,6 +77,7 @@ class PaymentEncashmentEntity {
     @required this.signedPaymentEncashment,
     @required this.paymentAuthorizationLink,
     @required this.completed,
+    this.secret,
     this.secretEncrypted,
     this.email,
     this.phone,
@@ -97,6 +102,7 @@ class PaymentEncashmentEntity {
       status: effectiveStatus,
       paymentAuthorizationLink: this.paymentAuthorizationLink,
       completed: isCompleteStatus(effectiveStatus),
+      secret: this.secret,
       secretEncrypted: this.secretEncrypted,
       email: this.email,
       phone: this.phone,

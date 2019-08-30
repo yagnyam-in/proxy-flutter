@@ -140,7 +140,8 @@ class _CreateOrRecoverAccountState extends LoadingSupportState<CreateOrRecoverAc
                 labelText: localizations.passPhrase,
                 helperText: localizations.passPhraseHint,
               ),
-              keyboardType: TextInputType.visiblePassword, // TODO: Change to Visible Password Type
+              keyboardType: TextInputType.text,
+              // TODO: Change to Visible Password Type
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(actionButtonFocusNode),
               validator: (value) => _passphraseIdValidator(localizations, value),

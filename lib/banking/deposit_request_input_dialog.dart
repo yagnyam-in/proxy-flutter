@@ -57,6 +57,18 @@ class DepositRequestInput with ProxyUtils {
     return null;
   }
 
+  DepositRequestInput copy({String accountName}) {
+    return DepositRequestInput._internal(
+      currency: currency,
+      amount: amount,
+      accountName: accountName ?? this.accountName,
+      message: message,
+      customerName: customerName,
+      customerPhone: customerPhone,
+      customerEmail: customerEmail,
+    );
+  }
+
   void assertValid() {
     assert(currency != null);
     assert(Currency.isValidCurrency(currency));
@@ -197,6 +209,7 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
           labelText: localizations.amount,
         ),
         keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+        textInputAction: _currency == Currency.INR ? TextInputAction.next : TextInputAction.done,
         validator: (value) => _amountValidator(localizations, value),
       ),
     ]);
@@ -212,6 +225,7 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
             labelText: localizations.customerName,
           ),
           keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.next,
           validator: (value) => _fieldValidator(localizations, value),
         ),
         const SizedBox(height: 16.0),
@@ -223,6 +237,7 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
             labelText: localizations.customerPhone,
           ),
           keyboardType: TextInputType.phone,
+          textInputAction: TextInputAction.next,
           validator: (value) => _fieldValidator(localizations, value),
         ),
         const SizedBox(height: 16.0),
@@ -234,6 +249,7 @@ class _DepositRequestInputDialogState extends State<DepositRequestInputDialog> {
             labelText: localizations.customerEmail,
           ),
           keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.done,
           validator: (value) => _fieldValidator(localizations, value),
         ),
       ]);

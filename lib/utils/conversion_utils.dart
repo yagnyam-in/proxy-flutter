@@ -21,12 +21,10 @@ class ConversionUtils {
     return value?.toString()?.replaceFirst(enumName, "")?.toLowerCase();
   }
 
-  static bool _isEnumEqual<T>(T enumValue, String stringValue,
-      {String enumName}) {
+  static bool _isEnumEqual<T>(T enumValue, String stringValue, {String enumName}) {
     String asString = enumValue.toString().toLowerCase();
     return stringValue != null &&
-        (asString == stringValue.toLowerCase() ||
-            asString == (enumName + "." + stringValue).toLowerCase());
+        (asString == stringValue.toLowerCase() || asString == (enumName + "." + stringValue).toLowerCase());
   }
 
   static bool intToBool(int value) {
@@ -63,3 +61,8 @@ class ConversionUtils {
     }
   }
 }
+
+String nullIfEmpty(String value) {
+  return value == null || value.trim().isEmpty ? null : value;
+}
+

@@ -4,9 +4,12 @@ import 'package:proxy_flutter/model/enticement.dart';
 
 // Priority 0 means highest
 class EnticementFactory {
+
   List<Enticement> getEnticements(String proxyUniverse) {
     print("Get Enticements for proxyUniverse: $proxyUniverse");
     List<Enticement> enticements = [
+      verifyPhone,
+      verifyEmail,
       addTestReceivingAccounts,
       makePayment,
       addReceivingAccount,
@@ -16,7 +19,6 @@ class EnticementFactory {
     print("Enticements for proxyUniverse: $proxyUniverse => $enticements");
     return enticements.where((e) => e.proxyUniverses.contains(proxyUniverse)).toList();
   }
-
 
   static Enticement get addTestReceivingAccounts {
     return Enticement(
@@ -28,6 +30,25 @@ class EnticementFactory {
     );
   }
 
+  static Enticement get verifyPhone {
+    return Enticement(
+      proxyUniverses: {ProxyUniverse.PRODUCTION, ProxyUniverse.TEST},
+      id: Enticement.VERIFY_PHONE,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.verifyPhoneTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.verifyPhoneDescription,
+      priority: 50,
+    );
+  }
+
+  static Enticement get verifyEmail {
+    return Enticement(
+      proxyUniverses: {ProxyUniverse.PRODUCTION, ProxyUniverse.TEST},
+      id: Enticement.VERIFY_EMAIL,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.verifyEmailTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.verifyPhoneDescription,
+      priority: 51,
+    );
+  }
 
   static Enticement get makePayment {
     return Enticement(
@@ -39,7 +60,6 @@ class EnticementFactory {
     );
   }
 
-
   static Enticement get addReceivingAccount {
     return Enticement(
       proxyUniverses: {ProxyUniverse.PRODUCTION, ProxyUniverse.TEST},
@@ -50,7 +70,6 @@ class EnticementFactory {
     );
   }
 
-
   static Enticement get addBunqAccount {
     return Enticement(
       proxyUniverses: {ProxyUniverse.PRODUCTION, ProxyUniverse.TEST},
@@ -60,7 +79,6 @@ class EnticementFactory {
       priority: 500,
     );
   }
-
 
   static Enticement get noProxyAccounts {
     return Enticement(
@@ -82,7 +100,6 @@ class EnticementFactory {
     );
   }
 
-
   static Enticement get noReceivingAccounts {
     return Enticement(
       proxyUniverses: Set.identity(),
@@ -93,5 +110,24 @@ class EnticementFactory {
     );
   }
 
+  static Enticement get noPhoneNumberAuthorizations {
+    return Enticement(
+      proxyUniverses: Set.identity(),
+      id: Enticement.NO_PHONE_NUMBER_AUTHORIZATIONS,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.noPhoneNumberAuthorizationsTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.noPhoneNumberAuthorizationsDescription,
+      priority: 9999,
+    );
+  }
+
+  static Enticement get noEmailAuthorizations {
+    return Enticement(
+      proxyUniverses: Set.identity(),
+      id: Enticement.NO_EMAIL_AUTHORIZATIONS,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.noEmailAuthorizationsTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.noEmailAuthorizationsDescription,
+      priority: 9999,
+    );
+  }
 
 }

@@ -11,10 +11,12 @@ import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
 import 'package:proxy_flutter/banking/payment_authorization_input_dialog.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/services/secrets_service.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/services/service_helper.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/utils/random_utils.dart';
+import 'package:proxy_messages/authorization.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 import 'package:uuid/uuid.dart';
@@ -28,6 +30,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
   final MessageSigningService messageSigningService;
   final CryptographyService cryptographyService;
   final PaymentAuthorizationStore _paymentAuthorizationStore;
+  final SecretsService secretsService;
 
   PaymentAuthorizationService(
     this.appConfiguration, {
@@ -36,6 +39,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     @required this.messageFactory,
     @required this.messageSigningService,
     @required this.cryptographyService,
+    @required this.secretsService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
         _paymentAuthorizationStore = PaymentAuthorizationStore(appConfiguration) {
@@ -60,6 +64,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
       emailHash: await _computeHash(input.customerEmail),
       phone: input.customerPhone,
       phoneHash: await _computeHash(input.customerPhone),
+      secret: input.secret,
       secretEncrypted: await encryptionService.encrypt(
         key: appConfiguration.passPhrase,
         encryptionAlgorithm: SymmetricKeyEncryptionService.ENCRYPTION_ALGORITHM,
@@ -84,6 +89,41 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     return Future.wait(inputs.map((i) => _inputToPayee(proxyUniverse, paymentAuthorizationId, i)).toList());
   }
 
+  Future<void> _uploadSecrets(List<PaymentAuthorizationPayeeEntity> payees) async {
+    final encryptionService = SymmetricKeyEncryptionService();
+    List<SecretForPhoneNumberRecipient> secretsForPhoneNumberRecipients = payees
+        .where((payee) => payee.payeeType == PayeeTypeEnum.Phone)
+        .map(
+          (payee) => SecretForPhoneNumberRecipient(
+            phoneNumber: payee.phone,
+            secret: payee.secret ??
+                encryptionService.decrypt(
+                  key: appConfiguration.passPhrase,
+                  cipherText: payee.secretEncrypted,
+                ),
+            secretHash: payee.secretHash,
+          ),
+        )
+        .toList();
+    List<SecretForEmailRecipient> secretsForEmailRecipients = payees
+        .where((payee) => payee.payeeType == PayeeTypeEnum.Email)
+        .map(
+          (payee) => SecretForEmailRecipient(
+            email: payee.email,
+            secret: payee.secret ??
+                encryptionService.decrypt(
+                  key: appConfiguration.passPhrase,
+                  cipherText: payee.secretEncrypted,
+                ),
+            secretHash: payee.secretHash,
+          ),
+        )
+        .toList();
+    if (secretsForPhoneNumberRecipients.isNotEmpty || secretsForEmailRecipients.isNotEmpty) {
+      await secretsService.saveSecrets(secretsForPhoneNumberRecipients, secretsForEmailRecipients);
+    }
+  }
+
   Payee _payeeEntityToPayee(PaymentAuthorizationPayeeEntity payeeEntity) {
     return Payee(
       paymentEncashmentId: payeeEntity.paymentEncashmentId,
@@ -105,6 +145,8 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
 
     List<PaymentAuthorizationPayeeEntity> payeeEntityList =
         await _inputsToPayees(proxyUniverse, paymentAuthorizationId, input.payees);
+
+    await _uploadSecrets(payeeEntityList);
 
     PaymentAuthorization request = PaymentAuthorization(
       paymentAuthorizationId: paymentAuthorizationId,

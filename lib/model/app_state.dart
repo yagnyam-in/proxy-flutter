@@ -1,6 +1,4 @@
-
 class AppState {
-
   bool isLoading;
 
   AppState({
@@ -14,4 +12,3 @@ class AppState {
     return 'AppState{isLoading: $isLoading}}';
   }
 }
-

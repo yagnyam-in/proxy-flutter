@@ -4,39 +4,38 @@ import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/contact_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
-import 'package:proxy_flutter/modify_proxy_page.dart';
 import 'package:uuid/uuid.dart';
 
 import 'contact_card.dart';
-import 'widgets/widget_helper.dart';
+import 'modify_contact_page.dart';
 
 final Uuid uuidFactory = Uuid();
 
-enum ContactsPageMode { choose, manage }
+enum ContactsPageMode { singleSelection, multiSelection, manage }
 
 class ContactsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final ContactsPageMode pageMode;
-  final String proxyUniverse;
 
-  ContactsPage({
+  ContactsPage(
+    this.appConfiguration, {
     Key key,
-    @required this.appConfiguration,
     @required this.pageMode,
-    this.proxyUniverse,
   }) : super(key: key) {
     print("Constructing ContactsPage");
   }
 
-  factory ContactsPage.choose({
-    Key key,
-    @required AppConfiguration appConfiguration,
-    @required String proxyUniverse,
-  }) {
+  factory ContactsPage.singleSelection(AppConfiguration appConfiguration, {Key key}) {
     return ContactsPage(
-      appConfiguration: appConfiguration,
-      pageMode: ContactsPageMode.choose,
-      proxyUniverse: proxyUniverse,
+      appConfiguration,
+      pageMode: ContactsPageMode.singleSelection,
+    );
+  }
+
+  factory ContactsPage.multiSelection(AppConfiguration appConfiguration, {Key key}) {
+    return ContactsPage(
+      appConfiguration,
+      pageMode: ContactsPageMode.multiSelection,
     );
   }
 
@@ -45,7 +44,7 @@ class ContactsPage extends StatefulWidget {
     @required AppConfiguration appConfiguration,
   }) {
     return ContactsPage(
-      appConfiguration: appConfiguration,
+      appConfiguration,
       pageMode: ContactsPageMode.manage,
     );
   }
@@ -56,15 +55,15 @@ class ContactsPage extends StatefulWidget {
   }
 }
 
-class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
+class _ContactsPageState extends State<ContactsPage> {
   final AppConfiguration appConfiguration;
   final ContactsPageMode pageMode;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ContactStore _contactStore;
   Stream<List<ContactEntity>> _contactsStream;
+  Set<ContactEntity> _selectedContacts = {};
 
-  _ContactsPageState(this.appConfiguration, this.pageMode)
-      : _contactStore = ContactStore(appConfiguration);
+  _ContactsPageState(this.appConfiguration, this.pageMode) : _contactStore = ContactStore(appConfiguration);
 
   @override
   void initState() {
@@ -77,14 +76,6 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
       content: Text(message),
       duration: Duration(seconds: 3),
     ));
-  }
-
-  bool _showAccount(ContactEntity account) {
-    if (pageMode == ContactsPageMode.manage) {
-      return true;
-    } else {
-      return account.proxyUniverse == widget.proxyUniverse;
-    }
   }
 
   String _getTitle(ProxyLocalizations localizations) {
@@ -100,22 +91,35 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_getTitle(localizations)),
+        actions: [
+          if (pageMode == ContactsPageMode.multiSelection)
+            new FlatButton(
+              onPressed: () => Navigator.of(context).pop(_selectedContacts),
+              child: new Text(
+                localizations.okButtonLabel,
+                style: Theme.of(context).textTheme.subhead.copyWith(color: Colors.white),
+              ),
+            ),
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
         child: StreamBuilder<List<ContactEntity>>(
             stream: _contactsStream,
             initialData: [],
-            builder: (BuildContext context,
-                AsyncSnapshot<List<ContactEntity>> snapshot) {
+            builder: (BuildContext context, AsyncSnapshot<List<ContactEntity>> snapshot) {
               return accountsWidget(context, snapshot);
             }),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _newContact(context),
+        icon: Icon(Icons.add),
+        label: Text(localizations.newContactFabLabel),
       ),
     );
   }
 
-  Widget accountsWidget(
-      BuildContext context, AsyncSnapshot<List<ContactEntity>> accounts) {
+  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ContactEntity>> accounts) {
     List<Widget> rows = [];
     if (!accounts.hasData) {
       rows.add(
@@ -131,11 +135,13 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
       );
     } else {
       print("adding ${accounts.data.length} contacts");
-      accounts.data.where(_showAccount).forEach((contact) {
-        rows.addAll([
-          const SizedBox(height: 8.0),
-          contactCard(context, contact),
-        ]);
+      accounts.data.forEach((contact) {
+        if (contact.hasEmailOrPhoneNumber || pageMode == ContactsPageMode.manage) {
+          rows.addAll([
+            const SizedBox(height: 4.0),
+            contactCard(context, contact),
+          ]);
+        }
       });
     }
     return ListView(
@@ -149,12 +155,23 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: GestureDetector(
-        child: ContactCard(contact: contact),
+        child: ContactCard(
+          contact: contact,
+          highlight: _selectedContacts.contains(contact),
+        ),
         onTap: () {
           if (pageMode == ContactsPageMode.manage) {
             _edit(context, contact);
-          } else {
+          } else if (pageMode == ContactsPageMode.singleSelection) {
             Navigator.of(context).pop(contact);
+          } else {
+            setState(() {
+              if (_selectedContacts.contains(contact)) {
+                _selectedContacts.remove(contact);
+              } else {
+                _selectedContacts.add(contact);
+              }
+            });
           }
         },
       ),
@@ -169,10 +186,19 @@ class _ContactsPageState extends State<ContactsPage> with WidgetHelper {
     );
   }
 
-  void _edit(BuildContext context, ContactEntity contact) async {
+  Future<void> _edit(BuildContext context, ContactEntity contact) async {
     await Navigator.of(context).push(
       new MaterialPageRoute<ContactEntity>(
-        builder: (context) => ModifyProxyPage(appConfiguration, contact),
+        builder: (context) => ModifyContactPage(appConfiguration, contact),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
+  Future<void> _newContact(BuildContext context) async {
+    await Navigator.of(context).push(
+      new MaterialPageRoute<ContactEntity>(
+        builder: (context) => ModifyContactPage(appConfiguration, ContactEntity(id: uuidFactory.v4())),
         fullscreenDialog: true,
       ),
     );

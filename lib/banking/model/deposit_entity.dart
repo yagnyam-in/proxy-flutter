@@ -10,7 +10,6 @@ part 'deposit_entity.g.dart';
 
 @JsonSerializable()
 class DepositEntity with ProxyUtils {
-
   @JsonKey(nullable: false)
   final String proxyUniverse;
   @JsonKey(nullable: false)
@@ -67,7 +66,6 @@ class DepositEntity with ProxyUtils {
       status: effectiveStatus,
     );
   }
-
 
   static final Set<DepositStatusEnum> cancelPossibleStatuses = {
     DepositStatusEnum.Registered,

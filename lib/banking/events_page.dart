@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:proxy_flutter/authorizations_helper.dart';
 import 'package:proxy_flutter/banking/db/event_store.dart';
 import 'package:proxy_flutter/banking/events_helper.dart';
 import 'package:proxy_flutter/banking/model/deposit_event.dart';
@@ -39,7 +40,14 @@ class EventsPage extends StatefulWidget {
 }
 
 class _EventsPageState extends LoadingSupportState<EventsPage>
-    with HomePageNavigation, EnticementHelper, DepositHelper, PaymentAuthorizationHelper, AccountHelper, EventsHelper {
+    with
+        HomePageNavigation,
+        EnticementHelper,
+        DepositHelper,
+        PaymentAuthorizationHelper,
+        AccountHelper,
+        EventsHelper,
+        AuthorizationsHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
   bool loading = false;

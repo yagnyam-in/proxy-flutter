@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/authorizations_helper.dart';
 import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
 import 'package:proxy_flutter/banking/deposit_helper.dart';
 import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
@@ -52,8 +53,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         DepositHelper,
         PaymentAuthorizationHelper,
         WithdrawalHelper,
-        AccountHelper {
+        AccountHelper,
+        AuthorizationsHelper {
   static const String DEPOSIT = "deposit";
+  static const String CONTACTS = "contacts";
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
 
@@ -89,6 +92,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return [
       ActionMenuItem(title: localizations.depositActionItemTitle, icon: Icons.file_download, action: DEPOSIT),
+      ActionMenuItem(title: localizations.contactsItemTitle, icon: Icons.contacts, action: CONTACTS),
     ];
   }
 
@@ -251,6 +255,8 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
   void _onAction(BuildContext context, ActionMenuItem action) {
     if (action.action == DEPOSIT) {
       createAccountAndDeposit(context);
+    } else if (action.action == CONTACTS) {
+      _launchContacts(context);
     } else {
       print("Unknown action $action");
     }

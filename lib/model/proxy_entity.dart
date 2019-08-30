@@ -21,7 +21,6 @@ class ProxyEntity {
 
   ProxyId get proxyId => proxy?.id;
 
-
   Map<String, dynamic> toJson() => _$ProxyEntityToJson(this);
 
   static ProxyEntity fromJson(Map json) => _$ProxyEntityFromJson(json);

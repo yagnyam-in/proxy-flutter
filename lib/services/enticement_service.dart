@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/dismissed_enticement_store.dart';
 import 'package:proxy_flutter/model/dismissed_enticement_entity.dart';
@@ -40,6 +41,18 @@ class EnticementService {
       proxyUniverse: proxyUniverse,
     ));
   }
+
+  Future<void> dismissEnticements({
+    @required String enticementId,
+  }) async {
+    final allUniverses = [ProxyUniverse.PRODUCTION, ProxyUniverse.TEST];
+    final allRequests = allUniverses.map((u) => _dismissedEnticementStore.saveEnticement(DismissedEnticementEntity(
+      id: enticementId,
+      proxyUniverse: u,
+    )));
+    Future.wait(allRequests);
+  }
+
 
   List<Enticement> _filterActiveEnticements(List<Enticement> all, List<DismissedEnticementEntity> dismissed) {
     return all

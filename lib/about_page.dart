@@ -58,20 +58,20 @@ class AboutPageState extends State<AboutPage> {
   Widget _appVersion(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
-      title: futureBuilder(
+      title: Text(
+        localizations.appVersion,
+      ),
+      subtitle: Padding(
+        padding: EdgeInsets.only(top: 8.0),
+        child: futureBuilder(
           future: _packageInfoFuture,
           errorMessage: localizations.unknown,
           emptyMessage: localizations.unknown,
           builder: (context, packageInfo) {
             return Text(
               packageInfo.version,
-              overflow: TextOverflow.ellipsis,
             );
-          }),
-      subtitle: Padding(
-        padding: EdgeInsets.only(top: 8.0),
-        child: Text(
-          localizations.appVersion,
+          },
         ),
       ),
       trailing: Icon(
@@ -84,13 +84,12 @@ class AboutPageState extends State<AboutPage> {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
       title: Text(
-        appConfiguration.masterProxyId.id,
-        overflow: TextOverflow.ellipsis,
+        localizations.masterProxyId,
       ),
       subtitle: Padding(
         padding: EdgeInsets.only(top: 8.0),
         child: Text(
-          localizations.masterProxyId,
+          appConfiguration.masterProxyId.id,
         ),
       ),
       trailing: Icon(
@@ -103,13 +102,12 @@ class AboutPageState extends State<AboutPage> {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
       title: Text(
-        appConfiguration.accountId,
-        overflow: TextOverflow.ellipsis,
+        localizations.accountId,
       ),
       subtitle: Padding(
         padding: EdgeInsets.only(top: 8.0),
         child: Text(
-          localizations.accountId,
+          appConfiguration.accountId,
         ),
       ),
       trailing: Icon(
@@ -122,13 +120,12 @@ class AboutPageState extends State<AboutPage> {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListTile(
       title: Text(
-        appConfiguration.deviceId,
-        overflow: TextOverflow.ellipsis,
+        localizations.deviceId,
       ),
       subtitle: Padding(
         padding: EdgeInsets.only(top: 8.0),
         child: Text(
-          localizations.deviceId,
+          appConfiguration.deviceId,
         ),
       ),
       trailing: Icon(

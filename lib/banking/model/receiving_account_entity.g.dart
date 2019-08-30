@@ -23,8 +23,7 @@ ReceivingAccountEntity _$ReceivingAccountEntityFromJson(Map json) {
   );
 }
 
-Map<String, dynamic> _$ReceivingAccountEntityToJson(
-    ReceivingAccountEntity instance) {
+Map<String, dynamic> _$ReceivingAccountEntityToJson(ReceivingAccountEntity instance) {
   final val = <String, dynamic>{
     'proxyUniverse': instance.proxyUniverse,
     'accountId': instance.accountId,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/authorizations_helper.dart';
 import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
 import 'package:proxy_flutter/banking/deposit_helper.dart';
 import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
@@ -70,7 +71,13 @@ class ReceivingAccountsPage extends StatefulWidget {
 }
 
 class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsPage>
-    with HomePageNavigation, EnticementHelper, DepositHelper, PaymentAuthorizationHelper, AccountHelper {
+    with
+        HomePageNavigation,
+        EnticementHelper,
+        DepositHelper,
+        PaymentAuthorizationHelper,
+        AccountHelper,
+        AuthorizationsHelper {
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
   final String currency;

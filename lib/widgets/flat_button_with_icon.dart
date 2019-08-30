@@ -48,15 +48,15 @@ class FlatButtonWithIcon extends FlatButton with MaterialButtonWithIconMixin {
             mainAxisSize: MainAxisSize.min,
             children: iconPosition == _IconPosition.First
                 ? <Widget>[
-              label,
-              const SizedBox(width: 8.0),
-              icon,
-            ]
+                    label,
+                    const SizedBox(width: 8.0),
+                    icon,
+                  ]
                 : <Widget>[
-              icon,
-              const SizedBox(width: 8.0),
-              label,
-            ],
+                    icon,
+                    const SizedBox(width: 8.0),
+                    label,
+                  ],
           ),
         );
 
@@ -87,5 +87,4 @@ class FlatButtonWithIcon extends FlatButton with MaterialButtonWithIconMixin {
         label: label,
         iconPosition: _IconPosition.Last,
       );
-
 }

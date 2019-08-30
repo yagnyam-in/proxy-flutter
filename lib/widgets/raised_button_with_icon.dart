@@ -113,7 +113,6 @@ class RaisedButtonWithIcon extends RaisedButton with MaterialButtonWithIconMixin
         clipBehavior: clipBehavior,
         materialTapTargetSize: materialTapTargetSize,
         animationDuration: animationDuration,
-
       );
 
   factory RaisedButtonWithIcon.withPrefixIcon({

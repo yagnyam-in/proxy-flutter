@@ -83,10 +83,10 @@ class TestReceivingAccounts {
   }
 
   static List<ReceivingAccountEntity> get allTestAccounts => [
-    immediateSuccessfulAccountForInr,
-    immediateFailureAccountForInr,
-    eventualSuccessfulAccountForInr,
-    eventualFailureAccountForInr,
-    bunqAccountForEUR
-  ];
+        immediateSuccessfulAccountForInr,
+        immediateFailureAccountForInr,
+        eventualSuccessfulAccountForInr,
+        eventualFailureAccountForInr,
+        bunqAccountForEUR
+      ];
 }

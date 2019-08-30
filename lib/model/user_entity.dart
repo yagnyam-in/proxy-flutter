@@ -75,9 +75,7 @@ class UserEntity {
   factory UserEntity.from(FirebaseUser firebaseUser) {
     return UserEntity(
       uid: firebaseUser.uid,
-      name: firebaseUser.displayName == null || firebaseUser.displayName.isEmpty
-          ? null
-          : firebaseUser.displayName,
+      name: firebaseUser.displayName == null || firebaseUser.displayName.isEmpty ? null : firebaseUser.displayName,
       phone: firebaseUser.phoneNumber,
       email: firebaseUser.email,
     );

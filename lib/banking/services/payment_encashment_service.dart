@@ -44,10 +44,47 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     @required PaymentAuthorization paymentAuthorization,
     String email,
     String phone,
-    @required String secret,
   }) async {
     for (var payee in paymentAuthorization.payees) {
       bool match = await _matchesPayee(
+        paymentAuthorization: paymentAuthorization,
+        payee: payee,
+        phone: phone,
+        email: email,
+      );
+      if (match) {
+        print("Payee $payee matched for email: $email, phone: $phone");
+        return payee;
+      }
+    }
+    print("No Payee matched for email: $email, phone: $phone");
+    return null;
+  }
+
+  Future<bool> _matchesPayee({
+    @required PaymentAuthorization paymentAuthorization,
+    @required Payee payee,
+    String email,
+    String phone,
+  }) async {
+    switch (payee.payeeType) {
+      case PayeeTypeEnum.Email:
+        return await _verifyHash(email, payee.emailHash);
+      case PayeeTypeEnum.Phone:
+        return await _verifyHash(phone, payee.phoneHash);
+      default:
+        return false;
+    }
+  }
+
+  Future<Payee> matchingPayeeWithSecret({
+    @required PaymentAuthorization paymentAuthorization,
+    String email,
+    String phone,
+    @required String secret,
+  }) async {
+    for (var payee in paymentAuthorization.payees) {
+      bool match = await _matchesPayeeWithSecret(
         paymentAuthorization: paymentAuthorization,
         payee: payee,
         secret: secret,
@@ -61,12 +98,12 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     return null;
   }
 
-  Future<bool> _matchesPayee({
+  Future<bool> _matchesPayeeWithSecret({
     @required PaymentAuthorization paymentAuthorization,
     @required Payee payee,
     String email,
     String phone,
-    String secret,
+    @required String secret,
   }) async {
     switch (payee.payeeType) {
       case PayeeTypeEnum.ProxyId:
@@ -74,7 +111,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       case PayeeTypeEnum.Email:
         return await _verifyHash(email, payee.emailHash) && await _verifyHash(secret, payee.secretHash);
       case PayeeTypeEnum.Phone:
-        return await _verifyHash(email, payee.phoneHash) && await _verifyHash(secret, payee.secretHash);
+        return await _verifyHash(phone, payee.phoneHash) && await _verifyHash(secret, payee.secretHash);
       case PayeeTypeEnum.AnyoneWithSecret:
         return await _verifyHash(secret, payee.secretHash);
       default:
@@ -116,6 +153,8 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       payeeAccount: proxyAccount,
       signedPaymentEncashment: signedEncashment,
       paymentLink: paymentLink,
+      phone: phone,
+      email: email,
     );
     PaymentEncashmentStatusEnum status = encashmentEntity.status;
 
@@ -156,11 +195,14 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       lastUpdatedTime: DateTime.now(),
       phone: phone,
       email: email,
-      secretEncrypted: await encryptionService.encrypt(
-        key: appConfiguration.passPhrase,
-        encryptionAlgorithm: SymmetricKeyEncryptionService.ENCRYPTION_ALGORITHM,
-        plainText: paymentEncashment.secret,
-      ),
+      secret: paymentEncashment.secret,
+      secretEncrypted: paymentEncashment.secret == null
+          ? null
+          : await encryptionService.encrypt(
+              key: appConfiguration.passPhrase,
+              encryptionAlgorithm: SymmetricKeyEncryptionService.ENCRYPTION_ALGORITHM,
+              plainText: paymentEncashment.secret,
+            ),
       completed: false,
     );
   }

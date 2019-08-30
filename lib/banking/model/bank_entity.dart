@@ -38,7 +38,8 @@ class BankEntity with ProxyUtils {
     @required this.bankName,
     @required this.supportedCurrencies,
     @required this.apiUrl,
-  }) : bankId = bankProxyId.id, bankSha256Thumbprint = bankProxyId.sha256Thumbprint;
+  })  : bankId = bankProxyId.id,
+        bankSha256Thumbprint = bankProxyId.sha256Thumbprint;
 
   Map<String, dynamic> toJson() => _$BankEntityToJson(this);
 

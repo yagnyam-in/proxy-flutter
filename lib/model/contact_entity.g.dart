@@ -8,19 +8,26 @@ part of 'contact_entity.dart';
 
 ContactEntity _$ContactEntityFromJson(Map json) {
   return ContactEntity(
-    proxyId: ProxyId.fromJson(json['proxyId'] as Map),
-    proxyUniverse: json['proxyUniverse'] as String,
+    id: json['id'] as String,
     name: json['name'] as String,
-    phone: json['phone'] as String,
+    phoneNumber: json['phoneNumber'] as String,
     email: json['email'] as String,
   );
 }
 
-Map<String, dynamic> _$ContactEntityToJson(ContactEntity instance) =>
-    <String, dynamic>{
-      'proxyUniverse': instance.proxyUniverse,
-      'proxyId': instance.proxyId.toJson(),
-      'phone': instance.phone,
-      'email': instance.email,
-      'name': instance.name,
-    };
+Map<String, dynamic> _$ContactEntityToJson(ContactEntity instance) {
+  final val = <String, dynamic>{
+    'id': instance.id,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('phoneNumber', instance.phoneNumber);
+  writeNotNull('email', instance.email);
+  writeNotNull('name', instance.name);
+  return val;
+}

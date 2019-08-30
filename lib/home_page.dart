@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
+import 'package:proxy_flutter/authorize_email_page.dart';
 import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/db/deposit_store.dart';
 import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
 import 'package:proxy_flutter/banking/db/payment_encashment_store.dart';
 import 'package:proxy_flutter/banking/deposit_page.dart';
+import 'package:proxy_flutter/banking/events_page.dart';
 import 'package:proxy_flutter/banking/model/deposit_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/model/payment_encashment_entity.dart';
@@ -17,11 +19,9 @@ import 'package:proxy_flutter/banking_home.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/contact_store.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
+import 'package:proxy_flutter/modify_contact_page.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
-
-import 'modify_proxy_page.dart';
-import 'widgets/basic_types.dart';
 
 class HomePage extends StatefulWidget {
   final AppConfiguration appConfiguration;
@@ -70,28 +70,39 @@ class _HomePageState extends LoadingSupportState<HomePage> {
   Future<void> _handleDynamicLinks(Uri link) async {
     if (link == null) return;
     print('link.path = ${link.path}');
-    if (link.path == '/actions/add-proxy') {
-      _addProxy(link, link.queryParameters);
+    if (link.path == '/actions/add-me') {
+      _addContact(link, link.queryParameters);
     } else if (link.path == '/actions/deposit-status') {
       _depositStatus(link, link.queryParameters);
     } else if (link.path == '/actions/accept-payment') {
       _payment(link, link.queryParameters);
+    } else if (link.path == '/actions/verify-email') {
+      invoke(() => _verifyEmail(link, link.queryParameters), name: 'Verify Email');
     } else {
       print('ignoring $link');
     }
   }
 
-  Future<void> _addProxy(Uri link, Map<String, String> query) async {
+  Future<void> _addContact(Uri link, Map<String, String> query) async {
     print("Launching dialog to add proxy with $query");
-    ProxyId proxyId = nullIfError(() => ProxyId(query['id'], query['sha256Thumbprint']));
-    if (proxyId == null) {
-      return null;
+    List<ContactEntity> existingContacts = await ContactStore(appConfiguration).fetchContacts(
+      phoneNumber: query['phoneNumber'],
+      email: query['email'],
+    );
+    if (existingContacts.isEmpty) {
+      existingContacts.add(
+        ContactEntity(
+          id: uuidFactory.v4(),
+          phoneNumber: query['phoneNumber'],
+          email: query['email'],
+          name: query['name'],
+        ),
+      );
     }
-    ContactEntity existingContact = await ContactStore(appConfiguration).fetchContact(proxyId);
     await Navigator.push(
       context,
       new MaterialPageRoute(
-        builder: (context) => ModifyProxyPage(appConfiguration, existingContact ?? ContactEntity(proxyId: proxyId)),
+        builder: (context) => ModifyContactPage(appConfiguration, existingContacts.first),
         fullscreenDialog: true,
       ),
     );
@@ -171,6 +182,21 @@ class _HomePageState extends LoadingSupportState<HomePage> {
           proxyUniverse: proxyUniverse,
           paymentAuthorizationId: paymentAuthorizationId,
           paymentLink: link.toString(),
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
+  Future<void> _verifyEmail(Uri link, Map<String, String> query) async {
+    print("Verify email using $link");
+    await Navigator.push(
+      context,
+      new MaterialPageRoute(
+        builder: (context) => AuthorizeEmailPage.forId(
+          appConfiguration,
+          authorizationId: query['authorizationId'],
+          secret: query['secret'],
         ),
         fullscreenDialog: true,
       ),

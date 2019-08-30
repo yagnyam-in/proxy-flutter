@@ -35,6 +35,5 @@ class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
     return shortLink.shortUrl;
   }
 
-  void performDiagnostics() {
-  }
+  void performDiagnostics() {}
 }
