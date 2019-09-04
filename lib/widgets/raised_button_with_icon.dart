@@ -24,6 +24,8 @@ class RaisedButtonWithIcon extends RaisedButton with MaterialButtonWithIconMixin
     double disabledElevation,
     ShapeBorder shape,
     Clip clipBehavior = Clip.none,
+    FocusNode focusNode,
+    bool autofocus = false,
     MaterialTapTargetSize materialTapTargetSize,
     Duration animationDuration,
     @required Widget icon,
@@ -51,6 +53,8 @@ class RaisedButtonWithIcon extends RaisedButton with MaterialButtonWithIconMixin
           disabledElevation: disabledElevation,
           shape: shape,
           clipBehavior: clipBehavior,
+          focusNode: focusNode,
+          autofocus: autofocus,
           materialTapTargetSize: materialTapTargetSize,
           animationDuration: animationDuration,
           child: Row(
