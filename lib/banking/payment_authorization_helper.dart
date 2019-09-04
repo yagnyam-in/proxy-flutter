@@ -29,6 +29,7 @@ mixin PaymentAuthorizationHelper {
       final paymentAuthorization = await invoke(
         () => _createPaymentAuthorization(context, paymentInput),
         name: 'Create Payment Authorization',
+        onError: () => showToast(ProxyLocalizations.of(context).somethingWentWrong),
       );
       return paymentAuthorization;
     }

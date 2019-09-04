@@ -33,9 +33,10 @@ class ContactCard extends StatelessWidget {
   }
 
   Widget makeListTile(BuildContext context) {
+    String proxyId = contact.proxyId != null ? "ID: ${contact.proxyId.id}" : null;
     String phoneNumber = isNotEmpty(contact.phoneNumber) ? "📱 ${contact.phoneNumber}" : null;
     String email = isNotEmpty(contact.email) ? "✉ ${contact.email}" : null;
-    String body = [phoneNumber, email].where((v) => v != null).join("\n");
+    String body = [proxyId, phoneNumber, email].where((v) => v != null).join("\n");
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       title: Text(

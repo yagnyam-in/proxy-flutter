@@ -13,7 +13,9 @@ DismissedEnticementEntity _$DismissedEnticementEntityFromJson(Map json) {
   );
 }
 
-Map<String, dynamic> _$DismissedEnticementEntityToJson(DismissedEnticementEntity instance) => <String, dynamic>{
+Map<String, dynamic> _$DismissedEnticementEntityToJson(
+        DismissedEnticementEntity instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'proxyUniverse': instance.proxyUniverse,
     };

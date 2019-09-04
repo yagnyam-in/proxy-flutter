@@ -4,7 +4,6 @@ import 'package:proxy_flutter/model/enticement.dart';
 
 // Priority 0 means highest
 class EnticementFactory {
-
   List<Enticement> getEnticements(String proxyUniverse) {
     print("Get Enticements for proxyUniverse: $proxyUniverse");
     List<Enticement> enticements = [
@@ -130,4 +129,13 @@ class EnticementFactory {
     );
   }
 
+  static Enticement get noContacts {
+    return Enticement(
+      proxyUniverses: Set.identity(),
+      id: Enticement.NO_CONTACTS,
+      titleBuilder: (ProxyLocalizations localizations) => localizations.noContactsTitle,
+      descriptionBuilder: (ProxyLocalizations localizations) => localizations.noContactsDescription,
+      priority: 9999,
+    );
+  }
 }

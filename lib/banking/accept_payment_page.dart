@@ -12,6 +12,7 @@ import 'package:proxy_flutter/db/proxy_key_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/utils/conversion_utils.dart';
+import 'package:proxy_flutter/utils/data_validations.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
@@ -98,7 +99,6 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
               appConfiguration: appConfiguration,
               paymentAuthorization: authorization,
               paymentLink: widget.paymentLink,
-              onPaymentAccepted: _onPaymentAccepted,
             ),
           ),
         ),
@@ -112,12 +112,6 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
       paymentAuthorizationId: paymentAuthorizationId,
     );
   }
-
-  void _onPaymentAccepted(PaymentEncashmentEntity paymentEncashmentEntity) {
-    setState(() {
-      this._paymentEncashmentEntity = paymentEncashmentEntity;
-    });
-  }
 }
 
 class _AcceptPaymentPageBody extends StatefulWidget {
@@ -125,7 +119,6 @@ class _AcceptPaymentPageBody extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final SignedMessage<PaymentAuthorization> paymentAuthorization;
   final String paymentLink;
-  final OnPaymentAcceptedCallback onPaymentAccepted;
 
   const _AcceptPaymentPageBody({
     Key key,
@@ -133,7 +126,6 @@ class _AcceptPaymentPageBody extends StatefulWidget {
     @required this.appConfiguration,
     @required this.paymentAuthorization,
     @required this.paymentLink,
-    @required this.onPaymentAccepted,
   }) : super(key: key);
 
   @override
@@ -217,10 +209,13 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
 
   @override
   Widget build(BuildContext context) {
-    return futureBuilder(
-      name: 'Can Payment Be Accepted',
-      future: _paymentCanBeAcceptedFuture,
-      builder: _builder,
+    return BusyChildWidget(
+      loading: loading,
+      child: futureBuilder(
+        name: 'Can Payment Be Accepted',
+        future: _paymentCanBeAcceptedFuture,
+        builder: _builder,
+      ),
     );
   }
 
@@ -246,12 +241,12 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
             style: themeData.textTheme.title,
           ),
         ),
-        if (paymentCanBeAccepted) ..._acceptPayment(context) else ..._paymentCanNotBeAccepted(context)
+        if (paymentCanBeAccepted) ..._acceptPaymentWidget(context) else ..._paymentCanNotBeAcceptedWidget(context)
       ],
     );
   }
 
-  List<Widget> _acceptPaymentToPhone(BuildContext context) {
+  List<Widget> _acceptPaymentToPhoneWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return [
       const SizedBox(height: 24.0),
@@ -268,8 +263,9 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
             controller: phoneNumberController,
             maxLines: 1,
             keyboardType: TextInputType.phone,
+            textAlign: TextAlign.center,
             textInputAction: TextInputAction.done,
-            onSubmitted: (value) => _validatePhoneNumber(context, value),
+            onSubmitted: (value) => _validatePhoneNumber(context, removeWhiteSpaces(value)),
           ),
         ),
       ),
@@ -277,7 +273,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
     ];
   }
 
-  List<Widget> _acceptPaymentToEmail(BuildContext context) {
+  List<Widget> _acceptPaymentToEmailWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return [
       const SizedBox(height: 24.0),
@@ -296,7 +292,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
             keyboardType: TextInputType.emailAddress,
             textAlign: TextAlign.center,
             textInputAction: TextInputAction.done,
-            onSubmitted: (value) => _validateEmail(context, value),
+            onSubmitted: (value) => _validateEmail(context, removeWhiteSpaces(value)),
           ),
         ),
       ),
@@ -304,7 +300,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
     ];
   }
 
-  List<Widget> _acceptPaymentBySecret(BuildContext context) {
+  List<Widget> _acceptPaymentBySecretWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return [
       const SizedBox(height: 24.0),
@@ -329,13 +325,13 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
     ];
   }
 
-  List<Widget> _acceptPayment(BuildContext context) {
+  List<Widget> _acceptPaymentWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return [
       const SizedBox(height: 24.0),
-      if (_hasPaymentToPhone) ..._acceptPaymentToPhone(context),
-      if (_hasPaymentToEmail) ..._acceptPaymentToEmail(context),
-      if (_hasPaymentToPhone || _hasPaymentToEmail || _hasPaymentBySecret) ..._acceptPaymentBySecret(context),
+      if (_hasPaymentToPhone) ..._acceptPaymentToPhoneWidget(context),
+      if (_hasPaymentToEmail) ..._acceptPaymentToEmailWidget(context),
+      if (_hasPaymentToPhone || _hasPaymentToEmail || _hasPaymentBySecret) ..._acceptPaymentBySecretWidget(context),
       ButtonBar(
         alignment: MainAxisAlignment.spaceAround,
         children: [
@@ -353,7 +349,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
     ];
   }
 
-  List<Widget> _paymentCanNotBeAccepted(BuildContext context) {
+  List<Widget> _paymentCanNotBeAcceptedWidget(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return [
       const SizedBox(height: 24.0),
@@ -374,13 +370,21 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
   }
 
   Future<bool> _isPaymentByPayeeId() async {
-    List<bool> payees = await Future.wait(paymentAuthorization.message.payees.map((payee) async {
-      if (payee.payeeType == PayeeTypeEnum.ProxyId) {
-        return ProxyKeyStore(appConfiguration).hasProxyKey(payee.proxyId);
-      }
-      return false;
-    }).toList());
-    return payees.any((x) => x);
+    Payee payee = await _payeeByPayeeId();
+    return payee != null;
+  }
+
+  Future<Payee> _payeeByPayeeId() {
+    return paymentAuthorization.message.payees
+        .where((payee) => payee.payeeType == PayeeTypeEnum.ProxyId)
+        .map((payee) async {
+          if (await ProxyKeyStore(appConfiguration).hasProxyKey(payee.proxyId)) {
+            return payee;
+          }
+          return null;
+        })
+        .where((p) => p != null)
+        .first;
   }
 
   bool get _hasPaymentBySecret {
@@ -410,8 +414,24 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
     return false;
   }
 
+  String get _secret {
+    return nullIfEmpty(secretController.text);
+  }
+
+  String get _phoneNumber {
+    return removeWhiteSpaces(nullIfEmpty(phoneNumberController.text));
+  }
+
+  String get _email {
+    return removeWhiteSpaces(nullIfEmpty(emailController.text));
+  }
+
   Future<void> _validatePhoneNumber(BuildContext context, String phoneNumber) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    if (!isPhoneNumber(phoneNumber)) {
+      showToast(localizations.invalidPhoneNumber);
+      return;
+    }
     Payee payee = await paymentEncashmentService.matchingPayee(
       paymentAuthorization: paymentAuthorization.message,
       phone: phoneNumber,
@@ -434,6 +454,10 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
 
   Future<void> _validateEmail(BuildContext context, String email) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    if (!isEmailAddress(email)) {
+      showToast(localizations.invalidPhoneNumber);
+      return;
+    }
     Payee payee = await paymentEncashmentService.matchingPayee(
       paymentAuthorization: paymentAuthorization.message,
       email: email,
@@ -480,29 +504,49 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
 
   Future<void> acceptPayment(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    Payee payee = await paymentEncashmentService.matchingPayeeWithSecret(
-      paymentAuthorization: paymentAuthorization.message,
-      secret: secretController.text,
-      phone: nullIfEmpty(phoneNumberController.text),
-      email: nullIfEmpty(emailController.text),
+    final paymentEncashmentEntity = await invoke(
+      () => _acceptPayment(context),
+      name: 'Accept Payment',
+      onError: () => showToast(localizations.somethingWentWrong),
     );
-    if (payee == null) {
+    if (paymentEncashmentEntity != null) {
+      Navigator.of(context).pop(paymentEncashmentEntity);
+    }
+  }
+
+  Future<PaymentEncashmentEntity> _acceptPayment(BuildContext context) async {
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    if (_hasPaymentBySecret && isEmpty(_secret)) {
       showToast(localizations.invalidSecret);
       return null;
     }
-    PaymentEncashmentEntity paymentEncashmentEntity = await invoke(
-        () => paymentEncashmentService.acceptPayment(
-              payee: payee,
-              signedPaymentAuthorization: paymentAuthorization,
-              paymentLink: widget.paymentLink,
-              secret: secretController.text,
-            ),
-        name: 'Accept Payment', onError: () {
-      showToast(localizations.somethingWentWrong);
-    });
-    if (paymentEncashmentEntity != null) {
-      widget.onPaymentAccepted(paymentEncashmentEntity);
+    if (_hasPaymentToEmail) {
+      await _validateEmail(context, _email);
     }
+    if (_hasPaymentToPhone) {
+      await _validatePhoneNumber(context, _phoneNumber);
+    }
+    Payee payee;
+    if (_hasPaymentToPhone || _hasPaymentToEmail || _hasPaymentBySecret) {
+      payee = await paymentEncashmentService.matchingPayeeWithSecret(
+        paymentAuthorization: paymentAuthorization.message,
+        secret: _secret,
+        phone: _phoneNumber,
+        email: _email,
+      );
+    } else if (await _isPaymentByPayeeId()) {
+      payee = await _payeeByPayeeId();
+    }
+    if (payee == null) {
+      showToast(localizations.invalidInputsForEncashment);
+      return null;
+    }
+    return paymentEncashmentService.acceptPayment(
+      payee: payee,
+      signedPaymentAuthorization: paymentAuthorization,
+      paymentLink: widget.paymentLink,
+      secret: _secret,
+    );
   }
 
   void showToast(String message) {

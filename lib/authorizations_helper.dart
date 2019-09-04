@@ -6,7 +6,6 @@ import 'config/app_configuration.dart';
 import 'localizations.dart';
 import 'services/service_factory.dart';
 import 'widgets/basic_types.dart';
-import 'widgets/widget_helper.dart';
 
 mixin AuthorizationsHelper {
   AppConfiguration get appConfiguration;
@@ -23,12 +22,6 @@ mixin AuthorizationsHelper {
   Future<void> verifyPhoneNumber(BuildContext context, String phoneNumber) async {
     print("Verify Phone Number");
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    phoneNumber = phoneNumber ??
-        await acceptPhoneNumberDialog(
-          context,
-          pageTitle: localizations.authorizePhoneNumber,
-          fieldName: localizations.customerPhone,
-        );
     if (isNotEmpty(phoneNumber)) {
       final authorization = await invoke(
         () => ServiceFactory.phoneNumberAuthorizationService(appConfiguration).authorizePhoneNumber(phoneNumber),
@@ -52,12 +45,6 @@ mixin AuthorizationsHelper {
   Future<void> verifyEmail(BuildContext context, String email) async {
     print("Verify Email");
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    email = email ??
-        await acceptEmailDialog(
-          context,
-          pageTitle: localizations.authorizeEmail,
-          fieldName: localizations.customerEmail,
-        );
     if (isNotEmpty(email)) {
       invoke(() async {
         await ServiceFactory.emailAuthorizationService(appConfiguration).authorizeEmailAddress(email);

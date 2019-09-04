@@ -270,9 +270,12 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
   }
 
   String _payeeDisplayName(ProxyLocalizations localizations, PaymentAuthorizationPayeeEntity payee) {
+    if (isNotEmpty(payee.name)) {
+      return payee.name;
+    }
     switch (payee.payeeType) {
       case PayeeTypeEnum.ProxyId:
-        return "${payee.proxyId.id.substring(0, 6)}...";
+        return "${payee.proxyId.id.substring(0, 13)}...";
       case PayeeTypeEnum.Email:
         return payee.email;
       case PayeeTypeEnum.Phone:

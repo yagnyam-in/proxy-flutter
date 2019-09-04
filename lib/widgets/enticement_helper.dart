@@ -6,10 +6,13 @@ import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
 import 'package:proxy_flutter/banking/widgets/enticement_card.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/model/enticement.dart';
+import 'package:proxy_flutter/modify_contact_page.dart';
 import 'package:proxy_flutter/services/enticement_service.dart';
 import 'package:proxy_flutter/widgets/widget_helper.dart';
 import 'package:quiver/strings.dart';
+import 'package:uuid/uuid.dart';
 
 mixin EnticementHelper {
   AppConfiguration get appConfiguration;
@@ -81,6 +84,9 @@ mixin EnticementHelper {
       case Enticement.NO_EVENTS:
         _addFunds(context, enticement);
         break;
+      case Enticement.NO_CONTACTS:
+        _addContact(context, enticement);
+        break;
     }
   }
 
@@ -150,5 +156,15 @@ mixin EnticementHelper {
       _dismissEnticement(context, enticement);
       verifyEmail(context, email);
     }
+  }
+
+  void _addContact(BuildContext context, Enticement enticement) async {
+    Uuid uuidFactory = Uuid();
+    await Navigator.of(context).push(
+      new MaterialPageRoute<ContactEntity>(
+        builder: (context) => ModifyContactPage(appConfiguration, ContactEntity(id: uuidFactory.v4())),
+        fullscreenDialog: true,
+      ),
+    );
   }
 }

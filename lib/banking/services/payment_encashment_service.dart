@@ -180,7 +180,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
   }) async {
     PaymentEncashment paymentEncashment = signedPaymentEncashment.message;
     final encryptionService = SymmetricKeyEncryptionService();
-
+    print("Secret: ${paymentEncashment.secret}");
     return PaymentEncashmentEntity(
       proxyUniverse: payeeAccount.proxyUniverse,
       paymentEncashmentId: paymentEncashment.paymentEncashmentId,

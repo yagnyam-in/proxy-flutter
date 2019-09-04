@@ -8,6 +8,10 @@ import 'package:uuid/uuid.dart';
 
 import 'contact_card.dart';
 import 'modify_contact_page.dart';
+import 'services/enticement_factory.dart';
+import 'widgets/async_helper.dart';
+import 'widgets/enticement_helper.dart';
+import 'widgets/loading.dart';
 
 final Uuid uuidFactory = Uuid();
 
@@ -55,11 +59,13 @@ class ContactsPage extends StatefulWidget {
   }
 }
 
-class _ContactsPageState extends State<ContactsPage> {
+class _ContactsPageState extends LoadingSupportState<ContactsPage> with EnticementHelper {
   final AppConfiguration appConfiguration;
   final ContactsPageMode pageMode;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ContactStore _contactStore;
+
+  bool loading = false;
   Stream<List<ContactEntity>> _contactsStream;
   Set<ContactEntity> _selectedContacts = {};
 
@@ -102,14 +108,13 @@ class _ContactsPageState extends State<ContactsPage> {
             ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-        child: StreamBuilder<List<ContactEntity>>(
-            stream: _contactsStream,
-            initialData: [],
-            builder: (BuildContext context, AsyncSnapshot<List<ContactEntity>> snapshot) {
-              return accountsWidget(context, snapshot);
-            }),
+      body: BusyChildWidget(
+        loading: loading,
+        child: streamBuilder(
+          stream: _contactsStream,
+          initialData: [],
+          builder: (context, contacts) => accountsWidget(context, contacts),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _newContact(context),
@@ -119,31 +124,28 @@ class _ContactsPageState extends State<ContactsPage> {
     );
   }
 
-  Widget accountsWidget(BuildContext context, AsyncSnapshot<List<ContactEntity>> accounts) {
-    List<Widget> rows = [];
-    if (!accounts.hasData) {
-      rows.add(
-        Center(
-          child: Text("Loading"),
-        ),
+  Widget accountsWidget(BuildContext context, List<ContactEntity> contacts) {
+    print("adding ${contacts.length} contacts");
+
+    if (contacts.isEmpty) {
+      return ListView(
+        shrinkWrap: true,
+        physics: ClampingScrollPhysics(),
+        children: [
+          const SizedBox(height: 4.0),
+          enticementCard(context, EnticementFactory.noContacts, cancellable: false),
+        ],
       );
-    } else if (accounts.data.isEmpty) {
-      rows.add(
-        Center(
-          child: Text("No Contacts"),
-        ),
-      );
-    } else {
-      print("adding ${accounts.data.length} contacts");
-      accounts.data.forEach((contact) {
-        if (contact.hasEmailOrPhoneNumber || pageMode == ContactsPageMode.manage) {
-          rows.addAll([
-            const SizedBox(height: 4.0),
-            contactCard(context, contact),
-          ]);
-        }
-      });
     }
+
+    List<Widget> rows = contacts.where((contact) {
+      return contact.isUsable || pageMode == ContactsPageMode.manage;
+    }).expand((contact) {
+      return [
+        const SizedBox(height: 4.0),
+        contactCard(context, contact),
+      ];
+    }).toList();
     return ListView(
       children: rows,
     );
@@ -206,5 +208,25 @@ class _ContactsPageState extends State<ContactsPage> {
 
   void _archiveContact(BuildContext context, ContactEntity contact) async {
     await _contactStore.archiveContact(contact);
+  }
+
+  @override
+  Future<void> createAccountAndDeposit(BuildContext context) {
+    return null;
+  }
+
+  @override
+  Future<void> createPaymentAuthorization(BuildContext context) {
+    return null;
+  }
+
+  @override
+  Future<void> verifyEmail(BuildContext context, String email) {
+    return null;
+  }
+
+  @override
+  Future<void> verifyPhoneNumber(BuildContext context, String phoneNumber) {
+    return null;
   }
 }

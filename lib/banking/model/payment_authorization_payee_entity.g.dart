@@ -13,6 +13,7 @@ PaymentAuthorizationPayeeEntity _$PaymentAuthorizationPayeeEntityFromJson(
     proxyUniverse: json['proxyUniverse'] as String,
     paymentAuthorizationId: json['paymentAuthorizationId'] as String,
     paymentEncashmentId: json['paymentEncashmentId'] as String,
+    name: json['name'] as String,
     proxyId: json['proxyId'] == null
         ? null
         : ProxyId.fromJson(json['proxyId'] as Map),
@@ -48,6 +49,7 @@ Map<String, dynamic> _$PaymentAuthorizationPayeeEntityToJson(
     }
   }
 
+  writeNotNull('name', instance.name);
   writeNotNull('proxyId', instance.proxyId?.toJson());
   writeNotNull('email', instance.email);
   writeNotNull('phone', instance.phone);

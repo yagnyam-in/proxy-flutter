@@ -23,6 +23,9 @@ import 'utils/data_validations.dart';
 import 'widgets/widget_helper.dart';
 
 class SettingsPage extends StatefulWidget {
+  static const String PROXY_ID_PARAM = "proxyId";
+  static const String PROXY_SHA256_PARAM = "proxySha256";
+
   final AppConfiguration appConfiguration;
   final ChangeHomePage changeHomePage;
 
@@ -340,9 +343,8 @@ class _SettingsWidgetState extends State<_SettingsWidget> {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     ProxyId proxyId = appConfiguration.masterProxyId;
     Uri link = Uri.parse("${UrlConfig.PROXY_CENTRAL}/actions/add-me"
-        "?email=${email ?? ''}"
-        "&phoneNumber=${phoneNumber ?? ''}"
-        "&name=${displayName ?? ''}");
+        "?${SettingsPage.PROXY_ID_PARAM}=${proxyId.id}"
+        "&${SettingsPage.PROXY_SHA256_PARAM}=${proxyId.sha256Thumbprint}");
     var shortLink = await ServiceFactory.deepLinkService().createDeepLink(
       link,
       title: localizations.shareProfileTitle,

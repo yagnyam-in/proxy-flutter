@@ -3,6 +3,8 @@ import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/contact_store.dart';
 import 'package:proxy_flutter/localizations.dart';
+import 'package:proxy_flutter/utils/conversion_utils.dart';
+import 'package:proxy_flutter/utils/data_validations.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 
 import 'model/contact_entity.dart';
@@ -94,6 +96,7 @@ class _ModifyContactPageState extends LoadingSupportState<ModifyContactPage> wit
               labelText: localizations.customerEmail,
             ),
             keyboardType: TextInputType.emailAddress,
+            validator: (s) => isEmpty(s) || isEmailAddress(s) ? null : localizations.invalidEmailAddress,
           ),
           const SizedBox(height: 8.0),
           new TextFormField(
@@ -102,6 +105,7 @@ class _ModifyContactPageState extends LoadingSupportState<ModifyContactPage> wit
               labelText: localizations.customerPhone,
             ),
             keyboardType: TextInputType.phone,
+            validator: (s) => isEmpty(s) || isPhoneNumber(s) ? null : localizations.invalidPhoneNumber,
           ),
         ],
       ),
@@ -114,8 +118,8 @@ class _ModifyContactPageState extends LoadingSupportState<ModifyContactPage> wit
     } else {
       ContactEntity updatedContact = contactEntity.copy(
         name: nameController.text,
-        email: emailController.text,
-        phone: phoneController.text,
+        email: removeWhiteSpaces(nullIfEmpty(emailController.text)),
+        phone: removeWhiteSpaces(nullIfEmpty(phoneController.text)),
       );
       await _contactStore.saveContact(updatedContact);
       Navigator.of(context).pop(updatedContact);

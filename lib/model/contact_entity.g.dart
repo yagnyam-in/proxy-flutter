@@ -9,6 +9,9 @@ part of 'contact_entity.dart';
 ContactEntity _$ContactEntityFromJson(Map json) {
   return ContactEntity(
     id: json['id'] as String,
+    proxyId: json['proxyId'] == null
+        ? null
+        : ProxyId.fromJson(json['proxyId'] as Map),
     name: json['name'] as String,
     phoneNumber: json['phoneNumber'] as String,
     email: json['email'] as String,
@@ -26,6 +29,7 @@ Map<String, dynamic> _$ContactEntityToJson(ContactEntity instance) {
     }
   }
 
+  writeNotNull('proxyId', instance.proxyId?.toJson());
   writeNotNull('phoneNumber', instance.phoneNumber);
   writeNotNull('email', instance.email);
   writeNotNull('name', instance.name);

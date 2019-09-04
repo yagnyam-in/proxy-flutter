@@ -30,6 +30,15 @@ class ContactStore with ProxyUtils, FirestoreUtils {
     return _documentSnapshotToContact(doc);
   }
 
+  Future<List<ContactEntity>> fetchContactByProxyId(ProxyId proxyId) async {
+    if (isNotEmpty(proxyId?.id)) {
+      Query query = _contactsRef.where('proxyId.id', isEqualTo: proxyId.id);
+      final querySnapshots = await query.getDocuments();
+      return _querySnapshotToContacts(querySnapshots).where((c) => c.proxyId == proxyId).toList();
+    }
+    return [];
+  }
+
   Future<List<ContactEntity>> fetchContacts({
     @required String phoneNumber,
     @required String email,

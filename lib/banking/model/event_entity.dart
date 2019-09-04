@@ -55,4 +55,10 @@ abstract class EventEntity {
   IconData icon();
 
   bool isCancellable();
+
+  @override
+  String toString() {
+    return "$runtimeType(eventId: $eventId, completed: $completed)";
+
+  }
 }

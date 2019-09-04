@@ -22,6 +22,9 @@ import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/modify_contact_page.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
+import 'package:quiver/strings.dart';
+
+import 'settings_page.dart';
 
 class HomePage extends StatefulWidget {
   final AppConfiguration appConfiguration;
@@ -85,17 +88,21 @@ class _HomePageState extends LoadingSupportState<HomePage> {
 
   Future<void> _addContact(Uri link, Map<String, String> query) async {
     print("Launching dialog to add proxy with $query");
-    List<ContactEntity> existingContacts = await ContactStore(appConfiguration).fetchContacts(
-      phoneNumber: query['phoneNumber'],
-      email: query['email'],
-    );
+    if (isEmpty(query[SettingsPage.PROXY_ID_PARAM]) || isEmpty(query[SettingsPage.PROXY_SHA256_PARAM])) {
+      print("Ignoring request as mandatory parameters aren't set");
+      return;
+    }
+    ProxyId proxyId = ProxyId(query[SettingsPage.PROXY_ID_PARAM], query[SettingsPage.PROXY_SHA256_PARAM]);
+    if (!proxyId.isValid()) {
+      print("Ignoring request as proxy id $proxyId isn't valid");
+    }
+    List<ContactEntity> existingContacts = await ContactStore(appConfiguration).fetchContactByProxyId(proxyId);
     if (existingContacts.isEmpty) {
       existingContacts.add(
         ContactEntity(
           id: uuidFactory.v4(),
-          phoneNumber: query['phoneNumber'],
-          email: query['email'],
-          name: query['name'],
+          proxyId: proxyId,
+          // Don't take anything else like name, phone or email. As someone can mislead with links.
         ),
       );
     }
@@ -161,27 +168,35 @@ class _HomePageState extends LoadingSupportState<HomePage> {
     );
     if (paymentEncashment != null) {
       print("Launching Payment Encashment Page for for $link");
-      await Navigator.push(
-        context,
-        new MaterialPageRoute(
-          builder: (context) => PaymentEncashmentPage.forPaymentEncashment(
-            appConfiguration,
-            paymentEncashment,
-          ),
-          fullscreenDialog: true,
-        ),
-      );
+      _launchPaymentEncashment(paymentEncashment);
       return;
     }
     print("Launching Payment Accept Page for $link");
-    await Navigator.push(
+    paymentEncashment = await Navigator.push(
       context,
-      new MaterialPageRoute(
+      new MaterialPageRoute<PaymentEncashmentEntity>(
         builder: (context) => AcceptPaymentPage(
           appConfiguration,
           proxyUniverse: proxyUniverse,
           paymentAuthorizationId: paymentAuthorizationId,
           paymentLink: link.toString(),
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+    if (paymentEncashment != null) {
+      _launchPaymentEncashment(paymentEncashment);
+      return;
+    }
+  }
+
+  Future<void> _launchPaymentEncashment(PaymentEncashmentEntity paymentEncashment) async {
+    await Navigator.push(
+      context,
+      new MaterialPageRoute(
+        builder: (context) => PaymentEncashmentPage.forPaymentEncashment(
+          appConfiguration,
+          paymentEncashment,
         ),
         fullscreenDialog: true,
       ),

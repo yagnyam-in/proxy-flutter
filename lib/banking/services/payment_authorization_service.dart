@@ -60,6 +60,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
       paymentAuthorizationId: paymentAuthorizationId,
       paymentEncashmentId: paymentEncashmentId,
       payeeType: input.payeeType,
+      proxyId: input.payeeProxyId,
       email: input.customerEmail,
       emailHash: await _computeHash(input.customerEmail),
       phone: input.customerPhone,

@@ -163,7 +163,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     BuildContext context,
     List<ProxyAccountEntity> accounts,
   ) {
-    print("accounts : $accounts");
+    // print("accounts : $accounts");
     if (accounts.isEmpty) {
       return ListView(
         shrinkWrap: true,
@@ -180,7 +180,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
       children: accounts.expand((account) {
         return [
           const SizedBox(height: 4.0),
-          accountCard(context, account),
+          _accountCard(context, account),
         ];
       }).toList(),
     );
@@ -190,7 +190,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     BuildContext context,
     List<Enticement> enticements,
   ) {
-    print("enticements : $enticements");
+    // print("enticements : $enticements");
     return ListView(
       shrinkWrap: true,
       physics: ClampingScrollPhysics(),
@@ -203,7 +203,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     );
   }
 
-  Widget accountCard(
+  Widget _accountCard(
     BuildContext context,
     ProxyAccountEntity account,
   ) {

@@ -14,6 +14,7 @@ import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/enticement_factory.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/enticement_helper.dart';
+import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:uuid/uuid.dart';
 
 import 'proxy_account_helper.dart';
@@ -120,11 +121,13 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
       appBar: AppBar(
         title: Text(_getTitle(localizations)),
       ),
-      body: streamBuilder(
-        name: "Accounts Loading",
-        stream: _receivingAccountsStream,
-        loadingWidget: SizedBox.shrink(),
-        builder: (context, accounts) => _accountsWidget(context, accounts),
+      body: BusyChildWidget(
+        loading: loading,
+        child: streamBuilder(
+          name: "Accounts Loading",
+          stream: _receivingAccountsStream,
+          builder: (context, accounts) => _accountsWidget(context, accounts),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => createReceivingAccount(context),

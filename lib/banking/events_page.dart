@@ -96,7 +96,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage>
   }
 
   Widget _events(BuildContext context, List<EventEntity> events) {
-    print("events : $events");
+    // print("events : $events");
     if (events.isEmpty) {
       return ListView(
         shrinkWrap: true,
@@ -113,13 +113,13 @@ class _EventsPageState extends LoadingSupportState<EventsPage>
       children: events.expand((account) {
         return [
           const SizedBox(height: 4.0),
-          eventCard(context, account),
+          _eventCard(context, account),
         ];
       }).toList(),
     );
   }
 
-  Widget eventCard(BuildContext context, EventEntity event) {
+  Widget _eventCard(BuildContext context, EventEntity event) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return Slidable(
       actionPane: SlidableDrawerActionPane(),

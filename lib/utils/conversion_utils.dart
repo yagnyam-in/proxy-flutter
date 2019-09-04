@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
+import 'package:quiver/strings.dart';
 
 class ConversionUtils {
   static T stringToEnum<T>(
@@ -64,5 +65,12 @@ class ConversionUtils {
 
 String nullIfEmpty(String value) {
   return value == null || value.trim().isEmpty ? null : value;
+}
+
+String removeWhiteSpaces(String value) {
+  if (value == null) {
+    return null;
+  }
+  return value.replaceAll(new RegExp(r"\s+\b|\b\s|\s|\b"), "");
 }
 

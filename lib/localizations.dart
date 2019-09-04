@@ -1185,7 +1185,7 @@ class ProxyLocalizations {
 
   String get emailOrPhoneNumber => Intl.message('Email or Phone Number');
 
-  String get invalidEmailOrPhoneNumber => Intl.message('Invalid input. Phone Number must start with +');
+  String get invalidEmailOrPhoneNumber => Intl.message('Invalid email/phone number. Phone Number must start with +');
 
   String get enterVerificationCode => Intl.message('Verification Code');
 
@@ -1197,6 +1197,8 @@ class ProxyLocalizations {
       Intl.message('Something went wronng with phone number verification');
 
   String get invalidPhoneNumber => Intl.message('Invalid phone number. Should start with +<country code>');
+
+  String get invalidEmailAddress => Intl.message('Invalid email address');
 
   String get newContactFabLabel => Intl.message('Contact');
 
@@ -1211,6 +1213,12 @@ class ProxyLocalizations {
   String get emailNotAuthorized => Intl.message('Email not verified');
 
   String get phoneNumberNotAuthorized => Intl.message('Phone number not verified');
+
+  String get noContactsTitle => Intl.message('No Contacts');
+
+  String get noContactsDescription => Intl.message('Add contacts to make payments faster');
+
+  String get invalidInputsForEncashment => Intl.message('Not all mandatory fields are entered');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

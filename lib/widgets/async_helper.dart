@@ -85,7 +85,7 @@ Widget asyncBuilder<T>(
   @required DataToWidgetBuilder<T> builder,
 }) {
   if (_LOADING_STATES.contains(snapshot.connectionState)) {
-    print("$builderName($name) is still loading: ${snapshot.connectionState}");
+    // print("$builderName($name) is still loading: ${snapshot.connectionState}");
     return loadingWidget ?? LoadingWidget();
   } else if (snapshot.hasError) {
     print("$builderName($name) has Error: ${snapshot.error}");
@@ -105,7 +105,7 @@ Widget asyncBuilder<T>(
           ),
         );
   } else {
-    print("$builderName($name) is ready with data: ${snapshot.data}");
+    // print("$builderName($name) is ready with data: ${snapshot.data}");
     return builder(context, snapshot.data);
   }
 }

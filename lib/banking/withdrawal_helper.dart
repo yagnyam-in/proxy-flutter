@@ -33,6 +33,7 @@ mixin WithdrawalHelper {
       await invoke(
         () => BankingServiceFactory.withdrawalService(appConfiguration).withdraw(proxyAccount, receivingAccountEntity),
         name: "Withdrawal",
+        onError: () => showToast(ProxyLocalizations.of(context).somethingWentWrong),
       );
     } else {
       print("Ignoring withdraw");

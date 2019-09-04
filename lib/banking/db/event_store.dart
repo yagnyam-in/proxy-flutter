@@ -82,7 +82,7 @@ class EventStore with ProxyUtils, FirestoreUtils {
   }
 
   static EventEntity fromJson(Map<dynamic, dynamic> json) {
-    print("Constructing Event of type ${json['eventType']}");
+    // print("Constructing Event of type ${json['eventType']}");
     switch (json["eventType"]) {
       case 'Deposit':
         return DepositEvent.fromJson(json);

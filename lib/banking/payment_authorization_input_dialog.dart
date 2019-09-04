@@ -219,6 +219,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
                   setState(() {
                     payeeSelectionMode = value;
                   });
+                  _choosePayees(context);
                 },
                 items: [
                   DropdownMenuItem(
@@ -322,6 +323,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       payees = _payees
           .map(
             (p) => PaymentAuthorizationPayeeInput(
+              payeeProxyId: p.proxyId,
               customerEmail: p.email,
               customerPhone: p.phoneNumber,
               secret: RandomUtils.randomSecret(),
@@ -357,7 +359,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   }
 
   String _payeesAsString() {
-    return _payees.map((p) => p.name ?? p.phoneNumber ?? p.email).join(", ");
+    return _payees.map((p) => p.name ?? p.proxyId.id ?? p.phoneNumber ?? p.email).join(", ");
   }
 
   String _amountValidator(ProxyLocalizations localizations, String value) {

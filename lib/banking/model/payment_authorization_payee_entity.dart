@@ -17,6 +17,8 @@ class PaymentAuthorizationPayeeEntity {
   @JsonKey(nullable: false)
   final String paymentEncashmentId;
   @JsonKey(nullable: true)
+  final String name;
+  @JsonKey(nullable: true)
   final ProxyId proxyId;
   @JsonKey(nullable: true)
   final String email;
@@ -39,6 +41,7 @@ class PaymentAuthorizationPayeeEntity {
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
     @required this.paymentEncashmentId,
+    this.name,
     this.proxyId,
     this.email,
     this.phone,

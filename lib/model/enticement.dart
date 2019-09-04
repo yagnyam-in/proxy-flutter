@@ -37,6 +37,7 @@ class Enticement {
   static const String NO_RECEIVING_ACCOUNTS = "no-receiving-accounts";
   static const String NO_PHONE_NUMBER_AUTHORIZATIONS = "no-phone-number-authorizations";
   static const String NO_EMAIL_AUTHORIZATIONS = "no-email-authorizations";
+  static const String NO_CONTACTS = "no-contacts";
 
   static const String ADD_TEST_RECEIVING_ACCOUNTS = "add-test-receiving-accounts";
 }

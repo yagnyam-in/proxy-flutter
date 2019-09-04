@@ -31,6 +31,7 @@ mixin DepositHelper {
       String depositLink = await invoke(
         () => _createDepositLink(context, depositInput),
         name: 'Create Account & Deposit',
+        onError: () => showToast(ProxyLocalizations.of(context).somethingWentWrong),
       );
       if (await canLaunch(depositLink)) {
         await launch(depositLink);
@@ -50,6 +51,7 @@ mixin DepositHelper {
       String depositLink = await invoke(
         () => BankingServiceFactory.depositService(appConfiguration).depositLink(proxyAccount, depositInput),
         name: "Deposit",
+        onError: () => showToast(ProxyLocalizations.of(context).somethingWentWrong),
       );
       if (await canLaunch(depositLink)) {
         await launch(depositLink);

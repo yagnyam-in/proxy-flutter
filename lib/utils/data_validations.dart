@@ -1,5 +1,7 @@
+import 'package:quiver/strings.dart';
+
 bool isPhoneNumber(String input) {
-  if (input.isEmpty) {
+  if (isEmpty(input)) {
     return false;
   }
   if (input[0] != '+') {
@@ -9,7 +11,7 @@ bool isPhoneNumber(String input) {
 }
 
 bool isEmailAddress(String input) {
-  if (input.isEmpty) {
+  if (isEmpty(input)) {
     return false;
   }
   if (!input.contains('@')) {
