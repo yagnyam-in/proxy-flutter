@@ -25,9 +25,10 @@ mixin ServiceHelper on ProxyUtils, HttpClientUtils {
   AppConfiguration get appConfiguration;
 
   Future<SignedMessage<T>> signMessage<T extends SignableMessage>({
+    @required ProxyId signer,
     @required T request,
   }) async {
-    ProxyKey proxyKey = await ProxyKeyStore(appConfiguration).fetchProxyKey(appConfiguration.masterProxyId);
+    ProxyKey proxyKey = await ProxyKeyStore(appConfiguration).fetchProxyKey(signer ?? appConfiguration.masterProxyId);
     return ServiceFactory.messageSigningService().sign(
       request,
       proxyKey,

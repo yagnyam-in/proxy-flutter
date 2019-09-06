@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
 import 'package:proxy_flutter/banking/payment_authorization_page.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
@@ -12,7 +13,11 @@ import 'payment_authorization_input_dialog.dart';
 mixin PaymentAuthorizationHelper {
   AppConfiguration get appConfiguration;
 
-  Future<ProxyAccountEntity> fetchOrCreateAccount(ProxyLocalizations localizations, String currency);
+  Future<ProxyAccountEntity> fetchOrCreateAccount(
+    ProxyLocalizations localizations,
+    ProxyId ownerProxyId,
+    String currency,
+  );
 
   void showToast(String message);
 
@@ -27,7 +32,7 @@ mixin PaymentAuthorizationHelper {
     PaymentAuthorizationInput paymentInput = await _acceptPaymentInput(context);
     if (paymentInput != null) {
       final paymentAuthorization = await invoke(
-        () => _createPaymentAuthorization(context, paymentInput),
+        () => _createPaymentAuthorization(context, appConfiguration.masterProxyId, paymentInput),
         name: 'Create Payment Authorization',
         onError: () => showToast(ProxyLocalizations.of(context).somethingWentWrong),
       );
@@ -67,10 +72,11 @@ mixin PaymentAuthorizationHelper {
 
   Future<PaymentAuthorizationEntity> _createPaymentAuthorization(
     BuildContext context,
+    ProxyId ownerProxyId,
     PaymentAuthorizationInput paymentInput,
   ) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    final proxyAccount = await fetchOrCreateAccount(localizations, paymentInput.currency);
+    final proxyAccount = await fetchOrCreateAccount(localizations, ownerProxyId, paymentInput.currency);
     return BankingServiceFactory.paymentAuthorizationService(appConfiguration)
         .createPaymentAuthorization(localizations, proxyAccount, paymentInput);
   }

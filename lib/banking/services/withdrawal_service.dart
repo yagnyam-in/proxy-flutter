@@ -50,7 +50,10 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
         address: receivingAccount.address,
       ),
     );
-    SignedMessage<Withdrawal> signedRequest = await signMessage(request: request);
+    SignedMessage<Withdrawal> signedRequest = await signMessage(
+      signer: proxyAccount.ownerProxyId,
+      request: request,
+    );
 
     WithdrawalEntity withdrawalEntity = _createWithdrawalEntity(
       withdrawalId,
@@ -87,11 +90,15 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
   }
 
   Future<WithdrawalEntity> _refreshWithdrawalStatus(WithdrawalEntity withdrawalEntity) async {
+    final withdrawal = withdrawalEntity.signedWithdrawal;
     WithdrawalStatusRequest request = WithdrawalStatusRequest(
       requestId: uuidFactory.v4(),
-      request: withdrawalEntity.signedWithdrawal,
+      request: withdrawal,
     );
-    SignedMessage<WithdrawalStatusRequest> signedRequest = await signMessage(request: request);
+    SignedMessage<WithdrawalStatusRequest> signedRequest = await signMessage(
+      signer: withdrawalEntity.payerProxyId,
+      request: request,
+    );
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,

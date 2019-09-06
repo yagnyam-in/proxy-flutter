@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
@@ -11,9 +12,13 @@ mixin AccountHelper {
 
   void showToast(String message);
 
-  Future<ProxyAccountEntity> fetchOrCreateAccount(ProxyLocalizations localizations, String currency) async {
+  Future<ProxyAccountEntity> fetchOrCreateAccount(
+    ProxyLocalizations localizations,
+    ProxyId ownerProxyId,
+    String currency,
+  ) async {
     return BankingServiceFactory.bankingService(appConfiguration).fetchOrCreateProxyWallet(
-      ownerProxyId: appConfiguration.masterProxyId,
+      ownerProxyId: ownerProxyId,
       proxyUniverse: appConfiguration.proxyUniverse,
       currency: currency,
     );

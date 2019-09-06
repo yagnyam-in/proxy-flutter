@@ -42,7 +42,10 @@ class SecretsService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       phoneNumberAuthorization: phoneAuthorization.authorization,
       secretHash: secretHash,
     );
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: phoneAuthorization.proxyId,
+      request: request,
+    );
     final signedResponse = await sendAndReceive(
       url: appBackendUrl,
       signedRequest: signedRequest,
@@ -52,18 +55,21 @@ class SecretsService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
   }
 
   Future<String> fetchSecretForEmail(String email, HashValue secretHash) async {
-    final authorizationEntity = await _emailAuthorizationStore.fetchActiveAuthorizationByEmail(
+    final emailAuthorization = await _emailAuthorizationStore.fetchActiveAuthorizationByEmail(
       email: email,
       proxyId: appConfiguration.masterProxyId,
     );
-    if (authorizationEntity == null) {
+    if (emailAuthorization == null) {
       return null;
     }
     FetchSecretForEmailRequest request = FetchSecretForEmailRequest(
-      emailAuthorization: authorizationEntity.authorization,
+      emailAuthorization: emailAuthorization.authorization,
       secretHash: secretHash,
     );
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: emailAuthorization.proxyId,
+      request: request,
+    );
     final signedResponse = await sendAndReceive(
       url: appBackendUrl,
       signedRequest: signedRequest,
@@ -84,7 +90,10 @@ class SecretsService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       secretsForPhoneNumberRecipients: secretsForPhoneNumberRecipients,
       secretsForEmailRecipients: secretsForEmailRecipients,
     );
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: appConfiguration.masterProxyId,
+      request: request,
+    );
     await send(
       url: appBackendUrl,
       signedRequest: signedRequest,

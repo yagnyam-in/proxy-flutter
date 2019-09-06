@@ -82,10 +82,10 @@ class PhoneNumberAuthorizationStore with ProxyUtils, FirestoreUtils {
       await _refByPhoneNumber(authorization.phoneNumber).setData({'lastUpdated': DateTime.now()});
       await _refByPhoneNumberAndProxyId(authorization.phoneNumber, authorization.proxyId)
           .setData(authorization.toJson());
-      await EnticementService(appConfiguration).dismissEnticements(
-        enticementId: Enticement.VERIFY_EMAIL,
-      );
     }
+    await EnticementService(appConfiguration).dismissEnticements(
+      enticementId: Enticement.VERIFY_EMAIL,
+    );
     return authorization;
   }
 

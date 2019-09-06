@@ -516,6 +516,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
 
   Future<PaymentEncashmentEntity> _acceptPayment(BuildContext context) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    ProxyId payeeProxyId = appConfiguration.masterProxyId;
     if (_hasPaymentBySecret && isEmpty(_secret)) {
       showToast(localizations.invalidSecret);
       return null;
@@ -536,6 +537,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
       );
     } else if (await _isPaymentByPayeeId()) {
       payee = await _payeeByPayeeId();
+      payeeProxyId = payee.proxyId;
     }
     if (payee == null) {
       showToast(localizations.invalidInputsForEncashment);
@@ -543,6 +545,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
     }
     return paymentEncashmentService.acceptPayment(
       payee: payee,
+      payeeProxyId: payeeProxyId,
       signedPaymentAuthorization: paymentAuthorization,
       paymentLink: widget.paymentLink,
       secret: _secret,

@@ -129,6 +129,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
   Future<PaymentEncashmentEntity> acceptPayment({
     @required SignedMessage<PaymentAuthorization> signedPaymentAuthorization,
     @required Payee payee,
+    @required ProxyId payeeProxyId,
     String paymentLink,
     String email,
     String phone,
@@ -136,7 +137,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
   }) async {
     PaymentAuthorization paymentAuthorization = signedPaymentAuthorization.message;
     var proxyAccount = await BankingServiceFactory.bankingService(appConfiguration).fetchOrCreateProxyWallet(
-      ownerProxyId: appConfiguration.masterProxyId,
+      ownerProxyId: payeeProxyId,
       proxyUniverse: paymentAuthorization.proxyUniverse,
       currency: paymentAuthorization.currency,
     );
@@ -147,7 +148,10 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       payeeAccount: proxyAccount.signedProxyAccount,
       secret: secret,
     );
-    final signedEncashment = await signMessage(request: encashment);
+    final signedEncashment = await signMessage(
+      signer: payeeProxyId,
+      request: encashment,
+    );
 
     PaymentEncashmentEntity encashmentEntity = await _createPaymentEncashmentEntity(
       payeeAccount: proxyAccount,
@@ -231,7 +235,10 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       requestId: uuidFactory.v4(),
       paymentEncashment: encashmentEntity.signedPaymentEncashment,
     );
-    final signedRequest = await signMessage(request: statusRequest);
+    final signedRequest = await signMessage(
+      signer: encashmentEntity.payeeProxyId,
+      request: statusRequest,
+    );
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,

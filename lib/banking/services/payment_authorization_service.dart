@@ -158,7 +158,10 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
       ),
       payees: payeeEntityList.map(_payeeEntityToPayee).toList(),
     );
-    final signedPaymentAuthorization = await signMessage(request: request);
+    final signedPaymentAuthorization = await signMessage(
+      signer: proxyAccount.ownerProxyId,
+      request: request,
+    );
     Uri paymentLink = await ServiceFactory.deepLinkService().createDeepLink(
       Uri.parse('${UrlConfig.PROXY_BANKING}/actions/accept-payment'
           '?proxyUniverse=$proxyUniverse&paymentAuthorizationId=$paymentAuthorizationId'),
@@ -194,12 +197,15 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     PaymentAuthorizationEntity authorizationEntity,
   ) async {
     print('Refreshing $authorizationEntity');
-
+    final paymentAuthorization = authorizationEntity.signedPaymentAuthorization;
     PaymentAuthorizationStatusRequest request = PaymentAuthorizationStatusRequest(
       requestId: uuidFactory.v4(),
-      paymentAuthorization: authorizationEntity.signedPaymentAuthorization,
+      paymentAuthorization: paymentAuthorization,
     );
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: authorizationEntity.payerProxyId,
+      request: request,
+    );
 
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,

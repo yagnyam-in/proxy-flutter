@@ -49,7 +49,10 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       ),
       requestingCustomer: input.requestingCustomer,
     );
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: proxyAccount.ownerProxyId,
+      request: request,
+    );
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,
@@ -90,7 +93,10 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       requestId: uuidFactory.v4(),
       depositRequest: depositEntity.signedDepositRequest,
     );
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: request.ownerProxyId,
+      request: request,
+    );
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,
@@ -105,7 +111,10 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       requestId: uuidFactory.v4(),
       depositRequest: depositEntity.signedDepositRequest,
     );
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: request.ownerProxyId,
+      request: request,
+    );
     final signedResponse = await sendAndReceive(
       signedRequest: signedRequest,
       responseParser: DepositRequestStatusResponse.fromJson,

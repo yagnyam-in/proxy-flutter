@@ -13,6 +13,8 @@ import 'package:proxy_messages/payments.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
+enum PayeeSelectionMode { ANY_ONE_WITH_SECRET, CHOOSE_FROM_CONTACTS }
+
 class PaymentAuthorizationPayeeInput with ProxyUtils {
   final String customerPhone;
   final String customerEmail;
@@ -92,10 +94,10 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Future<Set<String>> _validCurrenciesFuture;
 
-  final TextEditingController messageController;
-  final TextEditingController amountController;
-  final TextEditingController secretController;
-  final TextEditingController payeeController;
+  final TextEditingController _messageController;
+  final TextEditingController _amountController;
+  final TextEditingController _secretController;
+  final TextEditingController _payeeController;
   Set<ContactEntity> _payees = {};
 
   FocusNode _amountFocusNode;
@@ -103,13 +105,13 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   FocusNode _submitFocusNode;
 
   String _currency;
-  String payeeSelectionMode = ANY_ONE_WITH_SECRET;
+  PayeeSelectionMode _payeeSelectionMode = PayeeSelectionMode.ANY_ONE_WITH_SECRET;
 
   _PaymentAuthorizationInputDialogState(this.appConfiguration, this.paymentAuthorizationInput)
-      : amountController = TextEditingController(),
-        messageController = TextEditingController(text: paymentAuthorizationInput?.message),
-        secretController = TextEditingController(text: RandomUtils.randomSecret()),
-        payeeController = TextEditingController(),
+      : _amountController = TextEditingController(),
+        _messageController = TextEditingController(text: paymentAuthorizationInput?.message),
+        _secretController = TextEditingController(text: RandomUtils.randomSecret()),
+        _payeeController = TextEditingController(),
         _currency = paymentAuthorizationInput?.currency;
 
   void showError(String message) {
@@ -144,7 +146,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    payeeController.text = _payeesAsString();
+    _payeeController.text = _payeesAsString();
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -177,7 +179,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       const SizedBox(height: 16.0),
       TextFormField(
         focusNode: _amountFocusNode,
-        controller: amountController,
+        controller: _amountController,
         decoration: InputDecoration(
           labelText: localizations.amount,
         ),
@@ -192,7 +194,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       const SizedBox(height: 16.0),
       TextFormField(
         focusNode: _messageFocusNode,
-        controller: messageController,
+        controller: _messageController,
         decoration: InputDecoration(
           labelText: localizations.message,
         ),
@@ -212,22 +214,24 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
               labelText: localizations.sendPaymentToLabel,
             ),
             child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: payeeSelectionMode,
+              child: DropdownButton<PayeeSelectionMode>(
+                value: _payeeSelectionMode,
                 isDense: true,
                 onChanged: (value) {
                   setState(() {
-                    payeeSelectionMode = value;
+                    _payeeSelectionMode = value;
                   });
-                  _choosePayees(context);
+                  if (value == PayeeSelectionMode.CHOOSE_FROM_CONTACTS) {
+                    _choosePayees(context);
+                  }
                 },
                 items: [
                   DropdownMenuItem(
-                    value: ANY_ONE_WITH_SECRET,
+                    value: PayeeSelectionMode.ANY_ONE_WITH_SECRET,
                     child: new Text(localizations.anyoneWithSecret),
                   ),
                   DropdownMenuItem(
-                    value: CHOOSE_FROM_CONTACTS,
+                    value: PayeeSelectionMode.CHOOSE_FROM_CONTACTS,
                     child: new Text(localizations.chooseFromContacts),
                   ),
                 ],
@@ -238,11 +242,11 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       ),
     ]);
 
-    if (payeeSelectionMode == ANY_ONE_WITH_SECRET) {
+    if (_payeeSelectionMode == PayeeSelectionMode.ANY_ONE_WITH_SECRET) {
       children.addAll([
         const SizedBox(height: 16.0),
         TextFormField(
-          controller: secretController,
+          controller: _secretController,
           decoration: InputDecoration(
             labelText: localizations.secretPin,
           ),
@@ -252,12 +256,12 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       ]);
     }
 
-    if (payeeSelectionMode == CHOOSE_FROM_CONTACTS) {
+    if (_payeeSelectionMode == PayeeSelectionMode.CHOOSE_FROM_CONTACTS) {
       children.addAll([
         const SizedBox(height: 16.0),
         TextField(
           readOnly: true,
-          controller: payeeController,
+          controller: _payeeController,
           decoration: InputDecoration(
             labelText: localizations.payees,
             suffix: GestureDetector(
@@ -295,11 +299,11 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       showError(localizations.fieldIsMandatory(localizations.currency));
       return;
     }
-    if (payeeSelectionMode == ANY_ONE_WITH_SECRET && isEmpty(secretController.text)) {
+    if (_payeeSelectionMode == PayeeSelectionMode.ANY_ONE_WITH_SECRET && isEmpty(_secretController.text)) {
       showError(localizations.fieldIsMandatory(localizations.secretPin));
       return;
     }
-    if (payeeSelectionMode == CHOOSE_FROM_CONTACTS && _payees.isEmpty) {
+    if (_payeeSelectionMode == PayeeSelectionMode.CHOOSE_FROM_CONTACTS && _payees.isEmpty) {
       showError(localizations.fieldIsMandatory(localizations.payees));
       return;
     }
@@ -313,13 +317,13 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       currency: _currency,
     );
     List<PaymentAuthorizationPayeeInput> payees = [];
-    if (payeeSelectionMode == ANY_ONE_WITH_SECRET) {
+    if (_payeeSelectionMode == PayeeSelectionMode.ANY_ONE_WITH_SECRET) {
       payees = [
         PaymentAuthorizationPayeeInput(
-          secret: secretController.text,
+          secret: _secretController.text,
         ),
       ];
-    } else if (payeeSelectionMode == CHOOSE_FROM_CONTACTS) {
+    } else if (_payeeSelectionMode == PayeeSelectionMode.CHOOSE_FROM_CONTACTS) {
       payees = _payees
           .map(
             (p) => PaymentAuthorizationPayeeInput(
@@ -333,8 +337,8 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     }
     PaymentAuthorizationInput result = PaymentAuthorizationInput(
       currency: _currency,
-      amount: double.parse(amountController.text),
-      message: messageController.text,
+      amount: double.parse(_amountController.text),
+      message: _messageController.text,
       payees: payees,
     );
     print("Accepting $result");
@@ -377,7 +381,4 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
     }
     return null;
   }
-
-  static const String ANY_ONE_WITH_SECRET = "ANY_ONE_WITH_SECRET";
-  static const String CHOOSE_FROM_CONTACTS = "CHOOSE_FROM_CONTACTS";
 }

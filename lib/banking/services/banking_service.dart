@@ -93,7 +93,10 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       bankProxyId: bank.bankProxyId,
       currency: currency,
     );
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: ownerProxyId,
+      request: request,
+    );
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,
@@ -139,7 +142,10 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       proxyAccount: proxyAccount.signedProxyAccount,
     );
 
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: proxyAccount.ownerProxyId,
+      request: request,
+    );
     final signedResponse = await sendAndReceive(
       url: proxyBankingUrl,
       signedRequest: signedRequest,

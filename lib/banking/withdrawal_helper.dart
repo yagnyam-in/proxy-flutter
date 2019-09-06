@@ -11,8 +11,6 @@ import 'receiving_accounts_page.dart';
 mixin WithdrawalHelper {
   AppConfiguration get appConfiguration;
 
-  Future<ProxyAccountEntity> fetchOrCreateAccount(ProxyLocalizations localizations, String currency);
-
   void showToast(String message);
 
   Future<T> invoke<T>(

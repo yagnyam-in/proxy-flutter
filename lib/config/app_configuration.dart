@@ -81,13 +81,7 @@ class AppConfiguration {
 
   @override
   String toString() {
-    return {
-      'firebaseUser': firebaseUser?.uid,
-      'appUser': appUser?.email,
-      'account': account?.accountId,
-      PROXY_UNIVERSE: proxyUniverse,
-      DEVICE_ID: deviceId,
-    }.toString();
+    return "AppConfiguration(firebaseUser: ${firebaseUser?.uid}, email: $email, account: $accountId)";
   }
 
   String get accountId {

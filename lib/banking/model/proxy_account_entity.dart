@@ -78,6 +78,11 @@ class ProxyAccountEntity with ProxyUtils {
     );
   }
 
+  @override
+  String toString() {
+    return "ProxyAccountEntity(account: $validAccountName, bank: $validBankName, balance: $balance, active: $active)";
+  }
+
   Map<String, dynamic> toJson() => _$ProxyAccountEntityToJson(this);
 
   static ProxyAccountEntity fromJson(Map json) => _$ProxyAccountEntityFromJson(json);

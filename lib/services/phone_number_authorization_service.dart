@@ -39,7 +39,10 @@ class PhoneNumberAuthorizationService with ProxyUtils, HttpClientUtils, ServiceH
       authorizerProxyId: Constants.PROXY_APP_BACKEND_PROXY_ID,
     );
 
-    final signedRequest = await signMessage(request: request);
+    final signedRequest = await signMessage(
+      signer: request.requesterProxyId,
+      request: request,
+    );
     final signedChallenge = await sendAndReceive(
       url: appBackendUrl,
       signedRequest: signedRequest,
@@ -47,7 +50,7 @@ class PhoneNumberAuthorizationService with ProxyUtils, HttpClientUtils, ServiceH
     );
     PhoneNumberAuthorizationEntity authorizationEntity = PhoneNumberAuthorizationEntity(
       authorizationId: request.requestId,
-      proxyId: appConfiguration.masterProxyId,
+      proxyId: request.requesterProxyId,
       phoneNumber: phoneNumber,
       challenge: signedChallenge,
       authorized: false,
@@ -73,7 +76,10 @@ class PhoneNumberAuthorizationService with ProxyUtils, HttpClientUtils, ServiceH
       challenge: authorizationEntity.challenge,
       response: secret,
     );
-    final signedRequest = await signMessage(request: challengeResponse);
+    final signedRequest = await signMessage(
+      signer: authorizationEntity.proxyId,
+      request: challengeResponse,
+    );
     final signedAuthorization = await sendAndReceive(
       url: appBackendUrl,
       signedRequest: signedRequest,

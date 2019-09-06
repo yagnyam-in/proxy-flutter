@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/localizations.dart';
@@ -13,7 +14,7 @@ import 'model/proxy_account_entity.dart';
 mixin DepositHelper {
   AppConfiguration get appConfiguration;
 
-  Future<ProxyAccountEntity> fetchOrCreateAccount(ProxyLocalizations localizations, String currency);
+  Future<ProxyAccountEntity> fetchOrCreateAccount(ProxyLocalizations localizations, ProxyId ownerProxyId, String currency);
 
   void showToast(String message);
 
@@ -29,7 +30,7 @@ mixin DepositHelper {
     if (depositInput != null) {
       await _updatePreferences(depositInput);
       String depositLink = await invoke(
-        () => _createDepositLink(context, depositInput),
+        () => _createDepositLink(context, appConfiguration.masterProxyId, depositInput),
         name: 'Create Account & Deposit',
         onError: () => showToast(ProxyLocalizations.of(context).somethingWentWrong),
       );
@@ -74,9 +75,9 @@ mixin DepositHelper {
     ));
   }
 
-  Future<String> _createDepositLink(BuildContext context, DepositRequestInput depositInput) async {
+  Future<String> _createDepositLink(BuildContext context, ProxyId ownerProxyId, DepositRequestInput depositInput) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    ProxyAccountEntity proxyAccount = await fetchOrCreateAccount(localizations, depositInput.currency);
+    ProxyAccountEntity proxyAccount = await fetchOrCreateAccount(localizations, ownerProxyId, depositInput.currency);
     if (isEmpty(depositInput.accountName)) {
       depositInput = depositInput.copy(accountName: proxyAccount.validAccountName);
     }

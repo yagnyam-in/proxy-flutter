@@ -81,10 +81,10 @@ class EmailAuthorizationStore with ProxyUtils, FirestoreUtils {
     if (authorization.authorized) {
       await _refByEmail(authorization.email).setData({'lastUpdated': DateTime.now()});
       await _refByEmailAndProxyId(authorization.email, authorization.proxyId).setData(authorization.toJson());
-      await EnticementService(appConfiguration).dismissEnticements(
-        enticementId: Enticement.VERIFY_EMAIL,
-      );
     }
+    await EnticementService(appConfiguration).dismissEnticements(
+      enticementId: Enticement.VERIFY_EMAIL,
+    );
     return authorization;
   }
 
