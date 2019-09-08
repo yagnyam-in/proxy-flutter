@@ -128,9 +128,7 @@ class _SettingsWidgetState extends State<_SettingsWidget> {
   @override
   Widget build(BuildContext context) {
     return ListView(children: [
-      const SizedBox(height: 16.0),
-      Icon(Icons.account_circle, size: 64.0),
-      const SizedBox(height: 16.0),
+      _avatarWidget(context),
       const Divider(),
       _profileWidget(context),
       const Divider(),
@@ -147,6 +145,31 @@ class _SettingsWidgetState extends State<_SettingsWidget> {
       _aboutWidget(context),
       const Divider(),
     ]);
+  }
+
+  Widget _avatarWidget(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Container(),
+            flex: 1,
+          ),
+          Container(
+            width: 64.0,
+            height: 64.0,
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(appConfiguration.firebaseUser.photoUrl),
+            ),
+          ),
+          Expanded(
+            child: Container(),
+            flex: 1,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _profileWidget(BuildContext context) {
