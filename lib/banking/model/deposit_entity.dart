@@ -110,7 +110,7 @@ class DepositEntity with ProxyUtils {
       case DepositStatusEnum.InProcess:
         return localizations.inProcess;
       case DepositStatusEnum.Completed:
-        return localizations.completed;
+        return localizations.deposited;
       case DepositStatusEnum.Cancelled:
         return localizations.cancelled;
       default:

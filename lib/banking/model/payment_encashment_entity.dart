@@ -126,7 +126,7 @@ class PaymentEncashmentEntity {
       case PaymentEncashmentStatusEnum.InProcess:
         return localizations.inProcess;
       case PaymentEncashmentStatusEnum.Processed:
-        return localizations.processedStatus;
+        return localizations.paymentEncashedStatus;
       case PaymentEncashmentStatusEnum.InsufficientFunds:
         return localizations.insufficientFundsStatus;
       case PaymentEncashmentStatusEnum.Expired:

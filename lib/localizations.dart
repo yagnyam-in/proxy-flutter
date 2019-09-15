@@ -1219,6 +1219,10 @@ class ProxyLocalizations {
   String get noContactsDescription => Intl.message('Add contacts to make payments faster');
 
   String get invalidInputsForEncashment => Intl.message('Not all mandatory fields are entered');
+
+  String get deposited => Intl.message('Deposited');
+
+  String get paymentEncashedStatus => Intl.message('Received');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {
