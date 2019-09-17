@@ -1223,6 +1223,10 @@ class ProxyLocalizations {
   String get deposited => Intl.message('Deposited');
 
   String get paymentEncashedStatus => Intl.message('Received');
+
+  String get verificationInProgress => Intl.message('Verification in progress');
+
+  String get challengeIndex => Intl.message('Challenge');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

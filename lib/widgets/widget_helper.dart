@@ -87,6 +87,7 @@ Future<String> acceptInputDialog(
                 autofocus: true,
                 decoration: new InputDecoration(labelText: fieldName),
                 keyboardType: keyboardType,
+
               ),
             )
           ],

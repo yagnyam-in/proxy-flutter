@@ -331,7 +331,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
       const SizedBox(height: 24.0),
       if (_hasPaymentToPhone) ..._acceptPaymentToPhoneWidget(context),
       if (_hasPaymentToEmail) ..._acceptPaymentToEmailWidget(context),
-      if (_hasPaymentToPhone || _hasPaymentToEmail || _hasPaymentBySecret) ..._acceptPaymentBySecretWidget(context),
+      if (_hasPaymentBySecret) ..._acceptPaymentBySecretWidget(context),
       ButtonBar(
         alignment: MainAxisAlignment.spaceAround,
         children: [

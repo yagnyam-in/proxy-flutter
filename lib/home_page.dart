@@ -4,6 +4,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/authorize_email_page.dart';
+import 'package:proxy_flutter/authorize_phone_number_page.dart';
 import 'package:proxy_flutter/banking/accept_payment_page.dart';
 import 'package:proxy_flutter/banking/db/deposit_store.dart';
 import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
@@ -21,7 +22,6 @@ import 'package:proxy_flutter/db/contact_store.dart';
 import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/modify_contact_page.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:quiver/strings.dart';
 
 import 'settings_page.dart';
@@ -37,10 +37,10 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState(appConfiguration);
 }
 
-class _HomePageState extends LoadingSupportState<HomePage> {
+class _HomePageState extends State<HomePage> {
   final ProxyVersion proxyVersion = ProxyVersion.latestVersion();
   final AppConfiguration appConfiguration;
-  bool loading = false;
+  bool _triggeredPhoneVerification = false;
 
   _HomePageState(this.appConfiguration) {
     print("build home page state with $appConfiguration");
@@ -51,7 +51,12 @@ class _HomePageState extends LoadingSupportState<HomePage> {
     super.initState();
     ServiceFactory.bootService().subscribeForAlerts();
     ServiceFactory.bootService().processPendingAlerts(appConfiguration);
+    if (isNotEmpty(appConfiguration.email)) {
+      ServiceFactory.emailAuthorizationService(appConfiguration).authorizeEmailIfNotAuthorized(appConfiguration.email);
+    }
     this.initDynamicLinks();
+    // Doesn't work
+    // WidgetsBinding.instance.addPostFrameCallback((_) => _triggerPhoneNumberVerification(context));
   }
 
   void initDynamicLinks() async {
@@ -80,7 +85,7 @@ class _HomePageState extends LoadingSupportState<HomePage> {
     } else if (link.path == '/actions/accept-payment') {
       _payment(link, link.queryParameters);
     } else if (link.path == '/actions/verify-email') {
-      invoke(() => _verifyEmail(link, link.queryParameters), name: 'Verify Email');
+      _verifyEmail(link, link.queryParameters);
     } else {
       print('ignoring $link');
     }
@@ -224,6 +229,19 @@ class _HomePageState extends LoadingSupportState<HomePage> {
     return BankingHome(
       appConfiguration,
       key: ValueKey(appConfiguration),
+    );
+  }
+
+  void _triggerPhoneNumberVerification(BuildContext context) async {
+    if (_triggeredPhoneVerification) {
+      return;
+    }
+    _triggeredPhoneVerification = true;
+    await Navigator.push(
+      context,
+      new MaterialPageRoute(
+        builder: (context) => AuthorizePhoneNumberPage.forPhoneNumber(appConfiguration, appConfiguration.phoneNumber),
+      ),
     );
   }
 }

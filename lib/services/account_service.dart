@@ -142,10 +142,11 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     );
     Proxy proxy = await _createProxy(proxyRequest);
     proxyKey = proxyKey.copyWith(id: proxy.id);
+    account = account.copy(masterProxyId: proxy.id);
     await Firestore.instance.runTransaction((transaction) async {
       var keyFuture = ProxyKeyStore.forAccount(account, passPhrase).insertProxyKey(proxyKey, transaction: transaction);
       var proxyFuture = ProxyStore(account).insertProxy(proxy, transaction: transaction);
-      var accountFuture = AccountStore().saveAccount(account.copy(masterProxyId: proxy.id), transaction: transaction);
+      var accountFuture = AccountStore().saveAccount(account, transaction: transaction);
       await Future.wait([keyFuture, proxyFuture, accountFuture]);
       return {};
     });
@@ -180,16 +181,40 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     String currency,
     String email,
     String phone,
+    int phoneVerificationIndex,
+    int emailVerificationIndex,
   }) async {
     AccountEntity updatedAccount = account.copy(
       name: name,
       email: email,
       phone: phone,
       preferredCurrency: currency,
+      phoneVerificationIndex: phoneVerificationIndex,
+      emailVerificationIndex: emailVerificationIndex,
     );
     await AccountStore().saveAccount(updatedAccount);
     appConfiguration.account = updatedAccount;
     return updatedAccount;
+  }
+
+  static Future<int> nextPhoneNumberVerificationIndex(
+    AppConfiguration appConfiguration,
+    [AccountEntity account]
+  ) async {
+    account = account ?? appConfiguration.account;
+    int nextPhoneVerificationIndex = (account.phoneVerificationIndex ?? 100) + 1;
+    await updatePreferences(appConfiguration, account, phoneVerificationIndex: nextPhoneVerificationIndex);
+    return nextPhoneVerificationIndex;
+  }
+
+  static Future<int> nextEmailVerificationIndex(
+    AppConfiguration appConfiguration,
+    [AccountEntity account]
+  ) async {
+    account = account ?? appConfiguration.account;
+    int nextEmailVerificationIndex = (account.emailVerificationIndex ?? 100) + 1;
+    await updatePreferences(appConfiguration, account, emailVerificationIndex: nextEmailVerificationIndex);
+    return nextEmailVerificationIndex;
   }
 
   Future<Proxy> _createProxy(ProxyRequest proxyRequest) {

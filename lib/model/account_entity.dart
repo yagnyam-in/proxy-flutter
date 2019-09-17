@@ -27,6 +27,12 @@ class AccountEntity {
   @JsonKey(nullable: true)
   String email;
 
+  @JsonKey(nullable: true)
+  int phoneVerificationIndex;
+
+  @JsonKey(nullable: true)
+  int emailVerificationIndex;
+
   AccountEntity({
     @required this.accountId,
     this.masterProxyId,
@@ -35,6 +41,8 @@ class AccountEntity {
     this.preferredCurrency,
     this.phone,
     this.email,
+    this.phoneVerificationIndex,
+    this.emailVerificationIndex,
   });
 
   AccountEntity copy({
@@ -43,6 +51,8 @@ class AccountEntity {
     String preferredCurrency,
     String phone,
     String email,
+    int phoneVerificationIndex,
+    int emailVerificationIndex,
   }) {
     return AccountEntity(
       accountId: this.accountId,
@@ -52,6 +62,8 @@ class AccountEntity {
       preferredCurrency: preferredCurrency ?? this.preferredCurrency,
       phone: phone ?? this.phone,
       email: email ?? this.email,
+      phoneVerificationIndex: phoneVerificationIndex ?? this.phoneVerificationIndex,
+      emailVerificationIndex: emailVerificationIndex ?? this.emailVerificationIndex,
     );
   }
 

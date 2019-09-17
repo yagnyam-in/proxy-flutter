@@ -10,8 +10,8 @@ import 'package:proxy_flutter/model/contact_entity.dart';
 import 'package:proxy_flutter/model/enticement.dart';
 import 'package:proxy_flutter/modify_contact_page.dart';
 import 'package:proxy_flutter/services/enticement_service.dart';
+import 'package:proxy_flutter/utils/data_validations.dart';
 import 'package:proxy_flutter/widgets/widget_helper.dart';
-import 'package:quiver/strings.dart';
 import 'package:uuid/uuid.dart';
 
 mixin EnticementHelper {
@@ -138,10 +138,13 @@ mixin EnticementHelper {
       context,
       pageTitle: localizations.authorizePhoneNumber,
       fieldName: localizations.customerPhone,
+      fieldInitialValue: '+',
     );
-    if (isNotEmpty(phoneNumber)) {
+    if (isPhoneNumber(phoneNumber)) {
       _dismissEnticement(context, enticement);
       verifyPhoneNumber(context, phoneNumber);
+    } else if (phoneNumber != null) {
+      showToast(localizations.invalidPhoneNumber);
     }
   }
 
@@ -152,9 +155,11 @@ mixin EnticementHelper {
       pageTitle: localizations.authorizeEmail,
       fieldName: localizations.customerEmail,
     );
-    if (isNotEmpty(email)) {
+    if (isEmailAddress(email)) {
       _dismissEnticement(context, enticement);
       verifyEmail(context, email);
+    } else if (email != null) {
+      showToast(localizations.invalidEmailAddress);
     }
   }
 

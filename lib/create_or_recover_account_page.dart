@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/app_configuration_bloc.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:quiver/strings.dart';
 
 import 'config/app_configuration.dart';
 import 'db/user_store.dart';

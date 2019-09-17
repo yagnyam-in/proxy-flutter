@@ -9,6 +9,8 @@ import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:quiver/strings.dart';
 
+typedef SecretCallback = void Function(String secret);
+
 class AuthorizeEmailPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
   final EmailAuthorizationEntity authorization;
@@ -63,6 +65,23 @@ class AuthorizeEmailPageState extends LoadingSupportState<AuthorizeEmailPage> wi
     ));
   }
 
+  Future<void> _verifyEmail(String secret) async {
+    print("Verify email");
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+    showToast(localizations.verificationInProgress);
+    final authorization = await invoke(
+      () async => ServiceFactory.emailAuthorizationService(appConfiguration).verifyAuthorizationChallenge(
+        authorizationEntity: widget.authorization ??
+            await EmailAuthorizationStore(appConfiguration).fetchAuthorizationById(authorizationId),
+        secret: secret,
+      ),
+      name: 'Verify Email',
+    );
+    if (authorization == null || !authorization.authorized) {
+      showToast(localizations.emailAuthorizationFailedDescription);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
@@ -84,7 +103,9 @@ class AuthorizeEmailPageState extends LoadingSupportState<AuthorizeEmailPage> wi
               scaffoldKey: _scaffoldKey,
               appConfiguration: appConfiguration,
               authorization: authorization,
+              secretCallback: _verifyEmail,
               secret: widget.secret,
+              key: ObjectKey(authorization),
             ),
           ),
         ),
@@ -97,6 +118,7 @@ class _AuthorizeEmailPageBody extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   final AppConfiguration appConfiguration;
   final EmailAuthorizationEntity authorization;
+  final SecretCallback secretCallback;
   final String secret;
 
   const _AuthorizeEmailPageBody({
@@ -104,6 +126,7 @@ class _AuthorizeEmailPageBody extends StatefulWidget {
     @required this.scaffoldKey,
     @required this.appConfiguration,
     @required this.authorization,
+    @required this.secretCallback,
     this.secret,
   }) : super(key: key);
 
@@ -119,7 +142,8 @@ class _AuthorizeEmailPageBody extends StatefulWidget {
 
 class _AuthorizeEmailPageBodyState extends State<_AuthorizeEmailPageBody> {
   final AppConfiguration appConfiguration;
-  EmailAuthorizationEntity authorization;
+  final EmailAuthorizationEntity authorization;
+  bool _verificationTriggered = false;
   final String secret;
 
   _AuthorizeEmailPageBodyState({
@@ -132,11 +156,11 @@ class _AuthorizeEmailPageBodyState extends State<_AuthorizeEmailPageBody> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _verifyEmail(context));
   }
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _verifyEmail(context));
     ThemeData themeData = Theme.of(context);
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return ListView(
@@ -174,28 +198,21 @@ class _AuthorizeEmailPageBodyState extends State<_AuthorizeEmailPageBody> {
   }
 
   Future<void> _verifyEmail(BuildContext context) async {
-    if (authorization.authorized || isEmpty(secret)) {
+    if (_verificationTriggered || authorization.authorized) {
       return;
     }
     print("Verify email");
+    _verificationTriggered = true;
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    final authorizationEntity =
-        await ServiceFactory.emailAuthorizationService(appConfiguration).verifyAuthorizationChallenge(
-      authorizationEntity: authorization,
-      secret: secret,
-    );
-    if (authorizationEntity != null) {
-      setState(() {
-        authorization = authorizationEntity;
-      });
+    if (isEmpty(secret)) {
+      _showToast(localizations.invalidSecret);
+      return;
     }
-    if (authorizationEntity == null || !authorizationEntity.authorized) {
-      _showMessage(localizations.emailAuthorizationFailedDescription);
-    }
+    widget.secretCallback(secret);
   }
 
-  void _showMessage(String message) {
-    Scaffold.of(context).showSnackBar(
+  void _showToast(String message) {
+    widget.scaffoldKey.currentState.showSnackBar(
       SnackBar(
         content: Text(message),
         duration: Duration(seconds: 3),

@@ -9,6 +9,7 @@ import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/authorization.dart';
 import 'package:uuid/uuid.dart';
 
+import 'account_service.dart';
 import 'service_helper.dart';
 
 class PhoneNumberAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils {
@@ -32,13 +33,15 @@ class PhoneNumberAuthorizationService with ProxyUtils, HttpClientUtils, ServiceH
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client;
 
   Future<PhoneNumberAuthorizationEntity> authorizePhoneNumber(String phoneNumber) async {
+    int verificationIndex = await AccountService.nextPhoneNumberVerificationIndex(appConfiguration);
+    print("Triggering Verification for $phoneNumber with Challenge $verificationIndex");
     PhoneNumberAuthorizationRequest request = PhoneNumberAuthorizationRequest(
       authorizationId: uuidFactory.v4(),
       requesterProxyId: appConfiguration.masterProxyId,
       phoneNumber: phoneNumber,
       authorizerProxyId: Constants.PROXY_APP_BACKEND_PROXY_ID,
+      index: "$verificationIndex",
     );
-
     final signedRequest = await signMessage(
       signer: request.requesterProxyId,
       request: request,
@@ -48,15 +51,16 @@ class PhoneNumberAuthorizationService with ProxyUtils, HttpClientUtils, ServiceH
       signedRequest: signedRequest,
       responseParser: PhoneNumberAuthorizationChallenge.fromJson,
     );
+    print("Received ${signedChallenge.message} from $appBackendUrl");
     PhoneNumberAuthorizationEntity authorizationEntity = PhoneNumberAuthorizationEntity(
       authorizationId: request.requestId,
       proxyId: request.requesterProxyId,
       phoneNumber: phoneNumber,
       challenge: signedChallenge,
+      verificationIndex: "$verificationIndex",
       authorized: false,
     );
     await _phoneNumberAuthorizationStore.saveAuthorization(authorizationEntity);
-    // print("Received $signedResponse from $appBackendUrl");
     return authorizationEntity;
   }
 
@@ -94,5 +98,17 @@ class PhoneNumberAuthorizationService with ProxyUtils, HttpClientUtils, ServiceH
     print("Saving authorization $authorizationEntity to db");
     await _phoneNumberAuthorizationStore.saveAuthorization(authorizationEntity);
     return authorizationEntity;
+  }
+
+  Future<void> authorizePhoneNumberIfNotAuthorized(String phoneNumber) async {
+    final authorization = await _phoneNumberAuthorizationStore.fetchActiveAuthorizationByPhoneNumber(
+      phoneNumber: phoneNumber,
+      proxyId: appConfiguration.masterProxyId,
+    );
+    if (authorization != null) {
+      print("$phoneNumber is alraedy authorized.");
+      return;
+    }
+    authorizePhoneNumber(phoneNumber);
   }
 }

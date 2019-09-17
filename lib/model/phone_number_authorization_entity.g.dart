@@ -15,6 +15,7 @@ PhoneNumberAuthorizationEntity _$PhoneNumberAuthorizationEntityFromJson(
     challenge: PhoneNumberAuthorizationChallenge.signedMessageFromJson(
         json['challenge'] as Map),
     authorized: json['authorized'] as bool,
+    verificationIndex: json['verificationIndex'] as String,
     authorization: PhoneNumberAuthorization.signedMessageFromJson(
         json['authorization'] as Map),
     validFrom: json['validFrom'] == null
@@ -45,5 +46,6 @@ Map<String, dynamic> _$PhoneNumberAuthorizationEntityToJson(
   val['authorized'] = instance.authorized;
   writeNotNull('validFrom', instance.validFrom?.toIso8601String());
   writeNotNull('validTill', instance.validTill?.toIso8601String());
+  writeNotNull('verificationIndex', instance.verificationIndex);
   return val;
 }

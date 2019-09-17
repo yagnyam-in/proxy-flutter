@@ -6,6 +6,7 @@ import 'package:proxy_flutter/db/email_authorization_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/email_authorization_entity.dart';
 import 'package:proxy_flutter/widgets/widget_helper.dart';
+import 'package:quiver/strings.dart';
 
 import 'authorize_email_page.dart';
 import 'authorize_phone_number_page.dart';
@@ -17,6 +18,7 @@ import 'widgets/async_helper.dart';
 import 'widgets/authorization_card.dart';
 import 'widgets/enticement_helper.dart';
 import 'widgets/loading.dart';
+
 
 class AuthorizationsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
@@ -237,7 +239,7 @@ class AuthorizationsPageState extends LoadingSupportState<AuthorizationsPage>
       await verifyPhoneNumber(context, mailOrPhoneNumber);
     } else if (isEmailAddress(mailOrPhoneNumber)) {
       await verifyEmail(context, mailOrPhoneNumber);
-    } else {
+    } else if (mailOrPhoneNumber != null) {
       showToast(localizations.invalidEmailOrPhoneNumber);
     }
   }

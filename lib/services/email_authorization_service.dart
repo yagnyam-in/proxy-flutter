@@ -5,6 +5,7 @@ import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/constants.dart';
 import 'package:proxy_flutter/db/email_authorization_store.dart';
 import 'package:proxy_flutter/model/email_authorization_entity.dart';
+import 'package:proxy_flutter/services/account_service.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/authorization.dart';
 import 'package:uuid/uuid.dart';
@@ -32,11 +33,13 @@ class EmailAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelper,
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client;
 
   Future<void> authorizeEmailAddress(String email) async {
+    int verificationIndex = await AccountService.nextEmailVerificationIndex(appConfiguration);
     EmailAuthorizationRequest request = EmailAuthorizationRequest(
       authorizationId: uuidFactory.v4(),
       requesterProxyId: appConfiguration.masterProxyId,
       email: email,
       authorizerProxyId: Constants.PROXY_APP_BACKEND_PROXY_ID,
+      index: "$verificationIndex",
     );
 
     final signedRequest = await signMessage(
@@ -53,6 +56,7 @@ class EmailAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelper,
       proxyId: request.requesterProxyId,
       email: email,
       challenge: signedChallenge,
+      verificationIndex: "$verificationIndex",
       authorized: false,
     );
     await _emailAuthorizationStore.saveAuthorization(authorizationEntity);
@@ -93,5 +97,17 @@ class EmailAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelper,
     print("Saving authorization $authorizationEntity to db");
     await _emailAuthorizationStore.saveAuthorization(authorizationEntity);
     return authorizationEntity;
+  }
+
+  Future<void> authorizeEmailIfNotAuthorized(String email) async {
+    final authorization = await _emailAuthorizationStore.fetchActiveAuthorizationByEmail(
+      email: email,
+      proxyId: appConfiguration.masterProxyId,
+    );
+    if (authorization != null) {
+      print("$email is alraedy authorized.");
+      return;
+    }
+    authorizeEmailAddress(email);
   }
 }

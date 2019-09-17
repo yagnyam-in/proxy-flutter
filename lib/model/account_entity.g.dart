@@ -17,6 +17,8 @@ AccountEntity _$AccountEntityFromJson(Map json) {
     preferredCurrency: json['preferredCurrency'] as String,
     phone: json['phone'] as String,
     email: json['email'] as String,
+    phoneVerificationIndex: json['phoneVerificationIndex'] as int,
+    emailVerificationIndex: json['emailVerificationIndex'] as int,
   );
 }
 
@@ -37,5 +39,7 @@ Map<String, dynamic> _$AccountEntityToJson(AccountEntity instance) {
   writeNotNull('preferredCurrency', instance.preferredCurrency);
   writeNotNull('phone', instance.phone);
   writeNotNull('email', instance.email);
+  writeNotNull('phoneVerificationIndex', instance.phoneVerificationIndex);
+  writeNotNull('emailVerificationIndex', instance.emailVerificationIndex);
   return val;
 }

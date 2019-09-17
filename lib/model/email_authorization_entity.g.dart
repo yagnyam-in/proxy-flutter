@@ -14,6 +14,7 @@ EmailAuthorizationEntity _$EmailAuthorizationEntityFromJson(Map json) {
     challenge: EmailAuthorizationChallenge.signedMessageFromJson(
         json['challenge'] as Map),
     authorized: json['authorized'] as bool,
+    verificationIndex: json['verificationIndex'] as String,
     authorization:
         EmailAuthorization.signedMessageFromJson(json['authorization'] as Map),
     validFrom: json['validFrom'] == null
@@ -44,5 +45,6 @@ Map<String, dynamic> _$EmailAuthorizationEntityToJson(
   val['authorized'] = instance.authorized;
   writeNotNull('validFrom', instance.validFrom?.toIso8601String());
   writeNotNull('validTill', instance.validTill?.toIso8601String());
+  writeNotNull('verificationIndex', instance.verificationIndex);
   return val;
 }

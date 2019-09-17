@@ -32,12 +32,16 @@ class PhoneNumberAuthorizationEntity {
   @JsonKey(nullable: true)
   final DateTime validTill;
 
+  @JsonKey(nullable: true)
+  final String verificationIndex;
+
   PhoneNumberAuthorizationEntity({
     @required this.authorizationId,
     @required this.proxyId,
     @required this.phoneNumber,
     @required this.challenge,
     @required this.authorized,
+    this.verificationIndex,
     this.authorization,
     this.validFrom,
     this.validTill,
@@ -69,6 +73,25 @@ class PhoneNumberAuthorizationEntity {
       "authorized: $authorized, "
       "validTill: $validTill"
       ")";
+
+  @override
+  bool operator ==(dynamic other) {
+    if (other is PhoneNumberAuthorizationEntity) {
+      return this.authorizationId == other.authorizationId &&
+          this.proxyId == other.proxyId &&
+          this.phoneNumber == other.phoneNumber &&
+          this.challenge == other.challenge &&
+          this.validFrom == other.validFrom &&
+          this.validTill == other.validTill &&
+          this.authorized == other.authorized;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return authorizationId == null ? 0 : authorizationId.hashCode;
+  }
 
   Map<String, dynamic> toJson() => _$PhoneNumberAuthorizationEntityToJson(this);
 

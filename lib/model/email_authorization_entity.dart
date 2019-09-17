@@ -32,12 +32,16 @@ class EmailAuthorizationEntity {
   @JsonKey(nullable: true)
   final DateTime validTill;
 
+  @JsonKey(nullable: true)
+  final String verificationIndex;
+
   EmailAuthorizationEntity({
     @required this.authorizationId,
     @required this.proxyId,
     @required this.email,
     @required this.challenge,
     @required this.authorized,
+    this.verificationIndex,
     this.authorization,
     this.validFrom,
     this.validTill,
@@ -69,6 +73,25 @@ class EmailAuthorizationEntity {
       "authorized: $authorized, "
       "validTill: $validTill"
       ")";
+
+  @override
+  bool operator ==(dynamic other) {
+    if (other is EmailAuthorizationEntity) {
+      return this.authorizationId == other.authorizationId &&
+          this.proxyId == other.proxyId &&
+          this.email == other.email &&
+          this.challenge == other.challenge &&
+          this.validFrom == other.validFrom &&
+          this.validTill == other.validTill &&
+          this.authorized == other.authorized;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return authorizationId == null ? 0 : authorizationId.hashCode;
+  }
 
   Map<String, dynamic> toJson() => _$EmailAuthorizationEntityToJson(this);
 
