@@ -345,6 +345,7 @@ class _AuthorizePhoneNumberPageBodyState extends LoadingSupportState<_AuthorizeP
             keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
             textInputAction: TextInputAction.done,
             textAlign: TextAlign.center,
+            style: themeData.textTheme.title,
           ),
         ),
       ),

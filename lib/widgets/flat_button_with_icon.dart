@@ -50,7 +50,7 @@ class FlatButtonWithIcon extends FlatButton with MaterialButtonWithIconMixin {
           materialTapTargetSize: materialTapTargetSize,
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: iconPosition == _IconPosition.First
+            children: iconPosition == _IconPosition.Last
                 ? <Widget>[
                     label,
                     const SizedBox(width: 8.0),
@@ -89,6 +89,6 @@ class FlatButtonWithIcon extends FlatButton with MaterialButtonWithIconMixin {
         onPressed: onPressed,
         icon: icon,
         label: label,
-        iconPosition: _IconPosition.Last,
+        iconPosition: _IconPosition.First,
       );
 }

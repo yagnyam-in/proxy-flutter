@@ -7,6 +7,7 @@ import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/constants.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/services/app_configuration_bloc.dart';
+import 'package:proxy_flutter/services/login_helper.dart';
 import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/link_text_span.dart';
@@ -15,34 +16,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/service_factory.dart';
 
-class EmailLinkLoginPage extends StatefulWidget {
+class MiscLoginMethodsPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
 
-  EmailLinkLoginPage(
+  MiscLoginMethodsPage(
     this.appConfiguration, {
     Key key,
   }) : super(key: key) {
-    print("Constructing EmailLinkLoginPage");
+    print("Constructing MiscLoginMethodsPage");
   }
 
   @override
-  _EmailLinkLoginPageState createState() => _EmailLinkLoginPageState(appConfiguration);
+  _MiscLoginMethodsPageState createState() => _MiscLoginMethodsPageState(appConfiguration);
 }
 
-class _EmailLinkLoginPageState extends LoadingSupportState<EmailLinkLoginPage> with WidgetsBindingObserver {
+class _MiscLoginMethodsPageState extends LoadingSupportState<MiscLoginMethodsPage> with LoginHelper {
   final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   String loginFailedMessage;
   String status;
+
+  @override
   bool loading = false;
 
-  _EmailLinkLoginPageState(this.appConfiguration);
+  _MiscLoginMethodsPageState(this.appConfiguration);
 
+  @override
+  void showMessage(String message) {
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  @override
   void showError(String message) {
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text(message),
-      duration: Duration(seconds: 3),
-    ));
+    showMessage(message);
   }
 
   @override
@@ -52,28 +63,22 @@ class _EmailLinkLoginPageState extends LoadingSupportState<EmailLinkLoginPage> w
   }
 
   void initDynamicLinks() async {
-    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.getInitialLink();
-    final Uri deepLink = data?.link;
-    if (deepLink != null) {
-      _handleDynamicLinks(deepLink);
-    }
-    FirebaseDynamicLinks.instance.onLink(onSuccess: (PendingDynamicLinkData dynamicLink) async {
-      final Uri deepLink = dynamicLink?.link;
-      if (deepLink != null) {
-        _handleDynamicLinks(deepLink);
-      }
-    }, onError: (OnLinkErrorException e) async {
-      print('initDynamicLinks: ${e.message}');
-    });
-  }
-
-  Future<void> _handleDynamicLinks(Uri link) async {
-    if (link == null) return;
-    print('link = $link');
-    bool isLoginLink = await FirebaseAuth.instance.isSignInWithEmailLink(link.toString());
-    if (isLoginLink) {
-      _login(link);
-    }
+    FirebaseDynamicLinks.instance.getInitialLink().then(
+          (dynamicLink) {
+        handleLoginDynamicLinks(dynamicLink?.link);
+      },
+      onError: (e) {
+        print('failure getting initial link: $e');
+      },
+    );
+    FirebaseDynamicLinks.instance.onLink(
+      onSuccess: (dynamicLink) async {
+        handleLoginDynamicLinks(dynamicLink?.link);
+      },
+      onError: (e) async {
+        print('failure getting dynamic link: ${e.message}');
+      },
+    );
   }
 
   @override
@@ -185,7 +190,7 @@ class _SignUpFormState extends LoadingSupportState<_SignUpForm> {
             const SizedBox(height: 16.0),
             TextFormField(
               controller: _emailController,
-              autofocus: true,
+              // autofocus: true,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(labelText: localizations.emailInputLabel),
               validator: (String value) {

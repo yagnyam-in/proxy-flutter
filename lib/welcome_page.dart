@@ -1,13 +1,16 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
-import 'package:proxy_flutter/services/app_configuration_bloc.dart';
+import 'package:proxy_flutter/misc_login_methods_page.dart';
+import 'package:proxy_flutter/services/login_helper.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
 
 import 'config/app_configuration.dart';
+import 'widgets/async_helper.dart';
+import 'widgets/flat_button_with_icon.dart';
+import 'widgets/loading.dart';
+import 'widgets/routing_animation.dart';
 
 enum LoginMode { EmailLink, GoogleSignIn }
 
@@ -22,44 +25,59 @@ class WelcomePage extends StatefulWidget {
   }
 }
 
-class _WelcomePageState extends State<WelcomePage> {
+class _WelcomePageState extends LoadingSupportState<WelcomePage> with LoginHelper {
+  static const String EMAIL_PREFERENCE_NAME = 'email';
+  static const String PHONE_NUMBER_PREFERENCE_NAME = 'phoneNumber';
+
   final AppConfiguration appConfiguration;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-
-  LoginMode _loginMode;
+  @override
+  bool loading = false;
 
   _WelcomePageState(this.appConfiguration);
 
   @override
   void initState() {
     super.initState();
+    initDynamicLinks();
     ServiceFactory.bootService().warmUpBackends();
+  }
+
+  void initDynamicLinks() async {
+    FirebaseDynamicLinks.instance.getInitialLink().then(
+      (dynamicLink) {
+        handleLoginDynamicLinks(dynamicLink?.link);
+      },
+      onError: (e) {
+        print('failure getting initial link: $e');
+      },
+    );
+    FirebaseDynamicLinks.instance.onLink(
+      onSuccess: (dynamicLink) async {
+        handleLoginDynamicLinks(dynamicLink?.link);
+      },
+      onError: (e) async {
+        print('failure getting dynamic link: ${e.message}');
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      body: Center(
-        child: _body(context),
-      ),
-    );
-  }
-
-  Widget _body(BuildContext context) {
-    if (_loginMode == LoginMode.EmailLink) {}
-    return _welcomePage(context);
-  }
-
-  Widget _welcomePage(BuildContext context) => SingleChildScrollView(
+      body: BusyChildWidget(
+        loading: loading,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             _welcomeHeader(context),
             _loginButtons(context),
           ],
         ),
-      );
+      ),
+    );
+  }
 
   Widget _welcomeHeader(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
@@ -91,57 +109,75 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   Widget _loginButtons(BuildContext context) {
+    bool enableMiscLogin = false;
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-
-    return Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.symmetric(vertical: 60.0),
-            width: double.infinity,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                RaisedButton(
-                  padding: EdgeInsets.fromLTRB(24, 12, 24, 12),
-                  shape: StadiumBorder(),
-                  child: Text(
-                    localizations.signInWithGoogle,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: _googleSignIn,
-                ),
-              ],
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            RaisedButton(
+              padding: EdgeInsets.fromLTRB(24, 12, 24, 12),
+              shape: StadiumBorder(),
+              child: Text(
+                localizations.signInWithGoogle,
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () => _googleSignIn(context),
             ),
-          ),
-        ],
+          ],
+        ),
+        if (enableMiscLogin) SizedBox(height: 32.0),
+        if (enableMiscLogin) Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            FlatButtonWithIcon.withSuffixIcon(
+              label: Text(
+                localizations.signInWithMailOrMobile,
+                style: TextStyle(color: Colors.white),
+              ),
+              icon: Icon(Icons.fast_forward),
+              onPressed: () => _signInWithMailOrMobile(context),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _googleSignIn(BuildContext context) async {
+    final accepted = await acceptTermsAndConditions(context);
+    if (accepted != null && accepted) {
+      googleSignIn(context);
+    }
+  }
+
+  void _signInWithMailOrMobile(BuildContext context) async {
+    await Navigator.push(
+      context,
+      new ScaleRoute(
+        page: MiscLoginMethodsPage(
+          appConfiguration,
+        ),
       ),
     );
   }
 
-  void _googleSignIn() async {
-    final GoogleSignIn _googleSignIn = GoogleSignIn();
-    final FirebaseAuth _auth = FirebaseAuth.instance;
+  @override
+  void showError(String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 3),
+    ));
+  }
 
-    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    final AuthResult authResult = await _auth.signInWithCredential(credential);
-    final FirebaseUser firebaseUser = authResult?.user;
-
-    if (firebaseUser != null) {
-      UserEntity appUser = await ServiceFactory.registerService().registerUser(firebaseUser);
-      print("signed in " + appUser.name);
-      AppConfigurationBloc.instance.refresh();
-    } else {
-      print("failed to signIn");
-    }
+  @override
+  void showMessage(String message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 3),
+    ));
   }
 }

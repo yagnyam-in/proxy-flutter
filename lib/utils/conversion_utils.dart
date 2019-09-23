@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
-import 'package:quiver/strings.dart';
 
 class ConversionUtils {
   static T stringToEnum<T>(

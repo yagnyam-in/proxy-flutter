@@ -1080,6 +1080,10 @@ class ProxyLocalizations {
 
   String get signInWithGoogle => Intl.message('SignIn with Google');
 
+  String get signInWithMailOrMobile => Intl.message("Other SignIn Methods");
+
+  String get signInButtonLabel => Intl.message('SignIn');
+
   String get appWelcomeTitle => Intl.message('Welcome to ProMo');
 
   String get appWelcomeSubTitle => Intl.message('program your money');
@@ -1185,6 +1189,8 @@ class ProxyLocalizations {
 
   String get emailOrPhoneNumber => Intl.message('Email or Phone Number');
 
+  String get signInDialogTitle => Intl.message("SignIn");
+
   String get invalidEmailOrPhoneNumber => Intl.message('Invalid email/phone number. Phone Number must start with +');
 
   String get enterVerificationCode => Intl.message('Verification Code');
@@ -1227,6 +1233,8 @@ class ProxyLocalizations {
   String get verificationInProgress => Intl.message('Verification in progress');
 
   String get challengeIndex => Intl.message('Challenge');
+
+  String get acceptTermsAndConditionsButtonLabel => Intl.message('Agree');
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

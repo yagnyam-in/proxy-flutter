@@ -301,6 +301,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
   }
 
   List<Widget> _acceptPaymentBySecretWidget(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     return [
       const SizedBox(height: 24.0),
@@ -318,6 +319,7 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
             maxLines: 1,
             keyboardType: TextInputType.visiblePassword,
             textAlign: TextAlign.center,
+            style: themeData.textTheme.title,
           ),
         ),
       ),

@@ -6,7 +6,6 @@ import 'package:proxy_flutter/db/email_authorization_store.dart';
 import 'package:proxy_flutter/localizations.dart';
 import 'package:proxy_flutter/model/email_authorization_entity.dart';
 import 'package:proxy_flutter/widgets/widget_helper.dart';
-import 'package:quiver/strings.dart';
 
 import 'authorize_email_page.dart';
 import 'authorize_phone_number_page.dart';
