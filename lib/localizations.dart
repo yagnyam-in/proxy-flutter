@@ -1235,6 +1235,28 @@ class ProxyLocalizations {
   String get challengeIndex => Intl.message('Challenge');
 
   String get acceptTermsAndConditionsButtonLabel => Intl.message('Agree');
+
+  String get updateAppAction => Intl.message('Upgrade');
+
+  String get newVersionOfAppAvailable => Intl.message('You need to upgrade the app to latest Version.');
+
+  String get androidPlayStoreName => Intl.message('PlayStore');
+
+  String get iosAppStoreName => Intl.message('AppStore');
+
+  String get unsupportedPlatform => Intl.message("Last time we checked, we don't support this platform yet.");
+
+  String upgradeOnStore(String storeName) {
+    return Intl.message(
+      'Upgrade on $storeName',
+      name: 'upgradeOnStore',
+      args: [storeName],
+      desc: 'Ask user to upgrade app by opening appstore or playstore',
+      examples: {
+        'storeName': 'PlayStore',
+      },
+    );
+  }
 }
 
 class ProxyLocalizationsDelegate extends LocalizationsDelegate<ProxyLocalizations> {

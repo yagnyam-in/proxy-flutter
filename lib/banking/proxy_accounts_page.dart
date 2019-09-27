@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:proxy_core/core.dart';
@@ -16,6 +18,7 @@ import 'package:proxy_flutter/model/enticement.dart';
 import 'package:proxy_flutter/services/enticement_factory.dart';
 import 'package:proxy_flutter/services/enticement_service.dart';
 import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:proxy_flutter/services/upgrade_helper.dart';
 import 'package:proxy_flutter/widgets/async_helper.dart';
 import 'package:proxy_flutter/widgets/enticement_helper.dart';
 import 'package:proxy_flutter/widgets/loading.dart';
@@ -54,7 +57,8 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         PaymentAuthorizationHelper,
         WithdrawalHelper,
         AccountHelper,
-        AuthorizationsHelper {
+        AuthorizationsHelper,
+        UpgradeHelper {
   static const String DEPOSIT = "deposit";
   static const String CONTACTS = "contacts";
   final AppConfiguration appConfiguration;
@@ -65,6 +69,7 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
   Stream<List<ProxyAccountEntity>> _proxyAccountsStream;
   Stream<List<Enticement>> _enticementsStream;
   bool loading = false;
+  Timer _newVersionCheckTimer;
 
   _ProxyAccountsPageState(this.appConfiguration, this.changeHomePage);
 
@@ -74,18 +79,24 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     _proxyAccountsStream = ProxyAccountStore(appConfiguration).subscribeForAccounts();
     _enticementsStream = EnticementService(appConfiguration).subscribeForFirstEnticement();
     ServiceFactory.bootService().warmUpBackends();
+    _newVersionCheckTimer = Timer(const Duration(milliseconds: 5000), () => checkForUpdates(context));
   }
 
   @override
   void dispose() {
     super.dispose();
+    if (_newVersionCheckTimer != null) {
+      _newVersionCheckTimer.cancel();
+    }
   }
 
   void showToast(String message) {
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text(message),
-      duration: Duration(seconds: 3),
-    ));
+    showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   List<ActionMenuItem> actions(BuildContext context) {
@@ -260,5 +271,10 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     } else {
       print("Unknown action $action");
     }
+  }
+
+  @override
+  void showSnackBar(SnackBar snackbar) {
+    _scaffoldKey.currentState.showSnackBar(snackbar);
   }
 }
