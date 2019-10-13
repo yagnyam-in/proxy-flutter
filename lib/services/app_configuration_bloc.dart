@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_flutter/config/app_configuration.dart';
 import 'package:proxy_flutter/db/account_store.dart';
 import 'package:proxy_flutter/db/user_store.dart';
@@ -56,7 +57,8 @@ class AppConfigurationBloc {
     UserEntity appUser;
     AccountEntity account;
     String passPhrase = await AppConfiguration.fetchPassPhrase();
-    String proxyUniverse = await AppConfiguration.fetchProxyUniverse();
+    // To prompt Proxy Universe, don't default proxyUniverse
+    String proxyUniverse = await AppConfiguration.fetchProxyUniverse() ?? ProxyUniverse.PRODUCTION;
     String deviceId = await AppConfiguration.fetchDeviceId();
     if (firebaseUser != null) {
       appUser = await UserStore.forUser(firebaseUser).fetchUser();

@@ -45,7 +45,7 @@ class _ChooseProxyUniverseState extends State<ChooseProxyUniverse> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             _welcomeHeader(context),
-            _loginButtons(context),
+            _proxyUniverseButtons(context),
           ],
         ),
       );
@@ -71,7 +71,7 @@ class _ChooseProxyUniverseState extends State<ChooseProxyUniverse> {
     );
   }
 
-  Widget _loginButtons(BuildContext context) {
+  Widget _proxyUniverseButtons(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     ThemeData theme = Theme.of(context);
     return Container(
