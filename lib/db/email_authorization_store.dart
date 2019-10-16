@@ -36,16 +36,29 @@ class EmailAuthorizationStore with ProxyUtils, FirestoreUtils {
     return _documentSnapshotToAuthorization(doc);
   }
 
-  Future<EmailAuthorizationEntity> fetchActiveAuthorizationByEmail({
+  Future<EmailAuthorizationEntity> fetchAuthorizationByEmail({
     @required String email,
     @required ProxyId proxyId,
   }) async {
     DocumentSnapshot snapshot = await _refByEmailAndProxyId(email, proxyId).get();
     EmailAuthorizationEntity authorization = _documentSnapshotToAuthorization(snapshot);
     if (authorization != null &&
-        authorization.authorized &&
         authorization.validFrom.isBefore(DateTime.now()) &&
         authorization.validTill.isAfter(DateTime.now())) {
+      return authorization;
+    }
+    return null;
+  }
+
+  Future<EmailAuthorizationEntity> fetchActiveAuthorizationByEmail({
+    @required String email,
+    @required ProxyId proxyId,
+  }) async {
+    EmailAuthorizationEntity authorization = await fetchAuthorizationByEmail(
+      email: email,
+      proxyId: proxyId,
+    );
+    if (authorization != null && authorization.authorized) {
       return authorization;
     }
     return null;

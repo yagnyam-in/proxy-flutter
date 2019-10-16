@@ -99,7 +99,7 @@ class EmailAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelper,
     return authorizationEntity;
   }
 
-  Future<void> authorizeEmailIfNotAuthorized(String email) async {
+  Future<void> authorizeEmailIfNotRequestedAlready(String email) async {
     final authorization = await _emailAuthorizationStore.fetchActiveAuthorizationByEmail(
       email: email,
       proxyId: appConfiguration.masterProxyId,

@@ -52,7 +52,8 @@ class _HomePageState extends State<HomePage> {
     ServiceFactory.bootService().subscribeForAlerts();
     ServiceFactory.bootService().processPendingAlerts(appConfiguration);
     if (isNotEmpty(appConfiguration.email)) {
-      ServiceFactory.emailAuthorizationService(appConfiguration).authorizeEmailIfNotAuthorized(appConfiguration.email);
+      ServiceFactory.emailAuthorizationService(appConfiguration)
+          .authorizeEmailIfNotRequestedAlready(appConfiguration.email);
     }
     this.initDynamicLinks();
     // Doesn't work
