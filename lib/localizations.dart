@@ -22,9 +22,9 @@ class ProxyLocalizations {
 
   String get title {
     return Intl.message(
-      'Proxy',
+      'ProMo',
       name: 'title',
-      desc: 'Title for the Proxy application',
+      desc: 'Title for the ProMo application',
     );
   }
 
@@ -32,7 +32,7 @@ class ProxyLocalizations {
     return Intl.message(
       'Start',
       name: 'getStarted',
-      desc: 'Title for starting with Proxy application',
+      desc: 'Title for starting with ProMo application',
     );
   }
 
@@ -40,7 +40,7 @@ class ProxyLocalizations {
     return Intl.message(
       'Error Starting Up',
       name: 'startupError',
-      desc: 'Error while starting up Proxy application',
+      desc: 'Error while starting up ProMo application',
     );
   }
 

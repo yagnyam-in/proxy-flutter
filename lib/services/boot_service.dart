@@ -9,10 +9,9 @@ class BootService with ProxyUtils, HttpClientUtils, DebugUtils {
   final HttpClientFactory httpClientFactory;
 
   BootService({
-    String proxyCentralHealthCheck,
-    String proxyBankingHealthCheck,
+    String backendHealthCheck,
     HttpClientFactory httpClientFactory,
-  })  : backendHealthCheck = proxyCentralHealthCheck ?? "https://app.pxy.yagnyam.in/health-check",
+  })  : backendHealthCheck = backendHealthCheck ?? "https://app.pxy.yagnyam.in/health-check",
         httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
     assert(isNotEmpty(this.backendHealthCheck));
   }
