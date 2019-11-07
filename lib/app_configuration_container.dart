@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:promo/config/app_configuration.dart';
 
 class _AppConfigurationContainer extends StatefulWidget {
   final AppConfiguration appConfiguration;

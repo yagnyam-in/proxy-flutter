@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/widgets/async_helper.dart';
 import 'package:quiver/strings.dart';
 
 class CurrencyInputFormField extends StatefulWidget {

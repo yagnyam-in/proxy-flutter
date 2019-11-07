@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/banking/model/event_entity.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/banking/model/event_entity.dart';
 
 class EventCard extends StatelessWidget {
   final EventEntity event;

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/services/app_configuration_bloc.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/services/app_configuration_bloc.dart';
 
 import 'config/app_configuration.dart';
 

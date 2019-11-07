@@ -1,5 +1,5 @@
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
+import 'package:promo/banking/model/receiving_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 

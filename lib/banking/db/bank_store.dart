@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/bank_entity.dart';
-import 'package:proxy_flutter/db/firestore_utils.dart';
+import 'package:promo/banking/model/bank_entity.dart';
+import 'package:promo/db/firestore_utils.dart';
 
 class BankStore with ProxyUtils, FirestoreUtils {
   final CollectionReference banksRoot;

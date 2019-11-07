@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/model/enticement.dart';
+import 'package:promo/model/enticement.dart';
 
 import 'widgets/enticement_card.dart';
 

@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/constants.dart';
-import 'package:proxy_flutter/db/email_authorization_store.dart';
-import 'package:proxy_flutter/model/email_authorization_entity.dart';
-import 'package:proxy_flutter/services/account_service.dart';
-import 'package:proxy_flutter/url_config.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/constants.dart';
+import 'package:promo/db/email_authorization_store.dart';
+import 'package:promo/model/email_authorization_entity.dart';
+import 'package:promo/services/account_service.dart';
+import 'package:promo/url_config.dart';
 import 'package:proxy_messages/authorization.dart';
 import 'package:uuid/uuid.dart';
 

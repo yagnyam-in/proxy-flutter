@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/proxy_accounts_page.dart';
-import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
+import 'package:promo/banking/proxy_accounts_page.dart';
+import 'package:promo/banking/model/receiving_account_entity.dart';
+import 'package:promo/banking/db/receiving_account_store.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
 import 'package:proxy_messages/banking.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);

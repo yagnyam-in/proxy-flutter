@@ -1,10 +1,10 @@
-import 'package:proxy_flutter/banking/services/banking_service.dart';
-import 'package:proxy_flutter/banking/services/deposit_service.dart';
-import 'package:proxy_flutter/banking/services/payment_authorization_service.dart';
-import 'package:proxy_flutter/banking/services/payment_encashment_service.dart';
-import 'package:proxy_flutter/banking/services/withdrawal_service.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:promo/banking/services/banking_service.dart';
+import 'package:promo/banking/services/deposit_service.dart';
+import 'package:promo/banking/services/payment_authorization_service.dart';
+import 'package:promo/banking/services/payment_encashment_service.dart';
+import 'package:promo/banking/services/withdrawal_service.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/services/service_factory.dart';
 
 class BankingServiceFactory {
   static BankingService bankingService(AppConfiguration appConfiguration) {

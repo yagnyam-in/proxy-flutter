@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/db/deposit_store.dart';
-import 'package:proxy_flutter/banking/model/deposit_entity.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/action_menu_item.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
-import 'package:proxy_flutter/widgets/loading.dart';
+import 'package:promo/banking/db/deposit_store.dart';
+import 'package:promo/banking/model/deposit_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/action_menu_item.dart';
+import 'package:promo/widgets/async_helper.dart';
+import 'package:promo/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:url_launcher/url_launcher.dart';
 

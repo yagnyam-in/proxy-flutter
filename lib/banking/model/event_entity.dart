@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/widgets/basic_types.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/widgets/basic_types.dart';
 
 enum EventType { Unknown, Deposit, Withdrawal, PaymentAuthorization, PaymentEncashment, Fx }
 

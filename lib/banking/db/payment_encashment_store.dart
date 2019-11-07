@@ -4,11 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/db/event_store.dart';
-import 'package:proxy_flutter/banking/model/payment_encashment_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_encashment_event.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/firestore_utils.dart';
+import 'package:promo/banking/db/event_store.dart';
+import 'package:promo/banking/model/payment_encashment_entity.dart';
+import 'package:promo/banking/model/payment_encashment_event.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/firestore_utils.dart';
 
 class PaymentEncashmentStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;

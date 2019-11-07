@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/utils/conversion_utils.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/utils/conversion_utils.dart';
 import 'package:proxy_messages/banking.dart';
 
 part 'deposit_entity.g.dart';

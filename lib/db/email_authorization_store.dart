@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/firestore_utils.dart';
-import 'package:proxy_flutter/model/email_authorization_entity.dart';
-import 'package:proxy_flutter/model/enticement.dart';
-import 'package:proxy_flutter/services/enticement_service.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/firestore_utils.dart';
+import 'package:promo/model/email_authorization_entity.dart';
+import 'package:promo/model/enticement.dart';
+import 'package:promo/services/enticement_service.dart';
 
 class EmailAuthorizationStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;

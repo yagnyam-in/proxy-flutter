@@ -1,6 +1,6 @@
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:promo/config/app_configuration.dart';
 
 import 'service_factory.dart';
 

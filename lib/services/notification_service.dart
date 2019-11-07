@@ -6,13 +6,13 @@ import 'package:meta/meta.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/constants.dart';
-import 'package:proxy_flutter/db/device_store.dart';
-import 'package:proxy_flutter/db/proxy_key_store.dart';
-import 'package:proxy_flutter/services/app_configuration_bloc.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
-import 'package:proxy_flutter/url_config.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/constants.dart';
+import 'package:promo/db/device_store.dart';
+import 'package:promo/db/proxy_key_store.dart';
+import 'package:promo/services/app_configuration_bloc.dart';
+import 'package:promo/services/service_factory.dart';
+import 'package:promo/url_config.dart';
 import 'package:uuid/uuid.dart';
 
 class NotificationService with ProxyUtils, HttpClientUtils {

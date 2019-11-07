@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
+import 'package:promo/banking/services/banking_service_factory.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
 
 import 'db/proxy_account_store.dart';
 import 'model/proxy_account_entity.dart';

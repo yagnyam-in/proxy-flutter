@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:proxy_flutter/db/user_store.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
+import 'package:promo/db/user_store.dart';
+import 'package:promo/model/user_entity.dart';
 
 class RegisterService {
   Future<UserEntity> registerUser(FirebaseUser firebaseUser) async {

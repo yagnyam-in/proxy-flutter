@@ -3,8 +3,8 @@ import 'dart:io' show Platform;
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info/package_info.dart';
-import 'package:proxy_flutter/constants.dart';
-import 'package:proxy_flutter/localizations.dart';
+import 'package:promo/constants.dart';
+import 'package:promo/localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 mixin UpgradeHelper {

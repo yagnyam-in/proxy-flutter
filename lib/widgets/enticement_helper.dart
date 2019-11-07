@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/db/receiving_account_store.dart';
-import 'package:proxy_flutter/banking/db/test_receiving_accounts.dart';
-import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/receiving_account_dialog.dart';
-import 'package:proxy_flutter/banking/widgets/enticement_card.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/contact_entity.dart';
-import 'package:proxy_flutter/model/enticement.dart';
-import 'package:proxy_flutter/modify_contact_page.dart';
-import 'package:proxy_flutter/services/enticement_service.dart';
-import 'package:proxy_flutter/utils/data_validations.dart';
-import 'package:proxy_flutter/widgets/widget_helper.dart';
+import 'package:promo/banking/db/receiving_account_store.dart';
+import 'package:promo/banking/db/test_receiving_accounts.dart';
+import 'package:promo/banking/model/receiving_account_entity.dart';
+import 'package:promo/banking/receiving_account_dialog.dart';
+import 'package:promo/banking/widgets/enticement_card.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/contact_entity.dart';
+import 'package:promo/model/enticement.dart';
+import 'package:promo/modify_contact_page.dart';
+import 'package:promo/services/enticement_service.dart';
+import 'package:promo/utils/data_validations.dart';
+import 'package:promo/widgets/widget_helper.dart';
 import 'package:uuid/uuid.dart';
 
 mixin EnticementHelper {

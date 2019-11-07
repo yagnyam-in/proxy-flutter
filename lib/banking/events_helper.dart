@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:promo/config/app_configuration.dart';
 
 import 'deposit_page.dart';
 import 'model/deposit_event.dart';

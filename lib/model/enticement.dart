@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_flutter/localizations.dart';
+import 'package:promo/localizations.dart';
 
 typedef DynamicTranslation = String Function(ProxyLocalizations localizations);
 

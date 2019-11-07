@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/enticement.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/enticement.dart';
 
 class EnticementCard extends StatelessWidget {
   final Enticement enticement;

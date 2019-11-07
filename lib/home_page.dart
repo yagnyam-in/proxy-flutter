@@ -3,25 +3,25 @@ import 'dart:async';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/authorize_email_page.dart';
-import 'package:proxy_flutter/authorize_phone_number_page.dart';
-import 'package:proxy_flutter/banking/accept_payment_page.dart';
-import 'package:proxy_flutter/banking/db/deposit_store.dart';
-import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
-import 'package:proxy_flutter/banking/db/payment_encashment_store.dart';
-import 'package:proxy_flutter/banking/deposit_page.dart';
-import 'package:proxy_flutter/banking/events_page.dart';
-import 'package:proxy_flutter/banking/model/deposit_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_encashment_entity.dart';
-import 'package:proxy_flutter/banking/payment_authorization_page.dart';
-import 'package:proxy_flutter/banking/payment_encashment_page.dart';
-import 'package:proxy_flutter/banking_home.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/contact_store.dart';
-import 'package:proxy_flutter/model/contact_entity.dart';
-import 'package:proxy_flutter/modify_contact_page.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:promo/authorize_email_page.dart';
+import 'package:promo/authorize_phone_number_page.dart';
+import 'package:promo/banking/accept_payment_page.dart';
+import 'package:promo/banking/db/deposit_store.dart';
+import 'package:promo/banking/db/payment_authorization_store.dart';
+import 'package:promo/banking/db/payment_encashment_store.dart';
+import 'package:promo/banking/deposit_page.dart';
+import 'package:promo/banking/events_page.dart';
+import 'package:promo/banking/model/deposit_entity.dart';
+import 'package:promo/banking/model/payment_authorization_entity.dart';
+import 'package:promo/banking/model/payment_encashment_entity.dart';
+import 'package:promo/banking/payment_authorization_page.dart';
+import 'package:promo/banking/payment_encashment_page.dart';
+import 'package:promo/banking_home.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/contact_store.dart';
+import 'package:promo/model/contact_entity.dart';
+import 'package:promo/modify_contact_page.dart';
+import 'package:promo/services/service_factory.dart';
 import 'package:quiver/strings.dart';
 
 import 'settings_page.dart';
@@ -51,13 +51,14 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     ServiceFactory.bootService().subscribeForAlerts();
     ServiceFactory.bootService().processPendingAlerts(appConfiguration);
-    if (isNotEmpty(appConfiguration.email)) {
-      ServiceFactory.emailAuthorizationService(appConfiguration)
-          .authorizeEmailIfNotRequestedAlready(appConfiguration.email);
-    }
     this.initDynamicLinks();
+    /*
+    if (isNotEmpty(appConfiguration.email)) {
+      ServiceFactory.emailAuthorizationService(appConfiguration).authorizeEmailIfNotRequestedAlready(appConfiguration.email);
+    }
     // Doesn't work
-    // WidgetsBinding.instance.addPostFrameCallback((_) => _triggerPhoneNumberVerification(context));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _triggerPhoneNumberVerification(context));
+    */
   }
 
   void initDynamicLinks() async {

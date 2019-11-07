@@ -1,8 +1,8 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/constants.dart';
-import 'package:proxy_flutter/url_config.dart';
+import 'package:promo/constants.dart';
+import 'package:promo/url_config.dart';
 
 class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
   final HttpClientFactory httpClientFactory;

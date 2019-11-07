@@ -1,10 +1,10 @@
 import 'package:meta/meta.dart';
-import 'package:proxy_flutter/banking/model/deposit_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/model/enticement.dart';
-import 'package:proxy_flutter/services/enticement_service.dart';
+import 'package:promo/banking/model/deposit_entity.dart';
+import 'package:promo/banking/model/payment_authorization_entity.dart';
+import 'package:promo/banking/model/proxy_account_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/model/enticement.dart';
+import 'package:promo/services/enticement_service.dart';
 
 // Don't use this for business functionality
 class CleanupService {

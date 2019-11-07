@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/firestore_utils.dart';
-import 'package:proxy_flutter/model/contact_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/firestore_utils.dart';
+import 'package:promo/model/contact_entity.dart';
 
 class ContactStore with ProxyUtils, FirestoreUtils {
   final AppConfiguration appConfiguration;

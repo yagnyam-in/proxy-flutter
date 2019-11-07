@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
+import 'package:promo/banking/model/proxy_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
 class AccountCard extends StatelessWidget {

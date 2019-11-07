@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/contact_store.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/contact_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/contact_store.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/contact_entity.dart';
 import 'package:uuid/uuid.dart';
 
 import 'contact_card.dart';

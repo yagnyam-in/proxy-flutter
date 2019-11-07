@@ -2,16 +2,16 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/about_page.dart';
-import 'package:proxy_flutter/db/account_store.dart';
-import 'package:proxy_flutter/home_page_navigation.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/services/account_service.dart';
-import 'package:proxy_flutter/services/app_configuration_bloc.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
-import 'package:proxy_flutter/url_config.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
-import 'package:proxy_flutter/widgets/loading.dart';
+import 'package:promo/about_page.dart';
+import 'package:promo/db/account_store.dart';
+import 'package:promo/home_page_navigation.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/services/account_service.dart';
+import 'package:promo/services/app_configuration_bloc.dart';
+import 'package:promo/services/service_factory.dart';
+import 'package:promo/url_config.dart';
+import 'package:promo/widgets/async_helper.dart';
+import 'package:promo/widgets/loading.dart';
 import 'package:quiver/strings.dart';
 import 'package:share/share.dart';
 

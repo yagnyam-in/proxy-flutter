@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
-import 'package:proxy_flutter/banking/payment_authorization_page.dart';
-import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/widgets/basic_types.dart';
+import 'package:promo/banking/model/payment_authorization_entity.dart';
+import 'package:promo/banking/payment_authorization_page.dart';
+import 'package:promo/banking/services/banking_service_factory.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/widgets/basic_types.dart';
 
 import 'model/proxy_account_entity.dart';
 import 'payment_authorization_input_dialog.dart';

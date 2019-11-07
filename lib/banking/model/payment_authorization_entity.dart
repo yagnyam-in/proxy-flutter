@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
-import 'package:proxy_flutter/localizations.dart';
+import 'package:promo/banking/model/payment_authorization_payee_entity.dart';
+import 'package:promo/localizations.dart';
 import 'package:proxy_messages/banking.dart';
 
 part 'payment_authorization_entity.g.dart';
