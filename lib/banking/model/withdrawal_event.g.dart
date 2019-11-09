@@ -9,11 +9,13 @@ part of 'withdrawal_event.dart';
 WithdrawalEvent _$WithdrawalEventFromJson(Map json) {
   return WithdrawalEvent(
     eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
+    internalId: json['internalId'] as String,
     proxyUniverse: json['proxyUniverse'] as String,
     creationTime: DateTime.parse(json['creationTime'] as String),
     lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
-    withdrawalId: json['withdrawalId'] as String,
+    withdrawalInternalId: json['withdrawalInternalId'] as String,
     completed: json['completed'] as bool,
+    active: json['active'] as bool,
     status: _$enumDecode(_$WithdrawalStatusEnumEnumMap, json['status']),
     amount: Amount.fromJson(json['amount'] as Map),
     destinationAccountNumber: json['destinationAccountNumber'] as String,
@@ -25,9 +27,11 @@ Map<String, dynamic> _$WithdrawalEventToJson(WithdrawalEvent instance) {
   final val = <String, dynamic>{
     'proxyUniverse': instance.proxyUniverse,
     'eventType': _$EventTypeEnumMap[instance.eventType],
+    'internalId': instance.internalId,
     'creationTime': instance.creationTime.toIso8601String(),
     'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
     'completed': instance.completed,
+    'active': instance.active,
     'status': _$WithdrawalStatusEnumEnumMap[instance.status],
     'amount': instance.amount.toJson(),
     'destinationAccountNumber': instance.destinationAccountNumber,
@@ -40,7 +44,7 @@ Map<String, dynamic> _$WithdrawalEventToJson(WithdrawalEvent instance) {
     }
   }
 
-  writeNotNull('withdrawalId', instance.withdrawalId);
+  writeNotNull('withdrawalInternalId', instance.withdrawalInternalId);
   return val;
 }
 

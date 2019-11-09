@@ -8,6 +8,8 @@ part of 'payment_encashment_entity.dart';
 
 PaymentEncashmentEntity _$PaymentEncashmentEntityFromJson(Map json) {
   return PaymentEncashmentEntity(
+    internalId: json['internalId'] as String,
+    eventInternalId: json['eventInternalId'] as String,
     proxyUniverse: json['proxyUniverse'] as String,
     paymentAuthorizationId: json['paymentAuthorizationId'] as String,
     paymentEncashmentId: json['paymentEncashmentId'] as String,
@@ -15,6 +17,7 @@ PaymentEncashmentEntity _$PaymentEncashmentEntityFromJson(Map json) {
     lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
     status: _$enumDecode(_$PaymentEncashmentStatusEnumEnumMap, json['status']),
     amount: Amount.fromJson(json['amount'] as Map),
+    payerAccountId: ProxyAccountId.fromJson(json['payerAccountId'] as Map),
     payeeAccountId: ProxyAccountId.fromJson(json['payeeAccountId'] as Map),
     payeeProxyId: ProxyId.fromJson(json['payeeProxyId'] as Map),
     signedPaymentEncashment: PaymentEncashment.signedMessageFromJson(
@@ -26,20 +29,27 @@ PaymentEncashmentEntity _$PaymentEncashmentEntityFromJson(Map json) {
         : CipherText.fromJson(json['secretEncrypted'] as Map),
     email: json['email'] as String,
     phone: json['phone'] as String,
+    payerBankId: json['payerBankId'] as String,
+    payeeBankId: json['payeeBankId'] as String,
   );
 }
 
 Map<String, dynamic> _$PaymentEncashmentEntityToJson(
     PaymentEncashmentEntity instance) {
   final val = <String, dynamic>{
+    'internalId': instance.internalId,
+    'eventInternalId': instance.eventInternalId,
     'proxyUniverse': instance.proxyUniverse,
+    'payerBankId': instance.payerBankId,
     'paymentAuthorizationId': instance.paymentAuthorizationId,
+    'payeeBankId': instance.payeeBankId,
     'paymentEncashmentId': instance.paymentEncashmentId,
     'creationTime': instance.creationTime.toIso8601String(),
     'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
     'status': _$PaymentEncashmentStatusEnumEnumMap[instance.status],
     'completed': instance.completed,
     'amount': instance.amount.toJson(),
+    'payerAccountId': instance.payerAccountId.toJson(),
     'payeeAccountId': instance.payeeAccountId.toJson(),
     'payeeProxyId': instance.payeeProxyId.toJson(),
     'paymentAuthorizationLink': instance.paymentAuthorizationLink,

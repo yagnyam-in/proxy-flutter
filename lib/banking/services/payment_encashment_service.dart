@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_core/core.dart';
-import 'package:proxy_core/services.dart';
+import 'package:promo/banking/db/bank_store.dart';
 import 'package:promo/banking/db/payment_encashment_store.dart';
 import 'package:promo/banking/model/payment_encashment_entity.dart';
 import 'package:promo/banking/model/proxy_account_entity.dart';
@@ -12,6 +11,8 @@ import 'package:promo/config/app_configuration.dart';
 import 'package:promo/services/service_helper.dart';
 import 'package:promo/url_config.dart';
 import 'package:promo/utils/random_utils.dart';
+import 'package:proxy_core/core.dart';
+import 'package:proxy_core/services.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 import 'package:uuid/uuid.dart';
@@ -136,9 +137,10 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     String secret,
   }) async {
     PaymentAuthorization paymentAuthorization = signedPaymentAuthorization.message;
-    var proxyAccount = await BankingServiceFactory.bankingService(appConfiguration).fetchOrCreateProxyWallet(
+    final bank = await BankStore(appConfiguration).fetchBank(bankProxyId: paymentAuthorization.payerBankProxyId);
+    final proxyAccount = await BankingServiceFactory.bankingService(appConfiguration).fetchOrCreateProxyWallet(
       ownerProxyId: payeeProxyId,
-      proxyUniverse: paymentAuthorization.proxyUniverse,
+      proxyUniverse: bank.proxyUniverse,
       currency: paymentAuthorization.currency,
     );
 
@@ -170,7 +172,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       );
       status = signedResponse.message.paymentEncashmentStatus;
     } finally {
-      await _paymentEncashmentStore.savePaymentEncashment(encashmentEntity.copy(status: status));
+      encashmentEntity = await _paymentEncashmentStore.save(encashmentEntity.copy(status: status));
     }
     return encashmentEntity;
   }
@@ -191,7 +193,8 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       paymentAuthorizationId: paymentEncashment.paymentAuthorizationId,
       status: PaymentEncashmentStatusEnum.Created,
       amount: paymentEncashment.amount,
-      payeeAccountId: payeeAccount.accountId,
+      payerAccountId: paymentEncashment.payerAccountId,
+      payeeAccountId: payeeAccount.proxyAccountId,
       payeeProxyId: payeeAccount.ownerProxyId,
       paymentAuthorizationLink: paymentLink,
       signedPaymentEncashment: signedPaymentEncashment,
@@ -223,11 +226,10 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
       status: status ?? entity.status,
       lastUpdatedTime: DateTime.now(),
     );
-    await _paymentEncashmentStore.savePaymentEncashment(clone);
-    return clone;
+    return _paymentEncashmentStore.save(clone);
   }
 
-  Future<void> _refreshPaymentEncashmentStatus(
+  Future<void> _refreshPaymentEncashment(
     PaymentEncashmentEntity encashmentEntity,
   ) async {
     print('Refreshing $encashmentEntity');
@@ -250,34 +252,45 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     );
   }
 
-  Future<void> refreshPaymentEncashmentStatus({
-    String proxyUniverse,
-    String paymentAuthorizationId,
-    String paymentEncashmentId,
-  }) async {
-    PaymentEncashmentEntity paymentEncashmentEntity = await _paymentEncashmentStore.fetchPaymentEncashment(
-      proxyUniverse: proxyUniverse,
-      paymentEncashmentId: paymentEncashmentId,
-      paymentAuthorizationId: paymentAuthorizationId,
-    );
-    if (paymentEncashmentEntity != null) {
-      await _refreshPaymentEncashmentStatus(paymentEncashmentEntity);
-    }
-  }
-
   Future<void> processPaymentEncashmentUpdatedAlert(PaymentEncashmentUpdatedAlert alert) {
-    return refreshPaymentEncashmentStatus(
-      proxyUniverse: alert.proxyUniverse,
+    return _refreshPaymentEncashmentById(
+      payerBankId: alert.payerAccountId.bankId,
+      payeeBankId: null,
       paymentEncashmentId: alert.paymentEncashmentId,
       paymentAuthorizationId: alert.paymentAuthorizationId,
     );
   }
 
   Future<void> processPaymentEncashmentUpdatedLiteAlert(PaymentEncashmentUpdatedLiteAlert alert) {
-    return refreshPaymentEncashmentStatus(
-      proxyUniverse: alert.proxyUniverse,
+    return _refreshPaymentEncashmentById(
+      payerBankId: alert.payerAccountId.bankId,
+      payeeBankId: null,
       paymentEncashmentId: alert.paymentEncashmentId,
       paymentAuthorizationId: alert.paymentAuthorizationId,
     );
+  }
+
+  Future<void> _refreshPaymentEncashmentById({
+    @required String payerBankId,
+    @required String payeeBankId,
+    @required String paymentAuthorizationId,
+    @required String paymentEncashmentId,
+  }) async {
+    PaymentEncashmentEntity paymentEncashmentEntity = await _paymentEncashmentStore.fetch(
+      payerBankId: payerBankId,
+      payeeBankId: payeeBankId,
+      paymentEncashmentId: paymentEncashmentId,
+      paymentAuthorizationId: paymentAuthorizationId,
+    );
+    if (paymentEncashmentEntity != null) {
+      await _refreshPaymentEncashment(paymentEncashmentEntity);
+    }
+  }
+
+  Future<void> refreshPaymentEncashmentByInternalId(String internalId) async {
+    final paymentEncashmentEntity = await _paymentEncashmentStore.fetchByInternalId(internalId);
+    if (paymentEncashmentEntity != null) {
+      await _refreshPaymentEncashment(paymentEncashmentEntity);
+    }
   }
 }

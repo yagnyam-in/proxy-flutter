@@ -3,75 +3,59 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_core/core.dart';
+import 'package:promo/banking/db/abstract_store.dart';
 import 'package:promo/banking/db/event_store.dart';
 import 'package:promo/banking/model/payment_authorization_entity.dart';
 import 'package:promo/banking/model/payment_authorization_event.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/db/firestore_utils.dart';
+import 'package:quiver/strings.dart';
 
 import 'cleanup_service.dart';
 
-class PaymentAuthorizationStore with ProxyUtils, FirestoreUtils {
-  final AppConfiguration appConfiguration;
-  final DocumentReference root;
+class PaymentAuthorizationStore extends AbstractStore<PaymentAuthorizationEntity> {
   final EventStore _eventStore;
   final CleanupService _cleanupService;
 
-  PaymentAuthorizationStore(this.appConfiguration)
-      : root = FirestoreUtils.accountRootRef(appConfiguration.accountId),
-        _eventStore = EventStore(appConfiguration),
-        _cleanupService = CleanupService(appConfiguration);
+  PaymentAuthorizationStore(AppConfiguration appConfiguration)
+      : _eventStore = EventStore(appConfiguration),
+        _cleanupService = CleanupService(appConfiguration),
+        super(appConfiguration);
 
-  DocumentReference _ref({
-    @required String proxyUniverse,
-    @required String paymentAuthorizationId,
-  }) {
-    return root
-        .collection(FirestoreUtils.PROXY_UNIVERSE_NODE)
-        .document(proxyUniverse)
-        .collection('payment-authorizations')
-        .document(paymentAuthorizationId);
+  @override
+  FromJson<PaymentAuthorizationEntity> get fromJson => PaymentAuthorizationEntity.fromJson;
+
+  @override
+  CollectionReference get rootCollection {
+    return FirestoreUtils.accountRootRef(appConfiguration.accountId).collection('payment-authorizations');
   }
 
-  Future<PaymentAuthorizationEntity> fetchPaymentAuthorization({
-    @required String proxyUniverse,
+  Future<PaymentAuthorizationEntity> fetch({
+    @required String bankId,
     @required String paymentAuthorizationId,
   }) async {
-    DocumentSnapshot snapshot = await _ref(
-      proxyUniverse: proxyUniverse,
-      paymentAuthorizationId: paymentAuthorizationId,
-    ).get();
-    return _documentSnapshotToProxyKey(snapshot);
-  }
-
-  Stream<PaymentAuthorizationEntity> subscribeForPaymentAuthorization({
-    @required String proxyUniverse,
-    @required String paymentAuthorizationId,
-  }) {
-    return _ref(
-      proxyUniverse: proxyUniverse,
-      paymentAuthorizationId: paymentAuthorizationId,
-    ).snapshots().map(_documentSnapshotToProxyKey);
-  }
-
-  Future<PaymentAuthorizationEntity> savePaymentAuthorization(PaymentAuthorizationEntity paymentAuthorization) async {
-    final ref = _ref(
-      proxyUniverse: paymentAuthorization.proxyUniverse,
-      paymentAuthorizationId: paymentAuthorization.paymentAuthorizationId,
+    var query = rootCollection.where(
+      PaymentAuthorizationEntity.PAYMENT_AUTHORIZATION_ID,
+      isEqualTo: paymentAuthorizationId,
     );
+    if (isNotBlank(bankId)) {
+      query = query.where(PaymentAuthorizationEntity.BANK_ID, isEqualTo: bankId);
+    }
+    return firstResult(await query.getDocuments(), query);
+  }
+
+  Future<PaymentAuthorizationEntity> save(PaymentAuthorizationEntity paymentAuthorization,
+      {Transaction transaction}) async {
+    paymentAuthorization = withInternalId(paymentAuthorization);
+    final event =
+    _eventStore.withInternalId(PaymentAuthorizationEvent.fromPaymentAuthorizationEntity(paymentAuthorization));
+    paymentAuthorization = paymentAuthorization.copyWithEventInternalId(event.internalId);
+
     await Future.wait([
-      ref.setData(paymentAuthorization.toJson()),
-      _eventStore.saveEvent(PaymentAuthorizationEvent.fromPaymentAuthorizationEntity(paymentAuthorization)),
+      super.save(paymentAuthorization, transaction: transaction),
+      _eventStore.save(event, transaction: transaction),
       _cleanupService.onPaymentAuthorization(paymentAuthorization),
     ]);
     return paymentAuthorization;
-  }
-
-  PaymentAuthorizationEntity _documentSnapshotToProxyKey(DocumentSnapshot snapshot) {
-    if (snapshot == null || !snapshot.exists) {
-      return null;
-    }
-    return PaymentAuthorizationEntity.fromJson(snapshot.data);
   }
 }

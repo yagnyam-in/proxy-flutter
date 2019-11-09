@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:proxy_core/core.dart';
 import 'package:promo/authorizations_helper.dart';
 import 'package:promo/banking/db/receiving_account_store.dart';
 import 'package:promo/banking/deposit_helper.dart';
@@ -15,6 +14,7 @@ import 'package:promo/services/enticement_factory.dart';
 import 'package:promo/widgets/async_helper.dart';
 import 'package:promo/widgets/enticement_helper.dart';
 import 'package:promo/widgets/loading.dart';
+import 'package:proxy_core/core.dart';
 import 'package:uuid/uuid.dart';
 
 import 'proxy_account_helper.dart';
@@ -96,7 +96,10 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
   @override
   void initState() {
     super.initState();
-    _receivingAccountsStream = _receivingAccountStore.subscribeForAccounts(currency: currency);
+    _receivingAccountsStream = _receivingAccountStore.subscribeForAccounts(
+      proxyUniverse: appConfiguration.proxyUniverse,
+      currency: currency,
+    );
   }
 
   void showToast(String message) {
@@ -210,6 +213,6 @@ class _ReceivingAccountsPageState extends LoadingSupportState<ReceivingAccountsP
   }
 
   void _archiveAccount(BuildContext context, ReceivingAccountEntity receivingAccount) async {
-    await _receivingAccountStore.archiveAccount(receivingAccount);
+    await _receivingAccountStore.archive(receivingAccount);
   }
 }

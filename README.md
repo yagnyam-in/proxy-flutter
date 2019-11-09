@@ -14,3 +14,10 @@ App for anonymizing Payments
 ```shell script
 flutter packages run build_runner build --delete-conflicting-outputs
 ```
+
+### Manual Steps
+
+In case Podfile is auto generated, make sure following line is added
+```
+
+```

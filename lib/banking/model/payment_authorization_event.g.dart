@@ -8,12 +8,15 @@ part of 'payment_authorization_event.dart';
 
 PaymentAuthorizationEvent _$PaymentAuthorizationEventFromJson(Map json) {
   return PaymentAuthorizationEvent(
+    internalId: json['internalId'] as String,
     eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
     proxyUniverse: json['proxyUniverse'] as String,
     creationTime: DateTime.parse(json['creationTime'] as String),
     lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
     completed: json['completed'] as bool,
-    paymentAuthorizationId: json['paymentAuthorizationId'] as String,
+    active: json['active'] as bool,
+    paymentAuthorizationInternalId:
+        json['paymentAuthorizationInternalId'] as String,
     status:
         _$enumDecode(_$PaymentAuthorizationStatusEnumEnumMap, json['status']),
     amount: Amount.fromJson(json['amount'] as Map),
@@ -27,9 +30,11 @@ Map<String, dynamic> _$PaymentAuthorizationEventToJson(
   final val = <String, dynamic>{
     'proxyUniverse': instance.proxyUniverse,
     'eventType': _$EventTypeEnumMap[instance.eventType],
+    'internalId': instance.internalId,
     'creationTime': instance.creationTime.toIso8601String(),
     'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
     'completed': instance.completed,
+    'active': instance.active,
     'status': _$PaymentAuthorizationStatusEnumEnumMap[instance.status],
     'amount': instance.amount.toJson(),
     'payerAccountId': instance.payerAccountId.toJson(),
@@ -42,7 +47,8 @@ Map<String, dynamic> _$PaymentAuthorizationEventToJson(
     }
   }
 
-  writeNotNull('paymentAuthorizationId', instance.paymentAuthorizationId);
+  writeNotNull('paymentAuthorizationInternalId',
+      instance.paymentAuthorizationInternalId);
   return val;
 }
 

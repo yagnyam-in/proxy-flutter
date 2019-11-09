@@ -10,10 +10,6 @@ class AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print(account);
-    return makeCard(context);
-  }
-
-  Widget makeCard(BuildContext context) {
     return Card(
       elevation: 4.0,
       margin: new EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),

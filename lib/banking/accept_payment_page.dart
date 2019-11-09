@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_core/core.dart';
 import 'package:promo/authorizations_helper.dart';
 import 'package:promo/banking/model/payment_encashment_entity.dart';
 import 'package:promo/banking/payment_encashment_page.dart';
@@ -15,6 +14,7 @@ import 'package:promo/utils/conversion_utils.dart';
 import 'package:promo/utils/data_validations.dart';
 import 'package:promo/widgets/async_helper.dart';
 import 'package:promo/widgets/loading.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 import 'package:quiver/strings.dart';
@@ -25,13 +25,13 @@ typedef OnPaymentAcceptedCallback = void Function(PaymentEncashmentEntity paymen
 
 class AcceptPaymentPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
+  final String bankId;
   final String paymentAuthorizationId;
   final String paymentLink;
 
   const AcceptPaymentPage(
     this.appConfiguration, {
-    @required this.proxyUniverse,
+    @required this.bankId,
     @required this.paymentAuthorizationId,
     this.paymentLink,
     Key key,
@@ -41,7 +41,7 @@ class AcceptPaymentPage extends StatefulWidget {
   AcceptPaymentPageState createState() {
     return AcceptPaymentPageState(
       appConfiguration: appConfiguration,
-      proxyUniverse: proxyUniverse,
+      bankId: bankId,
       paymentAuthorizationId: paymentAuthorizationId,
     );
   }
@@ -50,7 +50,7 @@ class AcceptPaymentPage extends StatefulWidget {
 class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with ProxyUtils, AccountHelper {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
+  final String bankId;
   final String paymentAuthorizationId;
   Future<SignedMessage<PaymentAuthorization>> _paymentAuthorizationMessageFuture;
   PaymentEncashmentEntity _paymentEncashmentEntity;
@@ -58,7 +58,7 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
 
   AcceptPaymentPageState({
     @required this.appConfiguration,
-    @required this.proxyUniverse,
+    @required this.bankId,
     @required this.paymentAuthorizationId,
   });
 
@@ -107,8 +107,8 @@ class AcceptPaymentPageState extends LoadingSupportState<AcceptPaymentPage> with
   }
 
   Future<SignedMessage<PaymentAuthorization>> _fetchPaymentAuthorization() {
-    return BankingServiceFactory.paymentAuthorizationService(appConfiguration).fetchPaymentAuthorization(
-      proxyUniverse: proxyUniverse,
+    return BankingServiceFactory.paymentAuthorizationService(appConfiguration).fetchRemotePaymentAuthorization(
+      bankId: bankId,
       paymentAuthorizationId: paymentAuthorizationId,
     );
   }
@@ -169,6 +169,18 @@ class _AcceptPaymentPageBodyState extends LoadingSupportState<_AcceptPaymentPage
     authorizedPhoneNumbers.then((phoneNumbers) => _autoPopulatePhoneNumber(phoneNumbers), onError: (e) {
       print("Error fetching authorized phone numbers");
     });
+    secretController.text = _secretFromPaymentLink;
+  }
+
+  String get _secretFromPaymentLink {
+    final fragment = Uri.parse(widget.paymentLink).fragment;
+    if (isBlank(fragment)) {
+      return null;
+    }
+    if (fragment.startsWith('secret=')) {
+      return fragment.replaceFirst('secret=', '');
+    }
+    return null;
   }
 
   void _autoPopulatePhoneNumber(Set<String> phoneNumbers) {

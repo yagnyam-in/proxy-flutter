@@ -9,6 +9,7 @@ import 'package:promo/widgets/basic_types.dart';
 
 import 'model/proxy_account_entity.dart';
 import 'payment_authorization_input_dialog.dart';
+import 'send_payment_page.dart';
 
 mixin PaymentAuthorizationHelper {
   AppConfiguration get appConfiguration;
@@ -28,8 +29,8 @@ mixin PaymentAuthorizationHelper {
     VoidCallback onError,
   });
 
-  Future<PaymentAuthorizationEntity> createPaymentAuthorization(BuildContext context) async {
-    PaymentAuthorizationInput paymentInput = await _acceptPaymentInput(context);
+  Future<PaymentAuthorizationEntity> createPaymentAuthorization(BuildContext context, {bool directPay}) async {
+    PaymentAuthorizationInput paymentInput = await _acceptPaymentInput(context, directPay: directPay);
     if (paymentInput != null) {
       final paymentAuthorization = await invoke(
         () => _createPaymentAuthorization(context, appConfiguration.masterProxyId, paymentInput),
@@ -41,7 +42,9 @@ mixin PaymentAuthorizationHelper {
     return null;
   }
 
-  Future<void> launchPaymentAuthorization(BuildContext context, PaymentAuthorizationEntity paymentAuthorization) async {
+  Future<void> launchPaymentAuthorization(
+    BuildContext context,
+    PaymentAuthorizationEntity paymentAuthorization) async {
     if (paymentAuthorization != null) {
       await Navigator.of(context).push(
         MaterialPageRoute<PaymentAuthorizationInput>(
@@ -54,9 +57,31 @@ mixin PaymentAuthorizationHelper {
     }
   }
 
-  Future<PaymentAuthorizationInput> _acceptPaymentInput(BuildContext context, [ProxyAccountEntity proxyAccount]) async {
+  Future<bool> sendPaymentAuthorization(
+      BuildContext context,
+      PaymentAuthorizationEntity paymentAuthorization) {
+    if (paymentAuthorization != null) {
+      return Navigator.of(context).push(
+        MaterialPageRoute<bool>(
+          builder: (context) => SendPaymentPage(
+            appConfiguration,
+            paymentAuthorization: paymentAuthorization,
+          ),
+        ),
+      );
+    }
+    return Future.value(false);
+  }
+
+
+  Future<PaymentAuthorizationInput> _acceptPaymentInput(
+    BuildContext context, {
+    ProxyAccountEntity proxyAccount,
+    bool directPay,
+  }) async {
     PaymentAuthorizationInput paymentAuthorizationInput = PaymentAuthorizationInput(
       currency: proxyAccount?.currency,
+      directPay: directPay,
     );
     PaymentAuthorizationInput result = await Navigator.of(context).push(
       MaterialPageRoute<PaymentAuthorizationInput>(

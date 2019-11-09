@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_core/services.dart';
 import 'package:promo/banking/db/payment_encashment_store.dart';
 import 'package:promo/banking/model/payment_encashment_entity.dart';
 import 'package:promo/config/app_configuration.dart';
@@ -7,23 +6,23 @@ import 'package:promo/localizations.dart';
 import 'package:promo/model/action_menu_item.dart';
 import 'package:promo/widgets/async_helper.dart';
 import 'package:promo/widgets/loading.dart';
+import 'package:proxy_core/services.dart';
 import 'package:proxy_messages/banking.dart';
 
 class PaymentEncashmentPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
-  final String paymentAuthorizationId;
-  final String paymentEncashmentId;
+  final String paymentEncashmentInternalId;
   final PaymentEncashmentEntity paymentEncashment;
 
-  const PaymentEncashmentPage(
+  PaymentEncashmentPage(
     this.appConfiguration, {
     Key key,
-    @required this.proxyUniverse,
-    @required this.paymentEncashmentId,
-    @required this.paymentAuthorizationId,
+    String paymentEncashmentInternalId,
     this.paymentEncashment,
-  }) : super(key: key);
+  })  : this.paymentEncashmentInternalId = paymentEncashmentInternalId ?? paymentEncashment?.internalId,
+        super(key: key) {
+    print("Launching Payment encashment for $paymentEncashmentInternalId");
+  }
 
   factory PaymentEncashmentPage.forPaymentEncashment(
       AppConfiguration appConfiguration, PaymentEncashmentEntity paymentEncashment,
@@ -31,9 +30,7 @@ class PaymentEncashmentPage extends StatefulWidget {
     return PaymentEncashmentPage(
       appConfiguration,
       key: key,
-      proxyUniverse: paymentEncashment.proxyUniverse,
-      paymentAuthorizationId: paymentEncashment.paymentAuthorizationId,
-      paymentEncashmentId: paymentEncashment.paymentEncashmentId,
+      paymentEncashmentInternalId: paymentEncashment.internalId,
       paymentEncashment: paymentEncashment,
     );
   }
@@ -42,9 +39,7 @@ class PaymentEncashmentPage extends StatefulWidget {
   PaymentEncashmentPageState createState() {
     return PaymentEncashmentPageState(
       appConfiguration: appConfiguration,
-      proxyUniverse: proxyUniverse,
-      paymentAuthorizationId: paymentAuthorizationId,
-      paymentEncashmentId: paymentEncashmentId,
+      paymentEncashmentInternalId: paymentEncashmentInternalId,
     );
   }
 }
@@ -53,9 +48,7 @@ class PaymentEncashmentPageState extends LoadingSupportState<PaymentEncashmentPa
   static const String CANCEL = "cancel";
 
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
-  final String paymentEncashmentId;
-  final String paymentAuthorizationId;
+  final String paymentEncashmentInternalId;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Stream<PaymentEncashmentEntity> _paymentEncashmentStream;
@@ -63,19 +56,14 @@ class PaymentEncashmentPageState extends LoadingSupportState<PaymentEncashmentPa
 
   PaymentEncashmentPageState({
     @required this.appConfiguration,
-    @required this.proxyUniverse,
-    @required this.paymentAuthorizationId,
-    @required this.paymentEncashmentId,
+    @required this.paymentEncashmentInternalId,
   });
 
   @override
   void initState() {
     super.initState();
-    _paymentEncashmentStream = PaymentEncashmentStore(appConfiguration).subscribeForPaymentEncashment(
-      proxyUniverse: proxyUniverse,
-      paymentAuthorizationId: paymentAuthorizationId,
-      paymentEncashmentId: paymentEncashmentId,
-    );
+    _paymentEncashmentStream =
+        PaymentEncashmentStore(appConfiguration).subscribeByInternalId(paymentEncashmentInternalId);
   }
 
   @override
@@ -238,7 +226,8 @@ class PaymentEncashmentPageState extends LoadingSupportState<PaymentEncashmentPa
 
   Future<String> _secret(PaymentEncashmentEntity encashment) {
     final encryptionService = SymmetricKeyEncryptionService();
-    return encashment.secret ?? encryptionService.decrypt(key: appConfiguration.passPhrase, cipherText: encashment.secretEncrypted);
+    return encashment.secret ??
+        encryptionService.decrypt(key: appConfiguration.passPhrase, cipherText: encashment.secretEncrypted);
   }
 
   void _onAction(BuildContext context, ActionMenuItem action) {
@@ -250,11 +239,8 @@ class PaymentEncashmentPageState extends LoadingSupportState<PaymentEncashmentPa
   }
 
   void _cancelPayment(BuildContext context) async {
-    final paymentEncashment = await PaymentEncashmentStore(appConfiguration).fetchPaymentEncashment(
-      proxyUniverse: proxyUniverse,
-      paymentAuthorizationId: paymentAuthorizationId,
-      paymentEncashmentId: paymentEncashmentId,
-    );
+    final paymentEncashment =
+        await PaymentEncashmentStore(appConfiguration).fetchByInternalId(paymentEncashmentInternalId);
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     if (paymentEncashment == null || !paymentEncashment.isCancelPossible) {
       showMessage(localizations.cancelNotPossible);

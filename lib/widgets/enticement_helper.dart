@@ -93,7 +93,7 @@ mixin EnticementHelper {
   void _addTestAccounts(BuildContext context, Enticement enticement) {
     print("Add Test Accounts");
     ReceivingAccountStore store = ReceivingAccountStore(appConfiguration);
-    TestReceivingAccounts.allTestAccounts.forEach((a) async => await store.saveAccount(a));
+    TestReceivingAccounts.allTestAccounts.forEach((a) async => await store.save(a));
     _dismissEnticement(context, enticement);
   }
 

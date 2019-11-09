@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:proxy_core/core.dart';
 import 'package:promo/authorizations_helper.dart';
 import 'package:promo/banking/db/proxy_account_store.dart';
 import 'package:promo/banking/deposit_helper.dart';
 import 'package:promo/banking/model/proxy_account_entity.dart';
 import 'package:promo/banking/payment_authorization_helper.dart';
+import 'package:promo/banking/receive_payment_page.dart';
 import 'package:promo/banking/widgets/account_card.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/contacts_page.dart';
@@ -22,8 +22,11 @@ import 'package:promo/services/upgrade_helper.dart';
 import 'package:promo/widgets/async_helper.dart';
 import 'package:promo/widgets/enticement_helper.dart';
 import 'package:promo/widgets/loading.dart';
+import 'package:promo/widgets/round_button.dart';
+import 'package:proxy_core/core.dart';
 import 'package:uuid/uuid.dart';
 
+import 'payment_launcher.dart';
 import 'proxy_account_helper.dart';
 import 'withdrawal_helper.dart';
 
@@ -58,7 +61,8 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
         WithdrawalHelper,
         AccountHelper,
         AuthorizationsHelper,
-        UpgradeHelper {
+        UpgradeHelper,
+        PaymentLauncher {
   static const String DEPOSIT = "deposit";
   static const String CONTACTS = "contacts";
   final AppConfiguration appConfiguration;
@@ -76,7 +80,9 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
   @override
   void initState() {
     super.initState();
-    _proxyAccountsStream = ProxyAccountStore(appConfiguration).subscribeForAccounts();
+    _proxyAccountsStream = ProxyAccountStore(appConfiguration).subscribeForAccounts(
+      proxyUniverse: appConfiguration.proxyUniverse,
+    );
     _enticementsStream = EnticementService(appConfiguration).subscribeForFirstEnticement();
     ServiceFactory.bootService().warmUpBackends();
     _newVersionCheckTimer = Timer(const Duration(milliseconds: 5000), () => checkForUpdates(context));
@@ -135,6 +141,8 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
           itemCount: 2,
           itemBuilder: (context, index) {
             if (index == 0) {
+              return _topButtons(context);
+            } else if (index == 1) {
               return streamBuilder(
                 name: "Account Loading",
                 stream: _proxyAccountsStream,
@@ -151,11 +159,13 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
           },
         ),
       ),
+      /*
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _createPaymentAuthorizationAndLaunch(context),
         icon: Icon(Icons.payment),
         label: Text(localizations.payFabLabel),
       ),
+       */
       bottomNavigationBar: navigationBar(
         context,
         HomePage.ProxyAccountsPage,
@@ -165,9 +175,70 @@ class _ProxyAccountsPageState extends LoadingSupportState<ProxyAccountsPage>
     );
   }
 
-  Future<void> _createPaymentAuthorizationAndLaunch(BuildContext context) async {
-    final paymentAuthorization = await createPaymentAuthorization(context);
+  Future<void> _receivePayment(BuildContext context) async {
+    Uri paymentLink = await Navigator.of(context).push(
+      MaterialPageRoute<Uri>(
+        builder: (context) => ReceivePaymentPage(
+          appConfiguration,
+        ),
+      ),
+    );
+    if (paymentLink != null) {
+      print("Received payment $paymentLink");
+      launchPayment(context, paymentLink);
+    }
+  }
+
+  Future<void> _createPaymentAuthorizationAndLaunch(BuildContext context, {bool directPay}) async {
+    final paymentAuthorization = await createPaymentAuthorization(context, directPay: directPay);
+    print("Created authorization $paymentAuthorization");
+    if (directPay != null && directPay) {
+      print("Sending $paymentAuthorization");
+      final paymentSent = await sendPaymentAuthorization(context, paymentAuthorization);
+      if (paymentSent == null || !paymentSent) {
+        showToast(ProxyLocalizations.of(context).paymentNotSent);
+      }
+    }
+    print("Launching $paymentAuthorization");
     await launchPaymentAuthorization(context, paymentAuthorization);
+  }
+
+  Widget _topButtons(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+    ProxyLocalizations localizations = ProxyLocalizations.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: ButtonBar(
+        alignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          RoundButton(
+            label: localizations.receiveFabLabel,
+            color: Colors.indigo,
+            splashColor: themeData.splashColor,
+            child: Icon(Icons.arrow_downward),
+            radius: 24,
+            onTap: () => _receivePayment(context),
+          ),
+          RoundButton(
+            label: localizations.payFabLabel,
+            color: Colors.orange,
+            splashColor: themeData.splashColor,
+            child: Icon(Icons.arrow_upward),
+            radius: 24,
+            onTap: () => _createPaymentAuthorizationAndLaunch(context),
+          ),
+          RoundButton(
+            label: localizations.tapAndPayFabLabel,
+            color: Colors.red,
+            splashColor: themeData.splashColor,
+            child: Icon(Icons.tap_and_play),
+            radius: 24,
+            onTap: () => _createPaymentAuthorizationAndLaunch(context, directPay: true),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _accounts(

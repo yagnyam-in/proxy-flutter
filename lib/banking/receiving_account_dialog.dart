@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_core/core.dart';
-import 'package:promo/banking/proxy_accounts_page.dart';
-import 'package:promo/banking/model/receiving_account_entity.dart';
 import 'package:promo/banking/db/receiving_account_store.dart';
+import 'package:promo/banking/model/receiving_account_entity.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/localizations.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_messages/banking.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
@@ -65,7 +64,7 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
   @override
   Widget build(BuildContext context) {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    String title = receivingAccount?.accountId == null
+    String title = receivingAccount?.internalId == null
         ? localizations.newReceivingAccountTitle
         : localizations.modifyReceivingAccountTitle;
     return Scaffold(
@@ -209,10 +208,10 @@ class _ReceivingAccountDialogState extends State<ReceivingAccountDialog> {
     } else if (!_formKey.currentState.validate()) {
       print("Validation failure");
     } else {
-      ReceivingAccountEntity result = await _receivingAccountStore.saveAccount(
+      ReceivingAccountEntity result = await _receivingAccountStore.save(
         ReceivingAccountEntity(
           proxyUniverse: appConfiguration.proxyUniverse,
-          accountId: receivingAccount?.accountId ?? uuidFactory.v4(),
+          internalId: receivingAccount?.internalId,
           currency: _currency,
           accountName: accountNameController.text,
           accountNumber: accountNumberController.text,

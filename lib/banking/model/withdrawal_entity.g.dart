@@ -8,6 +8,8 @@ part of 'withdrawal_entity.dart';
 
 WithdrawalEntity _$WithdrawalEntityFromJson(Map json) {
   return WithdrawalEntity(
+    internalId: json['internalId'] as String,
+    eventInternalId: json['eventInternalId'] as String,
     proxyUniverse: json['proxyUniverse'] as String,
     creationTime: DateTime.parse(json['creationTime'] as String),
     lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
@@ -15,26 +17,31 @@ WithdrawalEntity _$WithdrawalEntityFromJson(Map json) {
     completed: json['completed'] as bool,
     status: _$enumDecode(_$WithdrawalStatusEnumEnumMap, json['status']),
     amount: Amount.fromJson(json['amount'] as Map),
-    payerAccountId: ProxyAccountId.fromJson(json['payerAccountId'] as Map),
+    payerProxyAccountId:
+        ProxyAccountId.fromJson(json['payerProxyAccountId'] as Map),
     payerProxyId: ProxyId.fromJson(json['payerProxyId'] as Map),
     signedWithdrawal:
         Withdrawal.signedMessageFromJson(json['signedWithdrawal'] as Map),
     receivingAccountId: json['receivingAccountId'] as String,
     destinationAccountNumber: json['destinationAccountNumber'] as String,
     destinationAccountBank: json['destinationAccountBank'] as String,
+    bankId: json['bankId'] as String,
   );
 }
 
 Map<String, dynamic> _$WithdrawalEntityToJson(WithdrawalEntity instance) =>
     <String, dynamic>{
+      'internalId': instance.internalId,
+      'eventInternalId': instance.eventInternalId,
       'proxyUniverse': instance.proxyUniverse,
       'withdrawalId': instance.withdrawalId,
+      'bankId': instance.bankId,
       'creationTime': instance.creationTime.toIso8601String(),
       'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
       'completed': instance.completed,
       'status': _$WithdrawalStatusEnumEnumMap[instance.status],
       'amount': instance.amount.toJson(),
-      'payerAccountId': instance.payerAccountId.toJson(),
+      'payerProxyAccountId': instance.payerProxyAccountId.toJson(),
       'receivingAccountId': instance.receivingAccountId,
       'destinationAccountNumber': instance.destinationAccountNumber,
       'destinationAccountBank': instance.destinationAccountBank,

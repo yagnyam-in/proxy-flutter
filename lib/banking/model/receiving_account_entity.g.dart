@@ -10,7 +10,7 @@ ReceivingAccountEntity _$ReceivingAccountEntityFromJson(Map json) {
   return ReceivingAccountEntity(
     proxyUniverse: json['proxyUniverse'] as String,
     currency: json['currency'] as String,
-    accountId: json['accountId'] as String,
+    internalId: json['internalId'] as String,
     accountName: json['accountName'] as String,
     accountNumber: json['accountNumber'] as String,
     accountHolder: json['accountHolder'] as String,
@@ -26,8 +26,8 @@ ReceivingAccountEntity _$ReceivingAccountEntityFromJson(Map json) {
 Map<String, dynamic> _$ReceivingAccountEntityToJson(
     ReceivingAccountEntity instance) {
   final val = <String, dynamic>{
+    'internalId': instance.internalId,
     'proxyUniverse': instance.proxyUniverse,
-    'accountId': instance.accountId,
     'currency': instance.currency,
     'active': instance.active,
   };

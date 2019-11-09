@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_core/core.dart';
 import 'package:promo/banking/model/deposit_event.dart';
 import 'package:promo/banking/model/event_entity.dart';
 import 'package:promo/banking/model/payment_authorization_event.dart';
@@ -12,78 +11,31 @@ import 'package:promo/banking/model/withdrawal_event.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/db/firestore_utils.dart';
 
-class EventStore with ProxyUtils, FirestoreUtils {
-  final AppConfiguration appConfiguration;
-  final DocumentReference root;
+import 'abstract_store.dart';
 
-  EventStore(this.appConfiguration) : root = FirestoreUtils.accountRootRef(appConfiguration.accountId);
+class EventStore extends AbstractStore<EventEntity> {
+  EventStore(AppConfiguration appConfiguration) : super(appConfiguration);
 
-  CollectionReference eventsRef({
-    @required String proxyUniverse,
-  }) {
-    return root.collection(FirestoreUtils.PROXY_UNIVERSE_NODE).document(proxyUniverse).collection('events');
+  @override
+  FromJson<EventEntity> get fromJson => _fromJson;
+
+  @override
+  CollectionReference get rootCollection {
+    return FirestoreUtils.accountRootRef(appConfiguration.accountId).collection('events');
   }
 
-  DocumentReference _ref({
-    @required String proxyUniverse,
-    @required String eventId,
-  }) {
-    return eventsRef(proxyUniverse: proxyUniverse).document(eventId);
+  Stream<List<EventEntity>> subscribeForEvents({@required String proxyUniverse}) {
+    print('subscribeForEvents($proxyUniverse)');
+    Query query = rootCollection
+        .where(EventEntity.PROXY_UNIVERSE, isEqualTo: proxyUniverse)
+        .where(EventEntity.ACTIVE, isEqualTo: true)
+        .orderBy('creationTime', descending: true);
+    return query.snapshots().map(querySnapshotToEntityList);
   }
 
-  Stream<List<EventEntity>> subscribeForEvents() {
-    return eventsRef(proxyUniverse: appConfiguration.proxyUniverse)
-        .orderBy("creationTime", descending: true)
-        // .limit(32)
-        .snapshots()
-        .map(_querySnapshotToAccounts);
-  }
-
-  EventEntity _documentSnapshotToAccount(DocumentSnapshot snapshot) {
-    if (snapshot != null && snapshot.exists) {
-      return fromJson(snapshot.data);
-    } else {
-      return null;
-    }
-  }
-
-  List<EventEntity> _querySnapshotToAccounts(QuerySnapshot snapshot) {
-    if (snapshot.documents != null) {
-      return snapshot.documents.map(_documentSnapshotToAccount).where((a) => a != null).toList();
-    } else {
-      return [];
-    }
-  }
-
-  Future<EventEntity> saveEvent(EventEntity event, {Transaction transaction}) async {
-    final data = event.toJson();
-    final ref = _ref(
-      proxyUniverse: event.proxyUniverse,
-      eventId: event.eventId,
-    );
-    if (transaction != null) {
-      transaction.set(ref, data);
-    } else {
-      ref.setData(data);
-    }
-    return event;
-  }
-
-  Future<void> deleteEvent(EventEntity event, {Transaction transaction}) {
-    final ref = _ref(
-      proxyUniverse: event.proxyUniverse,
-      eventId: event.eventId,
-    );
-    if (transaction != null) {
-      return transaction.delete(ref);
-    } else {
-      return ref.delete();
-    }
-  }
-
-  static EventEntity fromJson(Map<dynamic, dynamic> json) {
-    // print("Constructing Event of type ${json['eventType']}");
-    switch (json["eventType"]) {
+  static EventEntity _fromJson(Map<dynamic, dynamic> json) {
+    print("Constructing Event of type ${json['eventType']}");
+    switch (json[EventEntity.EVENT_TYPE]) {
       case 'Deposit':
         return DepositEvent.fromJson(json);
       case 'Withdrawal':

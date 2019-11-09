@@ -2,20 +2,26 @@ import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
+import 'abstract_entity.dart';
+
 part 'receiving_account_entity.g.dart';
 
 @JsonSerializable()
-class ReceivingAccountEntity {
+class ReceivingAccountEntity extends AbstractEntity<ReceivingAccountEntity> {
+  static const PROXY_UNIVERSE = "proxyUniverse";
+  static const CURRENCY = "currency";
+  static const ACTIVE = AbstractEntity.ACTIVE;
+
   @JsonKey(nullable: false)
+  String internalId;
+
+  @JsonKey(name: PROXY_UNIVERSE, nullable: false)
   final String proxyUniverse;
 
-  @JsonKey(nullable: false)
-  final String accountId;
-
-  @JsonKey(nullable: false)
+  @JsonKey(name: CURRENCY, nullable: false)
   final String currency;
 
-  @JsonKey(nullable: false)
+  @JsonKey(name: ACTIVE, nullable: false)
   final bool active;
 
   @JsonKey(nullable: true)
@@ -45,7 +51,7 @@ class ReceivingAccountEntity {
   ReceivingAccountEntity({
     @required this.proxyUniverse,
     @required this.currency,
-    this.accountId,
+    this.internalId,
     this.accountName,
     this.accountNumber,
     this.accountHolder,
@@ -70,7 +76,7 @@ class ReceivingAccountEntity {
   }) {
     return ReceivingAccountEntity(
       proxyUniverse: proxyUniverse,
-      accountId: accountId,
+      internalId: internalId,
       currency: currency,
       accountName: accountName ?? this.accountName,
       accountNumber: accountNumber ?? this.accountNumber,
@@ -84,10 +90,17 @@ class ReceivingAccountEntity {
   }
 
   @override
+  ReceivingAccountEntity copyWithInternalId(String id) {
+    this.internalId = id;
+    return this;
+  }
+
+  @override
   String toString() {
     return toJson().toString();
   }
 
+  @override
   Map<String, dynamic> toJson() => _$ReceivingAccountEntityToJson(this);
 
   static ReceivingAccountEntity fromJson(Map json) => _$ReceivingAccountEntityFromJson(json);

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_core/core.dart';
 import 'package:promo/banking/model/event_entity.dart';
 import 'package:promo/banking/model/withdrawal_entity.dart';
 import 'package:promo/localizations.dart';
@@ -10,7 +9,7 @@ import 'package:proxy_messages/banking.dart';
 part 'withdrawal_event.g.dart';
 
 @JsonSerializable()
-class WithdrawalEvent extends EventEntity with ProxyUtils {
+class WithdrawalEvent extends EventEntity {
   @JsonKey(nullable: false)
   final WithdrawalStatusEnum status;
 
@@ -23,39 +22,46 @@ class WithdrawalEvent extends EventEntity with ProxyUtils {
   @JsonKey(nullable: false)
   final String destinationAccountBank;
 
-  String get withdrawalId => eventId;
+  String get withdrawalInternalId => actualEventInternalId;
 
   WithdrawalEvent({
     EventType eventType = EventType.Withdrawal, // Required for Json
+    @required String internalId,
     @required String proxyUniverse,
     @required DateTime creationTime,
     @required DateTime lastUpdatedTime,
-    @required String withdrawalId,
+    @required String withdrawalInternalId,
     @required bool completed,
+    @required bool active,
     @required this.status,
     @required this.amount,
     @required this.destinationAccountNumber,
     @required this.destinationAccountBank,
   }) : super(
+          internalId: internalId,
           eventType: eventType,
           proxyUniverse: proxyUniverse,
-          eventId: withdrawalId,
+          actualEventInternalId: withdrawalInternalId,
           creationTime: creationTime,
           lastUpdatedTime: lastUpdatedTime,
           completed: completed,
+          active: active,
         ) {
     assert(eventType == EventType.Withdrawal);
   }
 
   WithdrawalEvent copy({
+    String withdrawalInternalId,
     WithdrawalStatusEnum status,
     DateTime lastUpdatedTime,
     bool completed,
+    bool active,
   }) {
     WithdrawalStatusEnum effectiveStatus = status ?? this.status;
     return WithdrawalEvent(
+      internalId: internalId,
       proxyUniverse: this.proxyUniverse,
-      withdrawalId: this.withdrawalId,
+      withdrawalInternalId: withdrawalInternalId ?? this.withdrawalInternalId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
       creationTime: this.creationTime,
       completed: completed ?? this.completed,
@@ -63,12 +69,14 @@ class WithdrawalEvent extends EventEntity with ProxyUtils {
       status: effectiveStatus,
       destinationAccountNumber: this.destinationAccountNumber,
       destinationAccountBank: this.destinationAccountBank,
+      active: active ?? this.active,
     );
   }
 
   factory WithdrawalEvent.fromWithdrawalEntity(WithdrawalEntity withdrawalEntity) => WithdrawalEvent(
+        internalId: withdrawalEntity.eventInternalId,
         proxyUniverse: withdrawalEntity.proxyUniverse,
-        withdrawalId: withdrawalEntity.withdrawalId,
+        withdrawalInternalId: withdrawalEntity.internalId,
         creationTime: withdrawalEntity.creationTime,
         lastUpdatedTime: DateTime.now(),
         amount: withdrawalEntity.amount,
@@ -76,13 +84,15 @@ class WithdrawalEvent extends EventEntity with ProxyUtils {
         destinationAccountBank: withdrawalEntity.destinationAccountBank,
         destinationAccountNumber: withdrawalEntity.destinationAccountNumber,
         completed: withdrawalEntity.completed,
+        active: true,
       );
 
   WithdrawalEvent copyFromWithdrawalEntity(WithdrawalEntity withdrawalEntity) {
     return copy(
-      lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
-      completed: completed ?? this.completed,
-      status: status ?? this.status,
+      withdrawalInternalId: withdrawalEntity.internalId,
+      lastUpdatedTime: withdrawalEntity.lastUpdatedTime,
+      completed: withdrawalEntity.completed,
+      status: withdrawalEntity.status,
     );
   }
 

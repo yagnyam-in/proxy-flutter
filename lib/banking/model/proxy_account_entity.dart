@@ -2,17 +2,34 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:quiver/strings.dart';
+
+import 'abstract_entity.dart';
 
 part 'proxy_account_entity.g.dart';
 
 @JsonSerializable()
-class ProxyAccountEntity with ProxyUtils {
-  static const String CURRENCY = 'currency';
-  static const String ACTIVE = 'active';
-  static const String ID_OF_OWNER_PROXY_ID = 'idOfOwnerProxyId';
+class ProxyAccountEntity extends AbstractEntity<ProxyAccountEntity> {
+  static const CURRENCY = 'currency';
+  static const PROXY_UNIVERSE = "proxyUniverse";
+  static const ACCOUNT_ID = "accountId";
+  static const BANK_ID = "bankId";
+  static const ACTIVE = AbstractEntity.ACTIVE;
 
   @JsonKey(nullable: false)
-  final ProxyAccountId accountId;
+  String internalId;
+
+  @JsonKey(name: PROXY_UNIVERSE, nullable: false)
+  final String proxyUniverse;
+
+  @JsonKey(nullable: false)
+  final ProxyAccountId proxyAccountId;
+
+  @JsonKey(name: ACCOUNT_ID, nullable: true)
+  final String accountId;
+
+  @JsonKey(name: BANK_ID, nullable: true)
+  final String bankId;
 
   @JsonKey(nullable: true)
   final String accountName;
@@ -35,30 +52,30 @@ class ProxyAccountEntity with ProxyUtils {
   @JsonKey(name: CURRENCY, nullable: false)
   final String currency;
 
-  @JsonKey(name: ID_OF_OWNER_PROXY_ID, nullable: false)
-  final String idOfOwnerProxyId;
+  String get validAccountName => isNotBlank(accountName) ? accountName : proxyAccountId.accountId;
 
-  String get validAccountName => isNotEmpty(accountName) ? accountName : accountId.accountId;
-
-  String get validBankName => isNotEmpty(bankName) ? bankName : accountId.bankId;
-
-  String get proxyUniverse => accountId.proxyUniverse;
+  String get validBankName => isNotBlank(bankName) ? bankName : proxyAccountId.bankId;
 
   ProxyAccountEntity({
-    @required this.accountId,
+    this.internalId,
+    @required this.proxyUniverse,
+    @required this.proxyAccountId,
     @required this.accountName,
     @required this.bankName,
     @required this.balance,
     @required this.ownerProxyId,
     @required this.signedProxyAccount,
-    String idOfOwnerProxyId,
     String currency,
     bool active,
+    String bankId,
+    String accountId,
   })  : this.active = active ?? true,
         this.currency = balance.currency,
-        this.idOfOwnerProxyId = ownerProxyId.id {
+        this.bankId = proxyAccountId.bankId,
+        this.accountId = proxyAccountId.accountId {
     assert(currency == null || this.currency == currency);
-    assert(idOfOwnerProxyId == null || this.idOfOwnerProxyId == idOfOwnerProxyId);
+    assert(bankId == null || this.bankId == bankId);
+    assert(accountId == null || this.accountId == accountId);
   }
 
   ProxyAccountEntity copy({
@@ -68,7 +85,9 @@ class ProxyAccountEntity with ProxyUtils {
     bool active,
   }) {
     return ProxyAccountEntity(
-      accountId: this.accountId,
+      internalId: internalId,
+      proxyUniverse: this.proxyUniverse,
+      proxyAccountId: this.proxyAccountId,
       accountName: accountName ?? this.accountName,
       bankName: bankName ?? this.bankName,
       balance: balance ?? this.balance,
@@ -78,11 +97,17 @@ class ProxyAccountEntity with ProxyUtils {
     );
   }
 
+  ProxyAccountEntity copyWithInternalId(String id) {
+    this.internalId = id;
+    return this;
+  }
+
   @override
   String toString() {
     return "ProxyAccountEntity(account: $validAccountName, bank: $validBankName, balance: $balance, active: $active)";
   }
 
+  @override
   Map<String, dynamic> toJson() => _$ProxyAccountEntityToJson(this);
 
   static ProxyAccountEntity fromJson(Map json) => _$ProxyAccountEntityFromJson(json);

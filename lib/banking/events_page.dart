@@ -61,7 +61,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage>
   @override
   void initState() {
     super.initState();
-    _eventStream = _eventStore.subscribeForEvents();
+    _eventStream = _eventStore.subscribeForEvents(proxyUniverse: appConfiguration.proxyUniverse);
   }
 
   void showToast(String message) {
@@ -150,36 +150,30 @@ class _EventsPageState extends LoadingSupportState<EventsPage>
     if (!event.completed) {
       showToast(localizations.withdrawalNotYetComplete);
     }
-    await _eventStore.deleteEvent(event);
+    await _eventStore.delete(event);
   }
 
   Future<void> _refreshEvent(BuildContext context, EventEntity event) async {
     switch (event.eventType) {
       case EventType.Deposit:
-        await BankingServiceFactory.depositService(widget.appConfiguration).refreshDepositStatus(
-          proxyUniverse: event.proxyUniverse,
-          depositId: (event as DepositEvent).depositId,
+        await BankingServiceFactory.depositService(widget.appConfiguration).refreshDepositByInternalId(
+          (event as DepositEvent).depositInternalId,
         );
         break;
       case EventType.Withdrawal:
-        await BankingServiceFactory.withdrawalService(widget.appConfiguration).refreshWithdrawalStatus(
-          proxyUniverse: event.proxyUniverse,
-          withdrawalId: (event as WithdrawalEvent).withdrawalId,
+        await BankingServiceFactory.withdrawalService(widget.appConfiguration).refreshWithdrawalByInternalId(
+          (event as WithdrawalEvent).withdrawalInternalId,
         );
         break;
       case EventType.PaymentAuthorization:
         await BankingServiceFactory.paymentAuthorizationService(widget.appConfiguration)
-            .refreshPaymentAuthorizationStatus(
-          proxyUniverse: event.proxyUniverse,
-          paymentAuthorizationId: (event as PaymentAuthorizationEvent).paymentAuthorizationId,
+            .refreshPaymentAuthorizationByInternalId(
+          (event as PaymentAuthorizationEvent).paymentAuthorizationInternalId,
         );
         break;
       case EventType.PaymentEncashment:
-        await BankingServiceFactory.paymentEncashmentService(widget.appConfiguration).refreshPaymentEncashmentStatus(
-          proxyUniverse: event.proxyUniverse,
-          paymentAuthorizationId: (event as PaymentEncashmentEvent).paymentAuthorizationId,
-          paymentEncashmentId: (event as PaymentEncashmentEvent).paymentEncashmentId,
-        );
+        await BankingServiceFactory.paymentEncashmentService(widget.appConfiguration)
+            .refreshPaymentEncashmentByInternalId((event as PaymentEncashmentEvent).paymentEncashmentInternalId);
         break;
       default:
         print("Not yet handled");

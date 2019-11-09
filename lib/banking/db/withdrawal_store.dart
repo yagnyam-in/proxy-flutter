@@ -3,65 +3,50 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_core/core.dart';
+import 'package:promo/banking/db/event_store.dart';
 import 'package:promo/banking/model/withdrawal_entity.dart';
 import 'package:promo/banking/model/withdrawal_event.dart';
-import 'package:promo/banking/db/event_store.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/db/firestore_utils.dart';
+import 'package:quiver/strings.dart';
 
-class WithdrawalStore with ProxyUtils, FirestoreUtils {
-  final AppConfiguration appConfiguration;
-  final DocumentReference root;
+import 'abstract_store.dart';
+
+class WithdrawalStore extends AbstractStore<WithdrawalEntity> {
   final EventStore _eventStore;
 
-  WithdrawalStore(this.appConfiguration)
-      : root = FirestoreUtils.accountRootRef(appConfiguration.accountId),
-        _eventStore = EventStore(appConfiguration);
+  WithdrawalStore(AppConfiguration appConfiguration)
+      : _eventStore = EventStore(appConfiguration),
+        super(appConfiguration);
 
-  DocumentReference ref({
-    @required String proxyUniverse,
-    @required String withdrawalId,
-  }) {
-    return root
-        .collection(FirestoreUtils.PROXY_UNIVERSE_NODE)
-        .document(proxyUniverse)
-        .collection('withdrawals')
-        .document(withdrawalId);
+  @override
+  FromJson<WithdrawalEntity> get fromJson => WithdrawalEntity.fromJson;
+
+  @override
+  CollectionReference get rootCollection {
+    return FirestoreUtils.accountRootRef(appConfiguration.accountId).collection('withdrawals');
   }
 
-  Future<WithdrawalEntity> fetchWithdrawal({
-    @required String proxyUniverse,
+  Future<WithdrawalEntity> fetch({
+    @required String bankId,
     @required String withdrawalId,
   }) async {
-    DocumentSnapshot snapshot = await ref(
-      proxyUniverse: proxyUniverse,
-      withdrawalId: withdrawalId,
-    ).get();
-    if (snapshot.exists) {
-      return WithdrawalEntity.fromJson(snapshot.data);
+    var query = rootCollection.where(WithdrawalEntity.WITHDRAWAL_ID, isEqualTo: withdrawalId);
+    if (isNotBlank(bankId)) {
+      query = query.where(WithdrawalEntity.BANK_ID, isEqualTo: bankId);
     }
-    return null;
+    return firstResult(await query.getDocuments(), query);
   }
 
-  Stream<WithdrawalEntity> subscribeForWithdrawal({
-    @required String proxyUniverse,
-    @required String withdrawalId,
-  }) {
-    return ref(
-      proxyUniverse: proxyUniverse,
-      withdrawalId: withdrawalId,
-    ).snapshots().map(
-          (s) => s.exists ? WithdrawalEntity.fromJson(s.data) : null,
-        );
-  }
+  Future<WithdrawalEntity> saveWithdrawal(WithdrawalEntity withdrawal, {Transaction transaction}) async {
+    withdrawal = withInternalId(withdrawal);
+    final event = _eventStore.withInternalId(WithdrawalEvent.fromWithdrawalEntity(withdrawal));
+    withdrawal = withdrawal.copyWithEventInternalId(event.internalId);
 
-  Future<WithdrawalEntity> saveWithdrawal(WithdrawalEntity withdrawal) async {
-    await ref(
-      proxyUniverse: withdrawal.proxyUniverse,
-      withdrawalId: withdrawal.withdrawalId,
-    ).setData(withdrawal.toJson());
-    await _eventStore.saveEvent(WithdrawalEvent.fromWithdrawalEntity(withdrawal));
+    await Future.wait([
+      super.save(withdrawal, transaction: transaction),
+      _eventStore.save(event, transaction: transaction),
+    ]);
     return withdrawal;
   }
 }

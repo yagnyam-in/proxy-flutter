@@ -26,7 +26,7 @@ mixin AccountHelper {
 
   Future<void> refreshAccount(BuildContext context, ProxyAccountEntity proxyAccount) {
     print("refresh $proxyAccount");
-    return BankingServiceFactory.bankingService(appConfiguration).refreshAccount(proxyAccount.accountId);
+    return BankingServiceFactory.bankingService(appConfiguration).refreshAccount(proxyAccount);
   }
 
   Future<void> archiveAccount(BuildContext context, ProxyAccountEntity proxyAccount) {
@@ -36,6 +36,6 @@ mixin AccountHelper {
       showToast(localizations.canNotDeleteActiveAccount);
       return Future.value(null);
     }
-    return ProxyAccountStore(appConfiguration).deleteAccount(proxyAccount);
+    return ProxyAccountStore(appConfiguration).delete(proxyAccount);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:promo/banking/db/deposit_store.dart';
 import 'package:promo/banking/model/deposit_entity.dart';
+import 'package:promo/banking/services/banking_service_factory.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/localizations.dart';
 import 'package:promo/model/action_menu_item.dart';
@@ -11,24 +12,24 @@ import 'package:url_launcher/url_launcher.dart';
 
 class DepositPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
-  final String depositId;
+  final String depositInternalId;
   final DepositEntity deposit;
 
-  const DepositPage(
+  DepositPage(
     this.appConfiguration, {
     Key key,
-    @required this.proxyUniverse,
-    @required this.depositId,
+    String depositInternalId,
     this.deposit,
-  }) : super(key: key);
+  })  : this.depositInternalId = depositInternalId ?? deposit?.internalId,
+        super(key: key) {
+    assert(this.depositInternalId != null, "depositInternalId can't be null");
+  }
 
   @override
   DepositPageState createState() {
     return DepositPageState(
       appConfiguration: appConfiguration,
-      proxyUniverse: proxyUniverse,
-      depositId: depositId,
+      depositInternalId: depositInternalId,
     );
   }
 }
@@ -37,8 +38,7 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
   static const String CANCEL = "cancel";
 
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
-  final String depositId;
+  final String depositInternalId;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Stream<DepositEntity> _depositStream;
@@ -46,17 +46,13 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
 
   DepositPageState({
     @required this.appConfiguration,
-    @required this.proxyUniverse,
-    @required this.depositId,
+    @required this.depositInternalId,
   });
 
   @override
   void initState() {
     super.initState();
-    _depositStream = DepositStore(appConfiguration).subscribeForDeposit(
-      proxyUniverse: proxyUniverse,
-      depositId: depositId,
-    );
+    _depositStream = DepositStore(appConfiguration).subscribeByInternalId(depositInternalId);
   }
 
   @override
@@ -222,17 +218,12 @@ class DepositPageState extends LoadingSupportState<DepositPage> {
     );
   }
 
-  void _cancelDeposit(BuildContext context) async {
-    DepositEntity depositEntity = await DepositStore(appConfiguration).fetchDeposit(
-      proxyUniverse: proxyUniverse,
-      depositId: depositId,
-    );
+  Future<void> _cancelDeposit(BuildContext context) async {
+    final depositEntity = await DepositStore(appConfiguration).fetchByInternalId(depositInternalId);
     if (depositEntity == null || !depositEntity.isCancelPossible) {
       showMessage(ProxyLocalizations.of(context).cancelNotPossible);
-      return;
+      return Future.value(null);
     }
-    if (depositEntity.isCancelPossible) {
-      print("Will cancel $depositEntity");
-    }
+    return BankingServiceFactory.depositService(appConfiguration).cancelDeposit(depositEntity);
   }
 }

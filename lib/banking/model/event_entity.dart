@@ -4,6 +4,8 @@ import 'package:meta/meta.dart';
 import 'package:promo/localizations.dart';
 import 'package:promo/widgets/basic_types.dart';
 
+import 'abstract_entity.dart';
+
 enum EventType { Unknown, Deposit, Withdrawal, PaymentAuthorization, PaymentEncashment, Fx }
 
 class EventAction {
@@ -14,15 +16,22 @@ class EventAction {
   EventAction({@required this.title, @required this.icon, @required this.action});
 }
 
-abstract class EventEntity {
-  @JsonKey(nullable: false)
+abstract class EventEntity extends AbstractEntity<EventEntity> {
+  static const PROXY_UNIVERSE = "proxyUniverse";
+  static const EVENT_TYPE = "eventType";
+  static const ACTIVE = AbstractEntity.ACTIVE;
+
+  @JsonKey(name: PROXY_UNIVERSE, nullable: false)
   final String proxyUniverse;
 
-  @JsonKey(nullable: false)
+  @JsonKey(name: EVENT_TYPE, nullable: false)
   final EventType eventType;
 
   @JsonKey(nullable: false)
-  final String eventId;
+  String internalId;
+
+  @JsonKey(nullable: false)
+  final String actualEventInternalId;
 
   @JsonKey(nullable: false)
   final DateTime creationTime;
@@ -33,14 +42,20 @@ abstract class EventEntity {
   @JsonKey(nullable: false)
   final bool completed;
 
+  @JsonKey(name: ACTIVE, nullable: false)
+  final bool active;
+
   EventEntity({
+    @required this.actualEventInternalId,
     @required this.proxyUniverse,
     @required this.creationTime,
     @required this.lastUpdatedTime,
     @required this.eventType,
-    @required this.eventId,
+    @required this.internalId,
     @required bool completed,
-  }) : completed = completed ?? false;
+    @required bool active,
+  })  : completed = completed ?? false,
+        this.active = active ?? true;
 
   Map<String, dynamic> toJson();
 
@@ -57,8 +72,13 @@ abstract class EventEntity {
   bool isCancellable();
 
   @override
-  String toString() {
-    return "$runtimeType(eventId: $eventId, completed: $completed)";
+  EventEntity copyWithInternalId(String id) {
+    this.internalId = id;
+    return this;
+  }
 
+  @override
+  String toString() {
+    return "$runtimeType(internalId: $internalId, eventType: $eventType, actualEventInternalId: $actualEventInternalId, completed: $completed)";
   }
 }

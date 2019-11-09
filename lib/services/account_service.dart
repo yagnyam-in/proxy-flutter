@@ -156,7 +156,7 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
   Future<ProxyKey> _createProxyKey(String proxyId) {
     print("createProxyKey");
     return ServiceFactory.proxyKeyFactory.createProxyKey(
-      id: proxyId,
+      _id: proxyId,
       keyGenerationAlgorithm: proxyVersion.keyGenerationAlgorithm,
       keySize: proxyVersion.keySize,
     );
