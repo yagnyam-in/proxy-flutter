@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:promo/config/app_configuration.dart';
 
 import 'deposit_page.dart';
 import 'model/deposit_event.dart';
@@ -32,27 +32,22 @@ mixin EventsHelper {
       case EventType.Deposit:
         return DepositPage(
           appConfiguration,
-          proxyUniverse: event.proxyUniverse,
-          depositId: (event as DepositEvent).depositId,
+          depositInternalId: (event as DepositEvent).depositInternalId,
         );
       case EventType.Withdrawal:
         return WithdrawalPage(
           appConfiguration,
-          proxyUniverse: event.proxyUniverse,
-          withdrawalId: (event as WithdrawalEvent).withdrawalId,
+          withdrawalInternalId: (event as WithdrawalEvent).withdrawalInternalId,
         );
       case EventType.PaymentAuthorization:
         return PaymentAuthorizationPage(
           appConfiguration,
-          proxyUniverse: event.proxyUniverse,
-          paymentAuthorizationId: (event as PaymentAuthorizationEvent).paymentAuthorizationId,
+          paymentAuthorizationInternalId: (event as PaymentAuthorizationEvent).paymentAuthorizationInternalId,
         );
       case EventType.PaymentEncashment:
         return PaymentEncashmentPage(
           appConfiguration,
-          proxyUniverse: event.proxyUniverse,
-          paymentEncashmentId: (event as PaymentEncashmentEvent).paymentEncashmentId,
-          paymentAuthorizationId: (event as PaymentEncashmentEvent).paymentAuthorizationId,
+          paymentEncashmentInternalId: (event as PaymentEncashmentEvent).paymentEncashmentInternalId,
         );
       default:
         return null;

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/services/app_configuration_bloc.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/services/app_configuration_bloc.dart';
+import 'package:promo/services/service_factory.dart';
 
 import 'config/app_configuration.dart';
 import 'db/user_store.dart';
@@ -140,8 +140,7 @@ class _CreateOrRecoverAccountState extends LoadingSupportState<CreateOrRecoverAc
                 labelText: localizations.passPhrase,
                 helperText: localizations.passPhraseHint,
               ),
-              keyboardType: TextInputType.text,
-              // TODO: Change to Visible Password Type
+              keyboardType: TextInputType.visiblePassword,
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (val) => FocusScope.of(context).requestFocus(actionButtonFocusNode),
               validator: (value) => _passphraseIdValidator(localizations, value),

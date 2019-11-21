@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/deposit_entity.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/banking/model/event_entity.dart';
+import 'package:promo/banking/model/deposit_entity.dart';
+import 'package:promo/banking/model/event_entity.dart';
+import 'package:promo/localizations.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:quiver/strings.dart';
 
 part 'deposit_event.g.dart';
 
 @JsonSerializable()
-class DepositEvent extends EventEntity with ProxyUtils {
+class DepositEvent extends EventEntity {
   @JsonKey(nullable: false)
   final DepositStatusEnum status;
 
@@ -23,63 +23,73 @@ class DepositEvent extends EventEntity with ProxyUtils {
   @JsonKey(nullable: false)
   final String depositLink;
 
-  String get depositId => eventId;
+  String get depositInternalId => actualEventInternalId;
 
   DepositEvent({
     EventType eventType = EventType.Deposit, // Required for Json
+    @required String internalId,
     @required String proxyUniverse,
     @required DateTime creationTime,
     @required DateTime lastUpdatedTime,
     @required bool completed,
-    @required String depositId,
+    @required bool active,
+    @required String depositInternalId,
     @required this.status,
     @required this.amount,
     @required this.destinationProxyAccountId,
     this.depositLink,
   }) : super(
+          internalId: internalId,
           eventType: eventType,
           proxyUniverse: proxyUniverse,
-          eventId: depositId,
+          actualEventInternalId: depositInternalId,
           creationTime: creationTime,
           lastUpdatedTime: lastUpdatedTime,
           completed: completed,
+          active: active,
         ) {
     assert(eventType == EventType.Deposit);
   }
 
   factory DepositEvent.fromDepositEntity(DepositEntity depositEntity) => DepositEvent(
+        internalId: depositEntity.eventInternalId,
         proxyUniverse: depositEntity.proxyUniverse,
-        depositId: depositEntity.depositId,
+        depositInternalId: depositEntity.internalId,
         creationTime: depositEntity.creationTime,
         lastUpdatedTime: DateTime.now(),
         amount: depositEntity.amount,
         status: depositEntity.status,
         destinationProxyAccountId: depositEntity.destinationProxyAccountId,
         completed: depositEntity.completed,
+        active: true,
       );
 
   DepositEvent copyFromDepositEntity(DepositEntity depositEntity) {
     return copy(
-      lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
-      completed: completed ?? this.completed,
-      depositLink: depositLink ?? this.depositLink,
-      status: status ?? this.status,
+      depositInternalId: depositEntity.internalId,
+      lastUpdatedTime: depositEntity.lastUpdatedTime,
+      completed: depositEntity.completed,
+      depositLink: depositEntity.depositLink,
+      status: depositEntity.status,
     );
   }
 
   DepositEvent copy({
-    int id,
+    String depositInternalId,
     String depositLink,
     DepositStatusEnum status,
     DateTime lastUpdatedTime,
     bool completed,
+    bool active,
   }) {
     return DepositEvent(
+      internalId: internalId,
       proxyUniverse: this.proxyUniverse,
-      depositId: this.eventId,
+      depositInternalId: depositInternalId ?? this.depositInternalId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
       creationTime: this.creationTime,
       completed: completed ?? this.completed,
+      active: active ?? this.active,
       amount: this.amount,
       destinationProxyAccountId: this.destinationProxyAccountId,
       depositLink: depositLink ?? this.depositLink,

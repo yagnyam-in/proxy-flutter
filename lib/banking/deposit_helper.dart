@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/services/account_service.dart';
-import 'package:proxy_flutter/widgets/basic_types.dart';
+import 'package:promo/banking/services/banking_service_factory.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/services/account_service.dart';
+import 'package:promo/widgets/basic_types.dart';
 import 'package:quiver/strings.dart';
 import 'package:url_launcher/url_launcher.dart';
 

@@ -9,12 +9,13 @@ part of 'payment_encashment_event.dart';
 PaymentEncashmentEvent _$PaymentEncashmentEventFromJson(Map json) {
   return PaymentEncashmentEvent(
     eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
+    internalId: json['internalId'] as String,
     proxyUniverse: json['proxyUniverse'] as String,
     creationTime: DateTime.parse(json['creationTime'] as String),
     lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
     completed: json['completed'] as bool,
-    paymentAuthorizationId: json['paymentAuthorizationId'] as String,
-    paymentEncashmentId: json['paymentEncashmentId'] as String,
+    active: json['active'] as bool,
+    paymentEncashmentInternalId: json['paymentEncashmentInternalId'] as String,
     status: _$enumDecode(_$PaymentEncashmentStatusEnumEnumMap, json['status']),
     amount: Amount.fromJson(json['amount'] as Map),
     payeeAccountId: ProxyAccountId.fromJson(json['payeeAccountId'] as Map),
@@ -27,14 +28,15 @@ Map<String, dynamic> _$PaymentEncashmentEventToJson(
   final val = <String, dynamic>{
     'proxyUniverse': instance.proxyUniverse,
     'eventType': _$EventTypeEnumMap[instance.eventType],
+    'internalId': instance.internalId,
     'creationTime': instance.creationTime.toIso8601String(),
     'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
     'completed': instance.completed,
+    'active': instance.active,
     'status': _$PaymentEncashmentStatusEnumEnumMap[instance.status],
     'amount': instance.amount.toJson(),
     'payeeAccountId': instance.payeeAccountId.toJson(),
     'paymentAuthorizationLink': instance.paymentAuthorizationLink,
-    'paymentAuthorizationId': instance.paymentAuthorizationId,
   };
 
   void writeNotNull(String key, dynamic value) {
@@ -43,7 +45,8 @@ Map<String, dynamic> _$PaymentEncashmentEventToJson(
     }
   }
 
-  writeNotNull('paymentEncashmentId', instance.paymentEncashmentId);
+  writeNotNull(
+      'paymentEncashmentInternalId', instance.paymentEncashmentInternalId);
   return val;
 }
 

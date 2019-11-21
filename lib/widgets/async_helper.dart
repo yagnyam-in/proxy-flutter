@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/widgets/basic_types.dart';
-import 'package:proxy_flutter/widgets/loading.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/widgets/basic_types.dart';
+import 'package:promo/widgets/loading.dart';
 
 typedef DataToWidgetBuilder<T> = Widget Function(BuildContext context, T data);
 

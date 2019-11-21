@@ -1,9 +1,9 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/email_authorization_entity.dart';
-import 'package:proxy_flutter/model/phone_number_authorization_entity.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/email_authorization_entity.dart';
+import 'package:promo/model/phone_number_authorization_entity.dart';
 
 class AuthorizationCard extends StatelessWidget {
   final PhoneNumberAuthorizationEntity phoneNumberAuthorization;

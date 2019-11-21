@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/localizations.dart';
+import 'package:promo/localizations.dart';
 
 Future<void> inform(
   BuildContext context, {

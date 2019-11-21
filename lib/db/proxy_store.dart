@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/db/firestore_utils.dart';
-import 'package:proxy_flutter/model/account_entity.dart';
-import 'package:proxy_flutter/model/proxy_entity.dart';
+import 'package:promo/db/firestore_utils.dart';
+import 'package:promo/model/account_entity.dart';
+import 'package:promo/model/proxy_entity.dart';
 
 class ProxyStore with ProxyUtils, FirestoreUtils {
   final AccountEntity account;

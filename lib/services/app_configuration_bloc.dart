@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/account_store.dart';
-import 'package:proxy_flutter/db/user_store.dart';
-import 'package:proxy_flutter/model/account_entity.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
-import 'package:proxy_flutter/services/account_service.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/account_store.dart';
+import 'package:promo/db/user_store.dart';
+import 'package:promo/model/account_entity.dart';
+import 'package:promo/model/user_entity.dart';
+import 'package:promo/services/account_service.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

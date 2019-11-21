@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
+import 'package:promo/banking/db/bank_store.dart';
+import 'package:promo/banking/db/proxy_account_store.dart';
+import 'package:promo/banking/model/banking_service_provider_entity.dart';
+import 'package:promo/banking/model/proxy_account_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/services/service_helper.dart';
+import 'package:promo/url_config.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/db/bank_store.dart';
-import 'package:proxy_flutter/banking/db/proxy_account_store.dart';
-import 'package:proxy_flutter/banking/model/bank_entity.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/services/service_helper.dart';
-import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
@@ -34,18 +34,17 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
-  Future<BankEntity> _fetchDefaultBank({String proxyUniverse}) {
+  Future<BankingServiceProviderEntity> _fetchDefaultBank({String proxyUniverse}) {
     proxyUniverse = proxyUniverse ?? appConfiguration.proxyUniverse;
     String bankId = proxyUniverse == ProxyUniverse.PRODUCTION ? "wallet" : "test-wallet";
-    return BankStore().fetchBank(
-      proxyUniverse: proxyUniverse,
+    return BankStore(appConfiguration).fetchBank(
       bankId: bankId,
     );
   }
 
   Future<Set<String>> supportedCurrenciesForDefaultBank({String proxyUniverse}) async {
     print("supportedCurrenciesForDefaultBank(proxyUniverse: $proxyUniverse)");
-    BankEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
+    BankingServiceProviderEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
     return bank.supportedCurrencies;
   }
 
@@ -53,8 +52,7 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     String proxyUniverse,
     @required ProxyId bankProxyId,
   }) async {
-    BankEntity bank = await BankStore().fetchBank(
-      proxyUniverse: proxyUniverse ?? appConfiguration.proxyUniverse,
+    BankingServiceProviderEntity bank = await BankStore(appConfiguration).fetchBank(
       bankProxyId: bankProxyId,
     );
     return bank.supportedCurrencies;
@@ -66,7 +64,6 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     @required String currency,
   }) async {
     List<ProxyAccountEntity> existing = await _proxyAccountStore.fetchActiveAccounts(
-      masterProxyId: ownerProxyId,
       currency: currency,
       proxyUniverse: proxyUniverse,
     );
@@ -85,7 +82,7 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     @required String proxyUniverse,
     @required String currency,
   }) async {
-    BankEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
+    BankingServiceProviderEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyUniverse: proxyUniverse,
@@ -105,16 +102,17 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     return _saveAccount(ownerProxyId, signedResponse, bank);
   }
 
-  ProxyAccountEntity _saveAccount(
+  Future<ProxyAccountEntity> _saveAccount(
     ProxyId ownerProxyId,
     SignedMessage<ProxyWalletCreationResponse> signedResponse,
-    BankEntity bank,
+    BankingServiceProviderEntity bank,
   ) {
     ProxyWalletCreationResponse response = signedResponse.message;
     ProxyAccount proxyAccount = response.proxyAccount.message;
     ProxyAccountId proxyAccountId = proxyAccount.proxyAccountId;
     ProxyAccountEntity proxyAccountEntity = ProxyAccountEntity(
-      accountId: proxyAccountId,
+      proxyAccountId: proxyAccountId,
+      proxyUniverse: bank.proxyUniverse,
       accountName: "",
       bankName: bank.bankName,
       balance: Amount(
@@ -125,23 +123,25 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       signedProxyAccount: response.proxyAccount,
       active: true,
     );
-    _proxyAccountStore.saveAccount(proxyAccountEntity);
-    return proxyAccountEntity;
+    return _proxyAccountStore.save(proxyAccountEntity);
   }
 
-  Future<void> refreshAccount(ProxyAccountId accountId) async {
+  Future<void> _refreshAccountById(ProxyAccountId accountId) async {
     print('Refreshing $accountId');
-    ProxyAccountEntity proxyAccount = await _proxyAccountStore.fetchAccount(accountId);
+    ProxyAccountEntity proxyAccount = await _proxyAccountStore.fetchAccount(proxyAccountId: accountId);
     if (proxyAccount == null) {
       // This can happen when alert reaches earlier than API response, or account is removed.
       print("Account $proxyAccount not found");
       return null;
     }
+    return refreshAccount(proxyAccount);
+  }
+
+  Future<void> refreshAccount(ProxyAccountEntity proxyAccount) async {
     AccountBalanceRequest request = AccountBalanceRequest(
       requestId: uuidFactory.v4(),
       proxyAccount: proxyAccount.signedProxyAccount,
     );
-
     final signedRequest = await signMessage(
       signer: proxyAccount.ownerProxyId,
       request: request,
@@ -151,17 +151,16 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       signedRequest: signedRequest,
       responseParser: AccountBalanceResponse.fromJson,
     );
-
     if (signedResponse.message.balance != proxyAccount.balance) {
-      _proxyAccountStore.saveAccount(proxyAccount.copy(balance: signedResponse.message.balance));
+      await _proxyAccountStore.save(proxyAccount.copy(balance: signedResponse.message.balance));
     }
   }
 
   Future<void> processAccountUpdatedAlert(AccountUpdatedAlert alert) {
-    return refreshAccount(alert.proxyAccountId);
+    return _refreshAccountById(alert.proxyAccountId);
   }
 
   Future<void> processAccountUpdatedLiteAlert(AccountUpdatedLiteAlert alert) {
-    return refreshAccount(alert.proxyAccountId);
+    return _refreshAccountById(alert.proxyAccountId);
   }
 }

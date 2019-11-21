@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/db/firestore_utils.dart';
-import 'package:proxy_flutter/model/account_entity.dart';
+import 'package:promo/db/firestore_utils.dart';
+import 'package:promo/model/account_entity.dart';
 
 class AccountStore with ProxyUtils, FirestoreUtils {
   DocumentReference _ref(String accountId) {

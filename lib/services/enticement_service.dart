@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/dismissed_enticement_store.dart';
-import 'package:proxy_flutter/model/dismissed_enticement_entity.dart';
-import 'package:proxy_flutter/model/enticement.dart';
-import 'package:proxy_flutter/services/enticement_factory.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/dismissed_enticement_store.dart';
+import 'package:promo/model/dismissed_enticement_entity.dart';
+import 'package:promo/model/enticement.dart';
+import 'package:promo/services/enticement_factory.dart';
 
 class EnticementService {
   final AppConfiguration appConfiguration;

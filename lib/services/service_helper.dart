@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/proxy_key_store.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/proxy_key_store.dart';
+import 'package:promo/services/service_factory.dart';
 
 typedef SignedMessageParser<T extends SignableMessage> = SignedMessage<T> Function(Map json);
 

@@ -872,7 +872,9 @@ class ProxyLocalizations {
         desc: 'Title for Share Payment Action',
       );
 
-  String get sharePaymentButtonTitle => Intl.message('Share Payment');
+  String get sharePaymentButtonTitle => Intl.message('Share');
+
+  String get directPaymentButtonTitle => Intl.message('Pay');
 
   String get acceptPaymentPageTitle => Intl.message(
         'Accept Payment',
@@ -955,7 +957,7 @@ class ProxyLocalizations {
 
   String get withdrawalNotFound => Intl.message('Withdrawal not found');
 
-  String get paymentAuthorizationEventTitle => Intl.message('Payment Sent');
+  String get paymentAuthorizationEventTitle => Intl.message('Payment Made');
 
   String paymentAuthorizationEventSubTitle(String payerAccount) {
     return Intl.message(
@@ -1032,6 +1034,12 @@ class ProxyLocalizations {
 
   String get payFabLabel => Intl.message('Pay');
 
+  String get receiveFabLabel => Intl.message('Get');
+
+  String get tapAndPayFabLabel => Intl.message('Tap');
+
+  String get sendPaymentPageTitle => Intl.message('Send Payment');
+
   String get unexpectedError => Intl.message('Unexpected Error');
 
   String get retry => Intl.message('Retry');
@@ -1046,7 +1054,7 @@ class ProxyLocalizations {
 
   String get payees => Intl.message('Payees');
 
-  String get anyoneWithSecret => Intl.message('Anyone with PIN');
+  String get anyoneWithSecret => Intl.message('Direct');
 
   String get chooseFromContacts => Intl.message('Choose from Contacts');
 
@@ -1063,6 +1071,12 @@ class ProxyLocalizations {
   String get paymentEncashmentEventTitle => Intl.message('Payment Received');
 
   String get copiedToClipboard => Intl.message('Copied to Clipboard');
+
+  String get receivePaymentPageTitle => Intl.message('Receive Payment');
+
+  String get sendPaymentButtonLabel => Intl.message('Send');
+
+  String get paymentNotSent => Intl.message('Payment not sent');
 
   String paymentEncashmentEventSubTitle(String payeeAccount) {
     return Intl.message(
@@ -1245,6 +1259,8 @@ class ProxyLocalizations {
   String get iosAppStoreName => Intl.message('AppStore');
 
   String get unsupportedPlatform => Intl.message("Last time we checked, we don't support this platform yet.");
+
+  String get paymentSentThroughNfc => Intl.message('Payment Sent through NFC');
 
   String upgradeOnStore(String storeName) {
     return Intl.message(

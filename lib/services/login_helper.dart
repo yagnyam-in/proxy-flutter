@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/constants.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
-import 'package:proxy_flutter/url_config.dart';
-import 'package:proxy_flutter/widgets/terms.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/constants.dart';
+import 'package:promo/model/user_entity.dart';
+import 'package:promo/url_config.dart';
+import 'package:promo/widgets/terms.dart';
 
 import 'app_configuration_bloc.dart';
 import 'service_factory.dart';

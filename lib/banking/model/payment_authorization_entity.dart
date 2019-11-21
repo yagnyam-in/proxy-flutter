@@ -2,24 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
-import 'package:proxy_flutter/localizations.dart';
+import 'package:promo/banking/model/payment_authorization_payee_entity.dart';
+import 'package:promo/localizations.dart';
 import 'package:proxy_messages/banking.dart';
+
+import 'abstract_entity.dart';
 
 part 'payment_authorization_entity.g.dart';
 
 @JsonSerializable()
-class PaymentAuthorizationEntity {
+class PaymentAuthorizationEntity extends AbstractEntity<PaymentAuthorizationEntity> with ProxyUtils {
+  static const PROXY_UNIVERSE = "proxyUniverse";
+  static const PAYMENT_AUTHORIZATION_ID = "paymentAuthorizationId";
+  static const BANK_ID = "bankId";
+
   static final Set<PaymentAuthorizationStatusEnum> cancelPossibleStatuses = {
     PaymentAuthorizationStatusEnum.Created,
     PaymentAuthorizationStatusEnum.Registered,
   };
 
   @JsonKey(nullable: false)
-  final String proxyUniverse;
+  String internalId;
 
   @JsonKey(nullable: false)
+  String eventInternalId;
+
+  @JsonKey(name: PROXY_UNIVERSE, nullable: false)
+  final String proxyUniverse;
+
+  @JsonKey(name: PAYMENT_AUTHORIZATION_ID, nullable: false)
   final String paymentAuthorizationId;
+
+  @JsonKey(name: BANK_ID, nullable: false)
+  final String bankId;
 
   @JsonKey(nullable: false)
   final DateTime creationTime;
@@ -45,6 +60,9 @@ class PaymentAuthorizationEntity {
   @JsonKey(nullable: false)
   final List<PaymentAuthorizationPayeeEntity> payees;
 
+  @JsonKey(nullable: true)
+  final String paymentAuthorizationDynamicLink;
+
   @JsonKey(nullable: false)
   final String paymentAuthorizationLink;
 
@@ -52,6 +70,8 @@ class PaymentAuthorizationEntity {
   SignedMessage<PaymentAuthorization> signedPaymentAuthorization;
 
   PaymentAuthorizationEntity({
+    this.internalId,
+    this.eventInternalId,
     @required this.proxyUniverse,
     @required this.paymentAuthorizationId,
     @required this.creationTime,
@@ -61,18 +81,23 @@ class PaymentAuthorizationEntity {
     @required this.payerAccountId,
     @required this.payerProxyId,
     @required this.signedPaymentAuthorization,
+    @required this.paymentAuthorizationDynamicLink,
     @required this.paymentAuthorizationLink,
     @required this.payees,
     @required this.completed,
-  });
+    String bankId,
+  }) : bankId = payerAccountId.bankId {
+    assert(bankId == null || this.bankId == bankId);
+  }
 
   PaymentAuthorizationEntity copy({
-    int id,
     PaymentAuthorizationStatusEnum status,
     DateTime lastUpdatedTime,
   }) {
     PaymentAuthorizationStatusEnum effectiveStatus = status ?? this.status;
     return PaymentAuthorizationEntity(
+      internalId: this.internalId,
+      eventInternalId: this.eventInternalId,
       proxyUniverse: this.proxyUniverse,
       paymentAuthorizationId: this.paymentAuthorizationId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
@@ -83,9 +108,21 @@ class PaymentAuthorizationEntity {
       signedPaymentAuthorization: this.signedPaymentAuthorization,
       status: effectiveStatus,
       paymentAuthorizationLink: this.paymentAuthorizationLink,
+      paymentAuthorizationDynamicLink: this.paymentAuthorizationDynamicLink,
       payees: this.payees,
       completed: isCompleteStatus(effectiveStatus),
     );
+  }
+
+  @override
+  PaymentAuthorizationEntity copyWithInternalId(String id) {
+    internalId = id;
+    return this;
+  }
+
+  PaymentAuthorizationEntity copyWithEventInternalId(String eventId) {
+    eventInternalId = eventId;
+    return this;
   }
 
   static bool isCompleteStatus(PaymentAuthorizationStatusEnum status) {
@@ -120,6 +157,7 @@ class PaymentAuthorizationEntity {
     }
   }
 
+  @override
   Map<String, dynamic> toJson() => _$PaymentAuthorizationEntityToJson(this);
 
   static PaymentAuthorizationEntity fromJson(Map json) => _$PaymentAuthorizationEntityFromJson(json);

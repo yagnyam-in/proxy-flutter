@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/phone_number_authorization_store.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/phone_number_authorization_entity.dart';
-import 'package:proxy_flutter/utils/data_validations.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
-import 'package:proxy_flutter/widgets/loading.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/phone_number_authorization_store.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/phone_number_authorization_entity.dart';
+import 'package:promo/utils/data_validations.dart';
+import 'package:promo/widgets/async_helper.dart';
+import 'package:promo/widgets/loading.dart';
 import 'package:quiver/strings.dart';
 
 import 'services/service_factory.dart';

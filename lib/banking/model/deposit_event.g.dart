@@ -9,11 +9,13 @@ part of 'deposit_event.dart';
 DepositEvent _$DepositEventFromJson(Map json) {
   return DepositEvent(
     eventType: _$enumDecode(_$EventTypeEnumMap, json['eventType']),
+    internalId: json['internalId'] as String,
     proxyUniverse: json['proxyUniverse'] as String,
     creationTime: DateTime.parse(json['creationTime'] as String),
     lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
     completed: json['completed'] as bool,
-    depositId: json['depositId'] as String,
+    active: json['active'] as bool,
+    depositInternalId: json['depositInternalId'] as String,
     status: _$enumDecode(_$DepositStatusEnumEnumMap, json['status']),
     amount: Amount.fromJson(json['amount'] as Map),
     destinationProxyAccountId:
@@ -26,9 +28,11 @@ Map<String, dynamic> _$DepositEventToJson(DepositEvent instance) {
   final val = <String, dynamic>{
     'proxyUniverse': instance.proxyUniverse,
     'eventType': _$EventTypeEnumMap[instance.eventType],
+    'internalId': instance.internalId,
     'creationTime': instance.creationTime.toIso8601String(),
     'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
     'completed': instance.completed,
+    'active': instance.active,
     'status': _$DepositStatusEnumEnumMap[instance.status],
     'amount': instance.amount.toJson(),
     'destinationProxyAccountId': instance.destinationProxyAccountId.toJson(),
@@ -41,7 +45,7 @@ Map<String, dynamic> _$DepositEventToJson(DepositEvent instance) {
     }
   }
 
-  writeNotNull('depositId', instance.depositId);
+  writeNotNull('depositInternalId', instance.depositInternalId);
   return val;
 }
 

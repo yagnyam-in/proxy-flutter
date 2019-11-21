@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
+import 'package:promo/banking/db/deposit_store.dart';
+import 'package:promo/banking/deposit_request_input_dialog.dart';
+import 'package:promo/banking/model/deposit_entity.dart';
+import 'package:promo/banking/model/proxy_account_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/services/service_helper.dart';
+import 'package:promo/url_config.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/db/deposit_store.dart';
-import 'package:proxy_flutter/banking/deposit_request_input_dialog.dart';
-import 'package:proxy_flutter/banking/model/deposit_entity.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/services/service_helper.dart';
-import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
@@ -63,32 +63,11 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       request,
       signedResponse.message,
     );
-    await _depositStore.saveDeposit(depositEntity);
+    depositEntity = await _depositStore.save(depositEntity);
     return depositEntity.depositLink;
   }
 
-  Future<void> refreshDepositStatus({
-    @required String proxyUniverse,
-    @required String depositId,
-  }) async {
-    DepositEntity depositEntity = await _depositStore.fetchDeposit(
-      proxyUniverse: proxyUniverse,
-      depositId: depositId,
-    );
-    if (depositEntity != null) {
-      await _refreshDepositStatus(depositEntity);
-    }
-  }
-
-  Future<void> cancelDeposit({
-    @required String proxyUniverse,
-    @required String depositId,
-  }) async {
-    print('Cancelling $proxyUniverse/$depositId');
-    DepositEntity depositEntity = await _depositStore.fetchDeposit(
-      proxyUniverse: proxyUniverse,
-      depositId: depositId,
-    );
+  Future<void> cancelDeposit(DepositEntity depositEntity) async {
     DepositRequestCancelRequest request = DepositRequestCancelRequest(
       requestId: uuidFactory.v4(),
       depositRequest: depositEntity.signedDepositRequest,
@@ -105,7 +84,7 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     await _saveDepositStatus(depositEntity, signedResponse.message.status);
   }
 
-  Future<void> _refreshDepositStatus(DepositEntity depositEntity) async {
+  Future<void> _refreshDeposit(DepositEntity depositEntity) async {
     print('Refreshing $depositEntity');
     DepositRequestStatusRequest request = DepositRequestStatusRequest(
       requestId: uuidFactory.v4(),
@@ -133,7 +112,7 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       depositId: request.depositId,
       status: response.status,
       amount: request.amount,
-      destinationProxyAccountId: proxyAccount.accountId,
+      destinationProxyAccountId: proxyAccount.proxyAccountId,
       destinationProxyAccountOwnerProxyId: proxyAccount.ownerProxyId,
       creationTime: DateTime.now(),
       lastUpdatedTime: DateTime.now(),
@@ -155,21 +134,40 @@ class DepositService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
       status: status,
       lastUpdatedTime: DateTime.now(),
     );
-    await _depositStore.saveDeposit(clone);
-    return clone;
+    return _depositStore.save(clone);
   }
 
   Future<void> processDepositUpdatedAlert(DepositUpdatedAlert alert) {
-    return refreshDepositStatus(
-      proxyUniverse: alert.proxyUniverse,
+    return _refreshDepositById(
+      bankId: alert.proxyAccountId.bankId,
       depositId: alert.depositId,
     );
   }
 
   Future<void> processDepositUpdatedLiteAlert(DepositUpdatedLiteAlert alert) {
-    return refreshDepositStatus(
-      proxyUniverse: alert.proxyUniverse,
+    return _refreshDepositById(
+      bankId: alert.proxyAccountId.bankId,
       depositId: alert.depositId,
     );
+  }
+
+  Future<void> _refreshDepositById({
+    @required String bankId,
+    @required String depositId,
+  }) async {
+    DepositEntity deposit = await _depositStore.fetch(
+      bankId: bankId,
+      depositId: depositId,
+    );
+    if (deposit != null) {
+      await _refreshDeposit(deposit);
+    }
+  }
+
+  Future<void> refreshDepositByInternalId(String internalId) async {
+    DepositEntity deposit = await _depositStore.fetchByInternalId(internalId);
+    if (deposit != null) {
+      return _refreshDeposit(deposit);
+    }
   }
 }

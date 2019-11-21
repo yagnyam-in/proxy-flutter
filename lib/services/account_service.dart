@@ -6,14 +6,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:proxy_core/bootstrap.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/account_store.dart';
-import 'package:proxy_flutter/db/proxy_key_store.dart';
-import 'package:proxy_flutter/db/proxy_store.dart';
-import 'package:proxy_flutter/model/account_entity.dart';
-import 'package:proxy_flutter/model/user_entity.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
-import 'package:proxy_flutter/url_config.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/account_store.dart';
+import 'package:promo/db/proxy_key_store.dart';
+import 'package:promo/db/proxy_store.dart';
+import 'package:promo/model/account_entity.dart';
+import 'package:promo/model/user_entity.dart';
+import 'package:promo/services/service_factory.dart';
+import 'package:promo/url_config.dart';
 
 class AccountRequest {
   // Not required. But due to firestore limits (max 1 per 1 sec), we may not be able to update it just after it is created
@@ -156,7 +156,7 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
   Future<ProxyKey> _createProxyKey(String proxyId) {
     print("createProxyKey");
     return ServiceFactory.proxyKeyFactory.createProxyKey(
-      id: proxyId,
+      _id: proxyId,
       keyGenerationAlgorithm: proxyVersion.keyGenerationAlgorithm,
       keySize: proxyVersion.keySize,
     );

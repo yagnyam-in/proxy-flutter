@@ -1,19 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:promo/banking/model/abstract_entity.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/utils/conversion_utils.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/utils/conversion_utils.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:quiver/strings.dart';
 
 part 'deposit_entity.g.dart';
 
 @JsonSerializable()
-class DepositEntity with ProxyUtils {
+class DepositEntity extends AbstractEntity<DepositEntity> {
+  static const PROXY_UNIVERSE = "proxyUniverse";
+  static const DEPOSIT_ID = "depositId";
+  static const BANK_ID = "bankId";
+
   @JsonKey(nullable: false)
+  String internalId;
+  @JsonKey(nullable: false)
+  String eventInternalId;
+  @JsonKey(name: PROXY_UNIVERSE, nullable: false)
   final String proxyUniverse;
-  @JsonKey(nullable: false)
+  @JsonKey(name: DEPOSIT_ID, nullable: false)
   final String depositId;
+  @JsonKey(name: BANK_ID, nullable: false)
+  final String bankId;
   @JsonKey(nullable: false)
   final DateTime creationTime;
   @JsonKey(nullable: false)
@@ -34,9 +46,9 @@ class DepositEntity with ProxyUtils {
   final String depositLink;
 
   DepositEntity({
+    this.internalId,
+    this.eventInternalId,
     @required this.proxyUniverse,
-    @required this.creationTime,
-    @required this.lastUpdatedTime,
     @required this.depositId,
     @required this.completed,
     @required this.status,
@@ -45,7 +57,12 @@ class DepositEntity with ProxyUtils {
     @required this.destinationProxyAccountOwnerProxyId,
     @required this.depositLink,
     @required this.signedDepositRequest,
-  });
+    @required this.creationTime,
+    @required this.lastUpdatedTime,
+    String bankId,
+  }) : bankId = destinationProxyAccountId.bankId {
+    assert(bankId == null || this.bankId == bankId);
+  }
 
   DepositEntity copy({
     DepositStatusEnum status,
@@ -53,6 +70,8 @@ class DepositEntity with ProxyUtils {
   }) {
     DepositStatusEnum effectiveStatus = status ?? this.status;
     return DepositEntity(
+      internalId: this.internalId,
+      eventInternalId: this.eventInternalId,
       proxyUniverse: this.proxyUniverse,
       depositId: this.depositId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
@@ -65,6 +84,17 @@ class DepositEntity with ProxyUtils {
       signedDepositRequest: this.signedDepositRequest,
       status: effectiveStatus,
     );
+  }
+
+  @override
+  DepositEntity copyWithInternalId(String id) {
+    internalId = id;
+    return this;
+  }
+
+  DepositEntity copyWithEventInternalId(String eventId) {
+    eventInternalId = eventId;
+    return this;
   }
 
   static final Set<DepositStatusEnum> cancelPossibleStatuses = {
@@ -119,7 +149,13 @@ class DepositEntity with ProxyUtils {
     }
   }
 
+  @override
   Map<String, dynamic> toJson() => _$DepositEntityToJson(this);
+
+  @override
+  String toString() {
+    return "$runtimeType(internalId: $internalId)";
+  }
 
   static DepositEntity fromJson(Map json) => _$DepositEntityFromJson(json);
 
@@ -140,6 +176,6 @@ class DepositEntity with ProxyUtils {
   }
 
   bool get isDepositPossible {
-    return depositPossibleStatuses.contains(status) && isNotEmpty(depositLink);
+    return depositPossibleStatuses.contains(status) && isNotBlank(depositLink);
   }
 }

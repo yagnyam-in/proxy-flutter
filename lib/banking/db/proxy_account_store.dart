@@ -3,98 +3,70 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/firestore_utils.dart';
+import 'package:promo/banking/model/abstract_entity.dart';
+import 'package:promo/banking/model/proxy_account_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/firestore_utils.dart';
 import 'package:proxy_messages/banking.dart';
 
+import 'abstract_store.dart';
 import 'cleanup_service.dart';
 
-class ProxyAccountStore with ProxyUtils, FirestoreUtils {
-  final AppConfiguration appConfiguration;
-  final DocumentReference root;
+class ProxyAccountStore extends AbstractStore<ProxyAccountEntity> {
   final CleanupService _cleanupService;
 
-  ProxyAccountStore(this.appConfiguration)
-      : root = FirestoreUtils.accountRootRef(appConfiguration.accountId),
-        _cleanupService = CleanupService(appConfiguration) {
+  ProxyAccountStore(AppConfiguration appConfiguration)
+      : _cleanupService = CleanupService(appConfiguration),
+        super(appConfiguration) {
     assert(appConfiguration != null);
   }
 
-  CollectionReference _accountsRef({
-    @required String proxyUniverse,
-  }) {
-    return root.collection(FirestoreUtils.PROXY_UNIVERSE_NODE).document(proxyUniverse).collection('proxy-accounts');
+  @override
+  FromJson<ProxyAccountEntity> get fromJson => ProxyAccountEntity.fromJson;
+
+  @override
+  CollectionReference get rootCollection {
+    return FirestoreUtils.accountRootRef(appConfiguration.accountId).collection('proxy-accounts');
   }
 
-  DocumentReference _ref({
-    @required String proxyUniverse,
-    @required String accountId,
-  }) {
-    return _accountsRef(proxyUniverse: proxyUniverse).document(accountId);
+  Stream<List<ProxyAccountEntity>> subscribeForAccounts({@required String proxyUniverse}) {
+    Query query = rootCollection
+        .where(ProxyAccountEntity.PROXY_UNIVERSE, isEqualTo: proxyUniverse)
+        .where(ProxyAccountEntity.ACTIVE, isEqualTo: true);
+    return query.snapshots().map(querySnapshotToEntityList);
   }
 
-  Stream<List<ProxyAccountEntity>> subscribeForAccounts() {
-    return _accountsRef(proxyUniverse: appConfiguration.proxyUniverse)
-        .where(ProxyAccountEntity.ACTIVE, isEqualTo: true)
-        .snapshots()
-        .map(_querySnapshotToAccounts);
+  Stream<ProxyAccountEntity> subscribe(ProxyAccountId proxyAccountId) {
+    Query query = rootCollection
+        .where(ProxyAccountEntity.ACCOUNT_ID, isEqualTo: proxyAccountId.accountId)
+        .where(ProxyAccountEntity.BANK_ID, isEqualTo: proxyAccountId.bankId);
+    return query.snapshots().map((s) => firstResult(s, query));
   }
 
-  Stream<ProxyAccountEntity> subscribeForAccount(ProxyAccountId accountId) {
-    return _ref(proxyUniverse: accountId.proxyUniverse, accountId: accountId.accountId)
-        .snapshots()
-        .map(_documentSnapshotToAccount);
-  }
-
-  Future<ProxyAccountEntity> fetchAccount(ProxyAccountId accountId) async {
-    DocumentSnapshot doc = await _ref(proxyUniverse: accountId.proxyUniverse, accountId: accountId.accountId).get();
-    return _documentSnapshotToAccount(doc);
+  Future<ProxyAccountEntity> fetchAccount({ProxyAccountId proxyAccountId}) async {
+    Query query = rootCollection
+        .where(ProxyAccountEntity.ACCOUNT_ID, isEqualTo: proxyAccountId.accountId)
+        .where(ProxyAccountEntity.BANK_ID, isEqualTo: proxyAccountId.bankId);
+    return firstResult(await query.getDocuments(), query);
   }
 
   Future<List<ProxyAccountEntity>> fetchActiveAccounts({
-    @required ProxyId masterProxyId,
     @required String proxyUniverse,
     @required String currency,
   }) async {
-    QuerySnapshot querySnapshot = await _accountsRef(proxyUniverse: proxyUniverse)
-        .where(ProxyAccountEntity.ID_OF_OWNER_PROXY_ID, isEqualTo: masterProxyId.id)
+    Query query = rootCollection
+        .where(ProxyAccountEntity.PROXY_UNIVERSE, isEqualTo: proxyUniverse)
         .where(ProxyAccountEntity.CURRENCY, isEqualTo: currency)
-        .where(ProxyAccountEntity.ACTIVE, isEqualTo: true)
-        .getDocuments();
-    return _querySnapshotToAccounts(querySnapshot).where((a) => a.ownerProxyId == masterProxyId).toList();
+        .where(AbstractEntity.ACTIVE, isEqualTo: true);
+    return querySnapshotToEntityList(await query.getDocuments());
   }
 
-  ProxyAccountEntity _documentSnapshotToAccount(DocumentSnapshot snapshot) {
-    if (snapshot != null && snapshot.exists) {
-      return ProxyAccountEntity.fromJson(snapshot.data);
-    } else {
-      return null;
-    }
-  }
-
-  List<ProxyAccountEntity> _querySnapshotToAccounts(QuerySnapshot snapshot) {
-    if (snapshot.documents != null) {
-      return snapshot.documents.map(_documentSnapshotToAccount).where((a) => a != null).toList();
-    } else {
-      return [];
-    }
-  }
-
-  Future<ProxyAccountEntity> saveAccount(ProxyAccountEntity account) async {
-    final ref = _ref(proxyUniverse: account.proxyUniverse, accountId: account.accountId.accountId);
+  @override
+  Future<ProxyAccountEntity> save(ProxyAccountEntity account, {Transaction transaction}) async {
+    account = await super.save(account, transaction: transaction);
     await Future.wait([
-      ref.setData(account.toJson()),
       _cleanupService.onProxyAccount(account),
     ]);
     return account;
-  }
-
-  Future<void> deleteAccount(ProxyAccountEntity account) {
-    return _ref(
-      proxyUniverse: account.proxyUniverse,
-      accountId: account.accountId.accountId,
-    ).delete();
   }
 }

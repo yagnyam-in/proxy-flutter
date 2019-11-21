@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/db/withdrawal_store.dart';
-import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/action_menu_item.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
-import 'package:proxy_flutter/widgets/loading.dart';
+import 'package:promo/banking/db/withdrawal_store.dart';
+import 'package:promo/banking/model/withdrawal_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/action_menu_item.dart';
+import 'package:promo/widgets/async_helper.dart';
+import 'package:promo/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 
 class WithdrawalPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
-  final String withdrawalId;
+  final WithdrawalEntity withdrawal;
+  final String withdrawalInternalId;
 
-  const WithdrawalPage(
+  WithdrawalPage(
     this.appConfiguration, {
     Key key,
-    @required this.proxyUniverse,
-    @required this.withdrawalId,
-  }) : super(key: key);
+    this.withdrawal,
+    String withdrawalInternalId,
+  })  : this.withdrawalInternalId = withdrawalInternalId ?? withdrawal?.internalId,
+        super(key: key);
 
   @override
   WithdrawalPageState createState() {
     return WithdrawalPageState(
       appConfiguration: appConfiguration,
-      proxyUniverse: proxyUniverse,
-      withdrawalId: withdrawalId,
+      withdrawalInternalId: withdrawalInternalId,
     );
   }
 }
@@ -34,8 +34,7 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
   static const String CANCEL = "cancel";
 
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
-  final String withdrawalId;
+  final String withdrawalInternalId;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Stream<WithdrawalEntity> _withdrawalStream;
@@ -43,17 +42,13 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
 
   WithdrawalPageState({
     @required this.appConfiguration,
-    @required this.proxyUniverse,
-    @required this.withdrawalId,
+    @required this.withdrawalInternalId,
   });
 
   @override
   void initState() {
     super.initState();
-    _withdrawalStream = WithdrawalStore(appConfiguration).subscribeForWithdrawal(
-      proxyUniverse: proxyUniverse,
-      withdrawalId: withdrawalId,
-    );
+    _withdrawalStream = WithdrawalStore(appConfiguration).subscribeByInternalId(withdrawalInternalId);
   }
 
   @override
@@ -178,10 +173,7 @@ class WithdrawalPageState extends LoadingSupportState<WithdrawalPage> {
   }
 
   void _cancelWithdrawal(BuildContext context) async {
-    final withdrawal = await WithdrawalStore(appConfiguration).fetchWithdrawal(
-      proxyUniverse: proxyUniverse,
-      withdrawalId: withdrawalId,
-    );
+    final withdrawal = await WithdrawalStore(appConfiguration).fetchByInternalId(withdrawalInternalId);
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     if (withdrawal == null || !withdrawal.isCancelPossible) {
       showMessage(localizations.cancelNotPossible);

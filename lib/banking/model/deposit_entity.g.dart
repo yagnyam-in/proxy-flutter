@@ -8,9 +8,9 @@ part of 'deposit_entity.dart';
 
 DepositEntity _$DepositEntityFromJson(Map json) {
   return DepositEntity(
+    internalId: json['internalId'] as String,
+    eventInternalId: json['eventInternalId'] as String,
     proxyUniverse: json['proxyUniverse'] as String,
-    creationTime: DateTime.parse(json['creationTime'] as String),
-    lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
     depositId: json['depositId'] as String,
     completed: json['completed'] as bool,
     status: _$enumDecode(_$DepositStatusEnumEnumMap, json['status']),
@@ -22,13 +22,19 @@ DepositEntity _$DepositEntityFromJson(Map json) {
     depositLink: json['depositLink'] as String,
     signedDepositRequest: DepositRequest.signedMessageFromJson(
         json['signedDepositRequest'] as Map),
+    creationTime: DateTime.parse(json['creationTime'] as String),
+    lastUpdatedTime: DateTime.parse(json['lastUpdatedTime'] as String),
+    bankId: json['bankId'] as String,
   );
 }
 
 Map<String, dynamic> _$DepositEntityToJson(DepositEntity instance) {
   final val = <String, dynamic>{
+    'internalId': instance.internalId,
+    'eventInternalId': instance.eventInternalId,
     'proxyUniverse': instance.proxyUniverse,
     'depositId': instance.depositId,
+    'bankId': instance.bankId,
     'creationTime': instance.creationTime.toIso8601String(),
     'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
     'completed': instance.completed,

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:proxy_flutter/authorizations_helper.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/email_authorization_store.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/email_authorization_entity.dart';
-import 'package:proxy_flutter/widgets/widget_helper.dart';
+import 'package:promo/authorizations_helper.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/email_authorization_store.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/email_authorization_entity.dart';
+import 'package:promo/widgets/widget_helper.dart';
 
 import 'authorize_email_page.dart';
 import 'authorize_phone_number_page.dart';

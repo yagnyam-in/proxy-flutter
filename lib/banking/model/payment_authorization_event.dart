@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/model/event_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
-import 'package:proxy_flutter/localizations.dart';
+import 'package:promo/banking/model/event_entity.dart';
+import 'package:promo/banking/model/payment_authorization_entity.dart';
+import 'package:promo/localizations.dart';
 import 'package:proxy_messages/banking.dart';
 
 part 'payment_authorization_event.g.dart';
 
 @JsonSerializable()
-class PaymentAuthorizationEvent extends EventEntity with ProxyUtils {
+class PaymentAuthorizationEvent extends EventEntity {
   @JsonKey(nullable: false)
   final PaymentAuthorizationStatusEnum status;
 
@@ -23,27 +22,30 @@ class PaymentAuthorizationEvent extends EventEntity with ProxyUtils {
   @JsonKey(nullable: false)
   final String paymentAuthorizationLink;
 
-  String get paymentAuthorizationId => eventId;
+  String get paymentAuthorizationInternalId => actualEventInternalId;
 
   PaymentAuthorizationEvent({
+    @required String internalId,
     EventType eventType = EventType.PaymentAuthorization, // Required for Json
-    int id,
     @required String proxyUniverse,
     @required DateTime creationTime,
     @required DateTime lastUpdatedTime,
     @required bool completed,
-    @required String paymentAuthorizationId,
+    @required bool active,
+    @required String paymentAuthorizationInternalId,
     @required this.status,
     @required this.amount,
     @required this.payerAccountId,
     @required this.paymentAuthorizationLink,
   }) : super(
+          internalId: internalId,
           eventType: eventType,
           proxyUniverse: proxyUniverse,
-          eventId: paymentAuthorizationId,
+          actualEventInternalId: paymentAuthorizationInternalId,
           creationTime: creationTime,
           lastUpdatedTime: lastUpdatedTime,
           completed: completed,
+    active: active,
         ) {
     assert(eventType == EventType.PaymentAuthorization);
   }
@@ -51,8 +53,9 @@ class PaymentAuthorizationEvent extends EventEntity with ProxyUtils {
   factory PaymentAuthorizationEvent.fromPaymentAuthorizationEntity(
           PaymentAuthorizationEntity paymentAuthorizationEntity) =>
       PaymentAuthorizationEvent(
+        internalId: paymentAuthorizationEntity.eventInternalId,
         proxyUniverse: paymentAuthorizationEntity.proxyUniverse,
-        paymentAuthorizationId: paymentAuthorizationEntity.paymentAuthorizationId,
+        paymentAuthorizationInternalId: paymentAuthorizationEntity.internalId,
         creationTime: paymentAuthorizationEntity.creationTime,
         lastUpdatedTime: DateTime.now(),
         amount: paymentAuthorizationEntity.amount,
@@ -60,27 +63,33 @@ class PaymentAuthorizationEvent extends EventEntity with ProxyUtils {
         payerAccountId: paymentAuthorizationEntity.payerAccountId,
         paymentAuthorizationLink: paymentAuthorizationEntity.paymentAuthorizationLink,
         completed: paymentAuthorizationEntity.completed,
+        active: true,
       );
 
   PaymentAuthorizationEvent copyFromPaymentAuthorizationEntity(PaymentAuthorizationEntity paymentAuthorizationEntity) {
     return copy(
-      lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
-      completed: completed ?? this.completed,
-      status: status ?? this.status,
+      paymentAuthorizationInternalId: paymentAuthorizationEntity.internalId,
+      lastUpdatedTime: paymentAuthorizationEntity.lastUpdatedTime,
+      completed: paymentAuthorizationEntity.completed,
+      status: paymentAuthorizationEntity.status,
     );
   }
 
   PaymentAuthorizationEvent copy({
+    String paymentAuthorizationInternalId,
     PaymentAuthorizationStatusEnum status,
     DateTime lastUpdatedTime,
     bool completed,
+    bool active,
   }) {
     return PaymentAuthorizationEvent(
+      internalId: internalId,
       proxyUniverse: this.proxyUniverse,
-      paymentAuthorizationId: this.eventId,
+      paymentAuthorizationInternalId: paymentAuthorizationInternalId ?? this.paymentAuthorizationInternalId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
       creationTime: this.creationTime,
       completed: completed ?? this.completed,
+      active: active ?? this.active,
       amount: this.amount,
       payerAccountId: this.payerAccountId,
       paymentAuthorizationLink: this.paymentAuthorizationLink,

@@ -8,6 +8,8 @@ part of 'payment_authorization_entity.dart';
 
 PaymentAuthorizationEntity _$PaymentAuthorizationEntityFromJson(Map json) {
   return PaymentAuthorizationEntity(
+    internalId: json['internalId'] as String,
+    eventInternalId: json['eventInternalId'] as String,
     proxyUniverse: json['proxyUniverse'] as String,
     paymentAuthorizationId: json['paymentAuthorizationId'] as String,
     creationTime: DateTime.parse(json['creationTime'] as String),
@@ -19,31 +21,48 @@ PaymentAuthorizationEntity _$PaymentAuthorizationEntityFromJson(Map json) {
     payerProxyId: ProxyId.fromJson(json['payerProxyId'] as Map),
     signedPaymentAuthorization: PaymentAuthorization.signedMessageFromJson(
         json['signedPaymentAuthorization'] as Map),
+    paymentAuthorizationDynamicLink:
+        json['paymentAuthorizationDynamicLink'] as String,
     paymentAuthorizationLink: json['paymentAuthorizationLink'] as String,
     payees: (json['payees'] as List)
         .map((e) => PaymentAuthorizationPayeeEntity.fromJson(e as Map))
         .toList(),
     completed: json['completed'] as bool,
+    bankId: json['bankId'] as String,
   );
 }
 
 Map<String, dynamic> _$PaymentAuthorizationEntityToJson(
-        PaymentAuthorizationEntity instance) =>
-    <String, dynamic>{
-      'proxyUniverse': instance.proxyUniverse,
-      'paymentAuthorizationId': instance.paymentAuthorizationId,
-      'creationTime': instance.creationTime.toIso8601String(),
-      'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
-      'status': _$PaymentAuthorizationStatusEnumEnumMap[instance.status],
-      'completed': instance.completed,
-      'amount': instance.amount.toJson(),
-      'payerAccountId': instance.payerAccountId.toJson(),
-      'payerProxyId': instance.payerProxyId.toJson(),
-      'payees': instance.payees.map((e) => e.toJson()).toList(),
-      'paymentAuthorizationLink': instance.paymentAuthorizationLink,
-      'signedPaymentAuthorization':
-          instance.signedPaymentAuthorization.toJson(),
-    };
+    PaymentAuthorizationEntity instance) {
+  final val = <String, dynamic>{
+    'internalId': instance.internalId,
+    'eventInternalId': instance.eventInternalId,
+    'proxyUniverse': instance.proxyUniverse,
+    'paymentAuthorizationId': instance.paymentAuthorizationId,
+    'bankId': instance.bankId,
+    'creationTime': instance.creationTime.toIso8601String(),
+    'lastUpdatedTime': instance.lastUpdatedTime.toIso8601String(),
+    'status': _$PaymentAuthorizationStatusEnumEnumMap[instance.status],
+    'completed': instance.completed,
+    'amount': instance.amount.toJson(),
+    'payerAccountId': instance.payerAccountId.toJson(),
+    'payerProxyId': instance.payerProxyId.toJson(),
+    'payees': instance.payees.map((e) => e.toJson()).toList(),
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('paymentAuthorizationDynamicLink',
+      instance.paymentAuthorizationDynamicLink);
+  val['paymentAuthorizationLink'] = instance.paymentAuthorizationLink;
+  val['signedPaymentAuthorization'] =
+      instance.signedPaymentAuthorization.toJson();
+  return val;
+}
 
 T _$enumDecode<T>(
   Map<T, dynamic> enumValues,

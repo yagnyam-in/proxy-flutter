@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/db/email_authorization_store.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/email_authorization_entity.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
-import 'package:proxy_flutter/widgets/loading.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/db/email_authorization_store.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/email_authorization_entity.dart';
+import 'package:promo/services/service_factory.dart';
+import 'package:promo/widgets/async_helper.dart';
+import 'package:promo/widgets/loading.dart';
 import 'package:quiver/strings.dart';
 
 typedef SecretCallback = void Function(String secret);

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:proxy_flutter/authorizations_helper.dart';
-import 'package:proxy_flutter/banking/db/event_store.dart';
-import 'package:proxy_flutter/banking/events_helper.dart';
-import 'package:proxy_flutter/banking/model/deposit_event.dart';
-import 'package:proxy_flutter/banking/model/event_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_event.dart';
-import 'package:proxy_flutter/banking/model/payment_encashment_event.dart';
-import 'package:proxy_flutter/banking/model/withdrawal_event.dart';
-import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
-import 'package:proxy_flutter/banking/widgets/event_card.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/home_page_navigation.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/services/enticement_factory.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
-import 'package:proxy_flutter/widgets/enticement_helper.dart';
+import 'package:promo/authorizations_helper.dart';
+import 'package:promo/banking/db/event_store.dart';
+import 'package:promo/banking/events_helper.dart';
+import 'package:promo/banking/model/deposit_event.dart';
+import 'package:promo/banking/model/event_entity.dart';
+import 'package:promo/banking/model/payment_authorization_event.dart';
+import 'package:promo/banking/model/payment_encashment_event.dart';
+import 'package:promo/banking/model/withdrawal_event.dart';
+import 'package:promo/banking/services/banking_service_factory.dart';
+import 'package:promo/banking/widgets/event_card.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/home_page_navigation.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/services/enticement_factory.dart';
+import 'package:promo/widgets/async_helper.dart';
+import 'package:promo/widgets/enticement_helper.dart';
 import 'package:uuid/uuid.dart';
 
 import 'deposit_helper.dart';
@@ -61,7 +61,7 @@ class _EventsPageState extends LoadingSupportState<EventsPage>
   @override
   void initState() {
     super.initState();
-    _eventStream = _eventStore.subscribeForEvents();
+    _eventStream = _eventStore.subscribeForEvents(proxyUniverse: appConfiguration.proxyUniverse);
   }
 
   void showToast(String message) {
@@ -150,36 +150,30 @@ class _EventsPageState extends LoadingSupportState<EventsPage>
     if (!event.completed) {
       showToast(localizations.withdrawalNotYetComplete);
     }
-    await _eventStore.deleteEvent(event);
+    await _eventStore.delete(event);
   }
 
   Future<void> _refreshEvent(BuildContext context, EventEntity event) async {
     switch (event.eventType) {
       case EventType.Deposit:
-        await BankingServiceFactory.depositService(widget.appConfiguration).refreshDepositStatus(
-          proxyUniverse: event.proxyUniverse,
-          depositId: (event as DepositEvent).depositId,
+        await BankingServiceFactory.depositService(widget.appConfiguration).refreshDepositByInternalId(
+          (event as DepositEvent).depositInternalId,
         );
         break;
       case EventType.Withdrawal:
-        await BankingServiceFactory.withdrawalService(widget.appConfiguration).refreshWithdrawalStatus(
-          proxyUniverse: event.proxyUniverse,
-          withdrawalId: (event as WithdrawalEvent).withdrawalId,
+        await BankingServiceFactory.withdrawalService(widget.appConfiguration).refreshWithdrawalByInternalId(
+          (event as WithdrawalEvent).withdrawalInternalId,
         );
         break;
       case EventType.PaymentAuthorization:
         await BankingServiceFactory.paymentAuthorizationService(widget.appConfiguration)
-            .refreshPaymentAuthorizationStatus(
-          proxyUniverse: event.proxyUniverse,
-          paymentAuthorizationId: (event as PaymentAuthorizationEvent).paymentAuthorizationId,
+            .refreshPaymentAuthorizationByInternalId(
+          (event as PaymentAuthorizationEvent).paymentAuthorizationInternalId,
         );
         break;
       case EventType.PaymentEncashment:
-        await BankingServiceFactory.paymentEncashmentService(widget.appConfiguration).refreshPaymentEncashmentStatus(
-          proxyUniverse: event.proxyUniverse,
-          paymentAuthorizationId: (event as PaymentEncashmentEvent).paymentAuthorizationId,
-          paymentEncashmentId: (event as PaymentEncashmentEvent).paymentEncashmentId,
-        );
+        await BankingServiceFactory.paymentEncashmentService(widget.appConfiguration)
+            .refreshPaymentEncashmentByInternalId((event as PaymentEncashmentEvent).paymentEncashmentInternalId);
         break;
       default:
         print("Not yet handled");

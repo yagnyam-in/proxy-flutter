@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/banking/services/banking_service_factory.dart';
-import 'package:proxy_flutter/banking/widgets/currency_input_form_field.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/contacts_page.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/contact_entity.dart';
-import 'package:proxy_flutter/services/account_service.dart';
-import 'package:proxy_flutter/utils/random_utils.dart';
+import 'package:promo/banking/services/banking_service_factory.dart';
+import 'package:promo/banking/widgets/currency_input_form_field.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/contacts_page.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/contact_entity.dart';
+import 'package:promo/services/account_service.dart';
+import 'package:promo/utils/random_utils.dart';
 import 'package:proxy_messages/payments.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 
 enum PayeeSelectionMode { ANY_ONE_WITH_SECRET, CHOOSE_FROM_CONTACTS }
+
+enum SendPaymentBy { NFC,  }
+
 
 class PaymentAuthorizationPayeeInput with ProxyUtils {
   final String customerPhone;
@@ -63,12 +66,14 @@ class PaymentAuthorizationInput with ProxyUtils {
   final String currency;
   final double amount;
   final String message;
+  final bool directPay;
   final List<PaymentAuthorizationPayeeInput> payees;
 
   PaymentAuthorizationInput({
     this.currency,
     this.amount,
     this.message,
+    this.directPay,
     this.payees = const [],
   });
 }
@@ -105,6 +110,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
   FocusNode _submitFocusNode;
 
   String _currency;
+  bool get _directPay => paymentAuthorizationInput?.directPay ?? false;
   PayeeSelectionMode _payeeSelectionMode = PayeeSelectionMode.ANY_ONE_WITH_SECRET;
 
   _PaymentAuthorizationInputDialogState(this.appConfiguration, this.paymentAuthorizationInput)
@@ -205,44 +211,46 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
       ),
     ]);
 
-    children.addAll([
-      const SizedBox(height: 16.0),
-      FormField(
-        builder: (FormFieldState state) {
-          return InputDecorator(
-            decoration: InputDecoration(
-              labelText: localizations.sendPaymentToLabel,
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<PayeeSelectionMode>(
-                value: _payeeSelectionMode,
-                isDense: true,
-                onChanged: (value) {
-                  setState(() {
-                    _payeeSelectionMode = value;
-                  });
-                  if (value == PayeeSelectionMode.CHOOSE_FROM_CONTACTS) {
-                    _choosePayees(context);
-                  }
-                },
-                items: [
-                  DropdownMenuItem(
-                    value: PayeeSelectionMode.ANY_ONE_WITH_SECRET,
-                    child: new Text(localizations.anyoneWithSecret),
-                  ),
-                  DropdownMenuItem(
-                    value: PayeeSelectionMode.CHOOSE_FROM_CONTACTS,
-                    child: new Text(localizations.chooseFromContacts),
-                  ),
-                ],
+    if (!_directPay) {
+      children.addAll([
+        const SizedBox(height: 16.0),
+        FormField(
+          builder: (FormFieldState state) {
+            return InputDecorator(
+              decoration: InputDecoration(
+                labelText: localizations.sendPaymentToLabel,
               ),
-            ),
-          );
-        },
-      ),
-    ]);
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<PayeeSelectionMode>(
+                  value: _payeeSelectionMode,
+                  isDense: true,
+                  onChanged: (value) {
+                    setState(() {
+                      _payeeSelectionMode = value;
+                    });
+                    if (value == PayeeSelectionMode.CHOOSE_FROM_CONTACTS) {
+                      _choosePayees(context);
+                    }
+                  },
+                  items: [
+                    DropdownMenuItem(
+                      value: PayeeSelectionMode.ANY_ONE_WITH_SECRET,
+                      child: new Text(localizations.anyoneWithSecret),
+                    ),
+                    DropdownMenuItem(
+                      value: PayeeSelectionMode.CHOOSE_FROM_CONTACTS,
+                      child: new Text(localizations.chooseFromContacts),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ]);
+    }
 
-    if (_payeeSelectionMode == PayeeSelectionMode.ANY_ONE_WITH_SECRET) {
+    if (false && _payeeSelectionMode == PayeeSelectionMode.ANY_ONE_WITH_SECRET) {
       children.addAll([
         const SizedBox(height: 16.0),
         TextFormField(
@@ -281,7 +289,7 @@ class _PaymentAuthorizationInputDialogState extends State<PaymentAuthorizationIn
         child: RaisedButton(
           focusNode: _submitFocusNode,
           onPressed: () => _submit(localizations),
-          child: Text(localizations.createAndShareButtonLabel),
+          child: Text(_directPay ? localizations.sendPaymentButtonLabel : localizations.createAndShareButtonLabel),
         ),
       ),
     ]);

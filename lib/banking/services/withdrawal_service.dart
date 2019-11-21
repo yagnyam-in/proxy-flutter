@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
+import 'package:promo/banking/db/withdrawal_store.dart';
+import 'package:promo/banking/model/proxy_account_entity.dart';
+import 'package:promo/banking/model/receiving_account_entity.dart';
+import 'package:promo/banking/model/withdrawal_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/services/service_helper.dart';
+import 'package:promo/url_config.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/db/withdrawal_store.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
-import 'package:proxy_flutter/banking/model/receiving_account_entity.dart';
-import 'package:proxy_flutter/banking/model/withdrawal_entity.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/services/service_helper.dart';
-import 'package:proxy_flutter/url_config.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:uuid/uuid.dart';
 
@@ -76,20 +76,10 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
     return _withdrawalStore.saveWithdrawal(withdrawalEntity.copy(status: status));
   }
 
-  Future<void> refreshWithdrawalStatus({
-    @required String proxyUniverse,
-    @required String withdrawalId,
-  }) async {
-    WithdrawalEntity withdrawalEntity = await _withdrawalStore.fetchWithdrawal(
-      proxyUniverse: proxyUniverse,
-      withdrawalId: withdrawalId,
-    );
-    if (withdrawalEntity != null) {
-      return _refreshWithdrawalStatus(withdrawalEntity);
+  Future<void> _refreshWithdrawal(WithdrawalEntity withdrawalEntity) async {
+    if (withdrawalEntity == null) {
+      return withdrawalEntity;
     }
-  }
-
-  Future<WithdrawalEntity> _refreshWithdrawalStatus(WithdrawalEntity withdrawalEntity) async {
     final withdrawal = withdrawalEntity.signedWithdrawal;
     WithdrawalStatusRequest request = WithdrawalStatusRequest(
       requestId: uuidFactory.v4(),
@@ -118,14 +108,14 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
       withdrawalId: withdrawalId,
       status: WithdrawalStatusEnum.Created,
       amount: proxyAccount.balance,
-      payerAccountId: proxyAccount.accountId,
+      payerProxyAccountId: proxyAccount.proxyAccountId,
       payerProxyId: proxyAccount.ownerProxyId,
       signedWithdrawal: signedRequest,
       creationTime: DateTime.now(),
       lastUpdatedTime: DateTime.now(),
       destinationAccountBank: receivingAccount.accountNumber,
       destinationAccountNumber: receivingAccount.bankName,
-      receivingAccountId: receivingAccount.accountId,
+      receivingAccountId: receivingAccount.internalId,
       completed: false,
     );
   }
@@ -147,16 +137,36 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
   }
 
   Future<void> processWithdrawalUpdatedAlert(WithdrawalUpdatedAlert alert) {
-    return refreshWithdrawalStatus(
-      proxyUniverse: alert.proxyUniverse,
+    return _refreshWithdrawalById(
+      bankId: alert.proxyAccountId.bankId,
       withdrawalId: alert.withdrawalId,
     );
   }
 
   Future<void> processWithdrawalUpdatedLiteAlert(WithdrawalUpdatedLiteAlert alert) {
-    return refreshWithdrawalStatus(
-      proxyUniverse: alert.proxyUniverse,
+    return _refreshWithdrawalById(
+      bankId: alert.proxyAccountId.bankId,
       withdrawalId: alert.withdrawalId,
     );
+  }
+
+  Future<void> _refreshWithdrawalById({
+    @required String bankId,
+    @required String withdrawalId,
+  }) async {
+    WithdrawalEntity withdrawal = await _withdrawalStore.fetch(
+      bankId: bankId,
+      withdrawalId: withdrawalId,
+    );
+    if (withdrawal != null) {
+      return _refreshWithdrawal(withdrawal);
+    }
+  }
+
+  Future<void> refreshWithdrawalByInternalId(String internalId) async {
+    WithdrawalEntity withdrawal = await _withdrawalStore.fetchByInternalId(internalId);
+    if (withdrawal != null) {
+      return _refreshWithdrawal(withdrawal);
+    }
   }
 }

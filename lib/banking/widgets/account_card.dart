@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/banking/model/proxy_account_entity.dart';
+import 'package:promo/banking/model/proxy_account_entity.dart';
 import 'package:proxy_messages/banking.dart';
 
 class AccountCard extends StatelessWidget {
@@ -10,10 +10,6 @@ class AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print(account);
-    return makeCard(context);
-  }
-
-  Widget makeCard(BuildContext context) {
     return Card(
       elevation: 4.0,
       margin: new EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),

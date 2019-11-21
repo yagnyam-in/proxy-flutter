@@ -1,10 +1,10 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/misc_login_methods_page.dart';
-import 'package:proxy_flutter/services/login_helper.dart';
-import 'package:proxy_flutter/services/service_factory.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/misc_login_methods_page.dart';
+import 'package:promo/services/login_helper.dart';
+import 'package:promo/services/service_factory.dart';
 
 import 'config/app_configuration.dart';
 import 'widgets/async_helper.dart';

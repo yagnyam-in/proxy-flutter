@@ -1,6 +1,7 @@
+import 'package:promo/services/peer_service.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
+import 'package:promo/config/app_configuration.dart';
 
 import 'service_factory.dart';
 
@@ -32,5 +33,9 @@ class BootService with ProxyUtils, HttpClientUtils, DebugUtils {
   void processPendingAlerts(AppConfiguration appConfiguration) {
     print("process pending alerts");
     ServiceFactory.alertService(appConfiguration).processPendingAlerts();
+  }
+
+  Future<void> init(AppConfiguration appConfiguration) {
+    return PeerService(appConfiguration).setup();
   }
 }

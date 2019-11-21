@@ -1,41 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:promo/banking/db/payment_authorization_store.dart';
+import 'package:promo/banking/model/payment_authorization_entity.dart';
+import 'package:promo/banking/model/payment_authorization_payee_entity.dart';
+import 'package:promo/banking/model/proxy_account_entity.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/model/action_menu_item.dart';
+import 'package:promo/widgets/async_helper.dart';
+import 'package:promo/widgets/loading.dart';
+import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
-import 'package:proxy_flutter/banking/db/payment_authorization_store.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_entity.dart';
-import 'package:proxy_flutter/banking/model/payment_authorization_payee_entity.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/model/action_menu_item.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
-import 'package:proxy_flutter/widgets/loading.dart';
 import 'package:proxy_messages/banking.dart';
 import 'package:proxy_messages/payments.dart';
 import 'package:quiver/strings.dart';
 import 'package:share/share.dart';
 
+import 'payment_authorization_helper.dart';
+
 class PaymentAuthorizationPage extends StatefulWidget {
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
-  final String paymentAuthorizationId;
+  final String paymentAuthorizationInternalId;
   final PaymentAuthorizationEntity paymentAuthorization;
 
-  const PaymentAuthorizationPage(
+  PaymentAuthorizationPage(
     this.appConfiguration, {
     Key key,
-    @required this.proxyUniverse,
-    @required this.paymentAuthorizationId,
+    String paymentAuthorizationInternalId,
     this.paymentAuthorization,
-  }) : super(key: key);
+  })  : paymentAuthorizationInternalId = paymentAuthorizationInternalId ?? paymentAuthorization?.internalId,
+        super(key: key);
 
   factory PaymentAuthorizationPage.forPaymentAuthorization(
-      AppConfiguration appConfiguration, PaymentAuthorizationEntity paymentAuthorization,
-      {Key key}) {
+    AppConfiguration appConfiguration,
+    PaymentAuthorizationEntity paymentAuthorization, {
+    Key key,
+    bool directPay,
+  }) {
     return PaymentAuthorizationPage(
       appConfiguration,
       key: key,
-      proxyUniverse: paymentAuthorization.proxyUniverse,
-      paymentAuthorizationId: paymentAuthorization.paymentAuthorizationId,
+      paymentAuthorizationInternalId: paymentAuthorization.internalId,
       paymentAuthorization: paymentAuthorization,
     );
   }
@@ -44,19 +49,18 @@ class PaymentAuthorizationPage extends StatefulWidget {
   PaymentAuthorizationPageState createState() {
     return PaymentAuthorizationPageState(
       appConfiguration: appConfiguration,
-      proxyUniverse: proxyUniverse,
-      paymentAuthorizationId: paymentAuthorizationId,
+      paymentAuthorizationInternalId: paymentAuthorizationInternalId,
     );
   }
 }
 
-class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthorizationPage> {
+class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthorizationPage>
+    with PaymentAuthorizationHelper {
   static const String CANCEL = "cancel";
   static const String SHARE = "share";
 
   final AppConfiguration appConfiguration;
-  final String proxyUniverse;
-  final String paymentAuthorizationId;
+  final String paymentAuthorizationInternalId;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Stream<PaymentAuthorizationEntity> _paymentAuthorizationStream;
@@ -64,17 +68,14 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
 
   PaymentAuthorizationPageState({
     @required this.appConfiguration,
-    @required this.proxyUniverse,
-    @required this.paymentAuthorizationId,
+    @required this.paymentAuthorizationInternalId,
   });
 
   @override
   void initState() {
     super.initState();
-    _paymentAuthorizationStream = PaymentAuthorizationStore(appConfiguration).subscribeForPaymentAuthorization(
-      proxyUniverse: proxyUniverse,
-      paymentAuthorizationId: paymentAuthorizationId,
-    );
+    _paymentAuthorizationStream =
+        PaymentAuthorizationStore(appConfiguration).subscribeByInternalId(paymentAuthorizationInternalId);
   }
 
   @override
@@ -163,7 +164,7 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
         ),
       ),
       const SizedBox(height: 24.0),
-      if (paymentAuthorization.payees.length == 1000)
+      if (paymentAuthorization.payees.length == 1)
         ..._singlePayee(context, paymentAuthorization.payees.first)
       else
         ..._multiplePayees(context, paymentAuthorization.payees)
@@ -171,13 +172,19 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
 
     List<Widget> actions = [];
     if (!paymentAuthorization.completed) {
-      actions.add(
+      actions.addAll([
         RaisedButton.icon(
           onPressed: () => _sharePaymentAuthorization(context, paymentAuthorization),
           icon: Icon(Icons.share),
           label: Text(localizations.sharePaymentButtonTitle),
         ),
-      );
+        if (paymentAuthorization.payees.length == 1)
+          RaisedButton.icon(
+            onPressed: () => sendPaymentAuthorization(context, paymentAuthorization),
+            icon: Icon(Icons.tap_and_play),
+            label: Text(localizations.directPaymentButtonTitle),
+          ),
+      ]);
     }
     if (actions.isNotEmpty) {
       rows.add(const SizedBox(height: 24.0));
@@ -266,7 +273,7 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
 
   void _copyToClipboard(BuildContext context, String message) {
     Clipboard.setData(new ClipboardData(text: message));
-    showMessage(ProxyLocalizations.of(context).copiedToClipboard);
+    showToast(ProxyLocalizations.of(context).copiedToClipboard);
   }
 
   String _payeeDisplayName(ProxyLocalizations localizations, PaymentAuthorizationPayeeEntity payee) {
@@ -331,28 +338,38 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
     PaymentAuthorizationEntity paymentAuthorization,
   ) async {
     if (paymentAuthorization != null) {
-      print("Share Payment ${paymentAuthorization.paymentAuthorizationLink}");
+      print("Share Payment ${paymentAuthorization.paymentAuthorizationDynamicLink}");
       String customerName = appConfiguration.displayName;
-      var from = isNotEmpty(customerName) ? ' - $customerName' : '';
-      var message = ProxyLocalizations.of(context).acceptPayment(paymentAuthorization.paymentAuthorizationLink + from);
+      final from = isNotEmpty(customerName) ? ' - $customerName' : '';
+      final message =
+          ProxyLocalizations.of(context).acceptPayment(paymentAuthorization.paymentAuthorizationDynamicLink + from);
       await Share.share(message);
     }
   }
 
   void _cancelPayment(BuildContext context) async {
-    final paymentAuthorization = await PaymentAuthorizationStore(appConfiguration).fetchPaymentAuthorization(
-      proxyUniverse: proxyUniverse,
-      paymentAuthorizationId: paymentAuthorizationId,
-    );
+    final paymentAuthorization =
+        await PaymentAuthorizationStore(appConfiguration).fetchByInternalId(paymentAuthorizationInternalId);
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
     if (paymentAuthorization == null || !paymentAuthorization.isCancelPossible) {
-      showMessage(localizations.cancelNotPossible);
+      showToast(localizations.cancelNotPossible);
       return;
     }
-    showMessage(localizations.notYetImplemented);
+    showToast(localizations.notYetImplemented);
   }
 
-  void showMessage(String message) {
+  @override
+  Future<ProxyAccountEntity> fetchOrCreateAccount(
+    ProxyLocalizations localizations,
+    ProxyId ownerProxyId,
+    String currency,
+  ) {
+    print("Should never be invoked");
+    return null;
+  }
+
+  @override
+  void showToast(String message) {
     _scaffoldKey.currentState.showSnackBar(
       SnackBar(
         content: Text(message),

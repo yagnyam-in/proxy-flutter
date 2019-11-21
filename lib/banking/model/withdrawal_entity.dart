@@ -1,25 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/utils/conversion_utils.dart';
 import 'package:proxy_core/core.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/utils/conversion_utils.dart';
 import 'package:proxy_messages/banking.dart';
+
+import 'abstract_entity.dart';
 
 part 'withdrawal_entity.g.dart';
 
 @JsonSerializable()
-class WithdrawalEntity {
+class WithdrawalEntity extends AbstractEntity<WithdrawalEntity> {
+  static const PROXY_UNIVERSE = "proxyUniverse";
+  static const WITHDRAWAL_ID = "withdrawalId";
+  static const BANK_ID = "bankId";
+
   static final Set<WithdrawalStatusEnum> cancellableStatuses = Set.of([
     WithdrawalStatusEnum.Registered,
     WithdrawalStatusEnum.FailedInTransit,
   ]);
 
   @JsonKey(nullable: false)
-  final String proxyUniverse;
+  String internalId;
 
   @JsonKey(nullable: false)
+  String eventInternalId;
+
+  @JsonKey(name: PROXY_UNIVERSE, nullable: false)
+  final String proxyUniverse;
+
+  @JsonKey(name: WITHDRAWAL_ID, nullable: false)
   final String withdrawalId;
+
+  @JsonKey(name: BANK_ID, nullable: false)
+  final String bankId;
 
   @JsonKey(nullable: false)
   final DateTime creationTime;
@@ -37,7 +52,7 @@ class WithdrawalEntity {
   final Amount amount;
 
   @JsonKey(nullable: false)
-  final ProxyAccountId payerAccountId;
+  final ProxyAccountId payerProxyAccountId;
 
   @JsonKey(nullable: false)
   final String receivingAccountId;
@@ -55,6 +70,8 @@ class WithdrawalEntity {
   SignedMessage<Withdrawal> signedWithdrawal;
 
   WithdrawalEntity({
+    this.internalId,
+    this.eventInternalId,
     @required this.proxyUniverse,
     @required this.creationTime,
     @required this.lastUpdatedTime,
@@ -62,13 +79,16 @@ class WithdrawalEntity {
     @required this.completed,
     @required this.status,
     @required this.amount,
-    @required this.payerAccountId,
+    @required this.payerProxyAccountId,
     @required this.payerProxyId,
     @required this.signedWithdrawal,
     @required this.receivingAccountId,
     @required this.destinationAccountNumber,
     @required this.destinationAccountBank,
-  });
+    String bankId,
+  }) : this.bankId = payerProxyAccountId.bankId {
+    assert(bankId == null || this.bankId == bankId);
+  }
 
   WithdrawalEntity copy({
     WithdrawalStatusEnum status,
@@ -76,13 +96,15 @@ class WithdrawalEntity {
   }) {
     WithdrawalStatusEnum effectiveStatus = status ?? this.status;
     return WithdrawalEntity(
+      internalId: this.internalId,
+      eventInternalId: this.eventInternalId,
       proxyUniverse: this.proxyUniverse,
       withdrawalId: this.withdrawalId,
       lastUpdatedTime: lastUpdatedTime ?? this.lastUpdatedTime,
       creationTime: this.creationTime,
       completed: isCompleteStatus(effectiveStatus),
       amount: this.amount,
-      payerAccountId: this.payerAccountId,
+      payerProxyAccountId: this.payerProxyAccountId,
       payerProxyId: this.payerProxyId,
       signedWithdrawal: this.signedWithdrawal,
       status: effectiveStatus,
@@ -92,6 +114,18 @@ class WithdrawalEntity {
     );
   }
 
+  @override
+  WithdrawalEntity copyWithInternalId(String id) {
+    this.internalId = id;
+    return this;
+  }
+
+  WithdrawalEntity copyWithEventInternalId(String eventId) {
+    this.eventInternalId = eventId;
+    return this;
+  }
+
+  @override
   Map<String, dynamic> toJson() => _$WithdrawalEntityToJson(this);
 
   static WithdrawalEntity fromJson(Map json) => _$WithdrawalEntityFromJson(json);

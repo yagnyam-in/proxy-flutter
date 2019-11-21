@@ -1,9 +1,9 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info/package_info.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/localizations.dart';
-import 'package:proxy_flutter/widgets/async_helper.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/localizations.dart';
+import 'package:promo/widgets/async_helper.dart';
 
 class AboutPage extends StatefulWidget {
   final AppConfiguration appConfiguration;

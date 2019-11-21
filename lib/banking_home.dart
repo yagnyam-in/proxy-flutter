@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:proxy_flutter/banking/events_page.dart';
-import 'package:proxy_flutter/banking/proxy_accounts_page.dart';
-import 'package:proxy_flutter/banking/receiving_accounts_page.dart';
-import 'package:proxy_flutter/config/app_configuration.dart';
-import 'package:proxy_flutter/settings_page.dart';
+import 'package:promo/banking/events_page.dart';
+import 'package:promo/banking/proxy_accounts_page.dart';
+import 'package:promo/banking/receiving_accounts_page.dart';
+import 'package:promo/config/app_configuration.dart';
+import 'package:promo/settings_page.dart';
 
 import 'home_page_navigation.dart';
 
