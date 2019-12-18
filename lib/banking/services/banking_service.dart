@@ -34,7 +34,7 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     assert(isNotEmpty(this.proxyBankingUrl));
   }
 
-  Future<BankingServiceProviderEntity> _fetchDefaultBank({String proxyUniverse}) {
+  Future<BankingServiceProviderEntity> _fetchDefaultWalletServiceProvider({String proxyUniverse}) {
     proxyUniverse = proxyUniverse ?? appConfiguration.proxyUniverse;
     String bankId = proxyUniverse == ProxyUniverse.PRODUCTION ? "wallet" : "test-wallet";
     return BankStore(appConfiguration).fetchBank(
@@ -44,7 +44,7 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
 
   Future<Set<String>> supportedCurrenciesForDefaultBank({String proxyUniverse}) async {
     print("supportedCurrenciesForDefaultBank(proxyUniverse: $proxyUniverse)");
-    BankingServiceProviderEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
+    BankingServiceProviderEntity bank = await _fetchDefaultWalletServiceProvider(proxyUniverse: proxyUniverse);
     return bank.supportedCurrencies;
   }
 
@@ -60,10 +60,12 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
 
   Future<ProxyAccountEntity> fetchOrCreateProxyWallet({
     @required ProxyId ownerProxyId,
+    @required String bankId,
     @required String proxyUniverse,
     @required String currency,
   }) async {
     List<ProxyAccountEntity> existing = await _proxyAccountStore.fetchActiveAccounts(
+      bankId: bankId,
       currency: currency,
       proxyUniverse: proxyUniverse,
     );
@@ -82,7 +84,7 @@ class BankingService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
     @required String proxyUniverse,
     @required String currency,
   }) async {
-    BankingServiceProviderEntity bank = await _fetchDefaultBank(proxyUniverse: proxyUniverse);
+    BankingServiceProviderEntity bank = await _fetchDefaultWalletServiceProvider(proxyUniverse: proxyUniverse);
     ProxyWalletCreationRequest request = ProxyWalletCreationRequest(
       requestId: uuidFactory.v4(),
       proxyUniverse: proxyUniverse,

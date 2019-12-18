@@ -8,6 +8,7 @@ import 'package:promo/banking/model/proxy_account_entity.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/db/firestore_utils.dart';
 import 'package:proxy_messages/banking.dart';
+import 'package:quiver/strings.dart';
 
 import 'abstract_store.dart';
 import 'cleanup_service.dart';
@@ -53,11 +54,15 @@ class ProxyAccountStore extends AbstractStore<ProxyAccountEntity> {
   Future<List<ProxyAccountEntity>> fetchActiveAccounts({
     @required String proxyUniverse,
     @required String currency,
+    String bankId,
   }) async {
     Query query = rootCollection
         .where(ProxyAccountEntity.PROXY_UNIVERSE, isEqualTo: proxyUniverse)
         .where(ProxyAccountEntity.CURRENCY, isEqualTo: currency)
         .where(AbstractEntity.ACTIVE, isEqualTo: true);
+    if (isNotEmpty(bankId)) {
+      query = query.where(ProxyAccountEntity.BANK_ID, isEqualTo: bankId);
+    }
     return querySnapshotToEntityList(await query.getDocuments());
   }
 

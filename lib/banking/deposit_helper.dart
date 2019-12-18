@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:proxy_core/core.dart';
 import 'package:promo/banking/services/banking_service_factory.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/localizations.dart';
 import 'package:promo/services/account_service.dart';
 import 'package:promo/widgets/basic_types.dart';
+import 'package:proxy_core/core.dart';
 import 'package:quiver/strings.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,7 +14,12 @@ import 'model/proxy_account_entity.dart';
 mixin DepositHelper {
   AppConfiguration get appConfiguration;
 
-  Future<ProxyAccountEntity> fetchOrCreateAccount(ProxyLocalizations localizations, ProxyId ownerProxyId, String currency);
+  Future<ProxyAccountEntity> fetchOrCreateAccount({
+    ProxyLocalizations localizations,
+    ProxyId ownerProxyId,
+    String bankId,
+    String currency,
+  });
 
   void showToast(String message);
 
@@ -75,9 +80,16 @@ mixin DepositHelper {
     ));
   }
 
-  Future<String> _createDepositLink(BuildContext context, ProxyId ownerProxyId, DepositRequestInput depositInput) async {
+  Future<String> _createDepositLink(
+      BuildContext context, ProxyId ownerProxyId, DepositRequestInput depositInput) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    ProxyAccountEntity proxyAccount = await fetchOrCreateAccount(localizations, ownerProxyId, depositInput.currency);
+    String bankId = appConfiguration.proxyUniverse == ProxyUniverse.PRODUCTION ? "wallet" : "test-wallet";
+    ProxyAccountEntity proxyAccount = await fetchOrCreateAccount(
+      localizations: localizations,
+      ownerProxyId: ownerProxyId,
+      bankId: bankId,
+      currency: depositInput.currency,
+    );
     if (isEmpty(depositInput.accountName)) {
       depositInput = depositInput.copy(accountName: proxyAccount.validAccountName);
     }

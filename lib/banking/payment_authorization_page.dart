@@ -359,11 +359,12 @@ class PaymentAuthorizationPageState extends LoadingSupportState<PaymentAuthoriza
   }
 
   @override
-  Future<ProxyAccountEntity> fetchOrCreateAccount(
+  Future<ProxyAccountEntity> fetchOrCreateAccount({
     ProxyLocalizations localizations,
     ProxyId ownerProxyId,
+    String bankId,
     String currency,
-  ) {
+  }) {
     print("Should never be invoked");
     return null;
   }

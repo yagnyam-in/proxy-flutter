@@ -21,6 +21,8 @@ mixin EnticementHelper {
 
   Future<void> createAccountAndDeposit(BuildContext context);
 
+  // Future<void> authorizeBunqAccount(BuildContext context);
+
   Future<void> verifyEmail(BuildContext context, String email);
 
   Future<void> verifyPhoneNumber(BuildContext context, String phoneNumber);
@@ -118,8 +120,12 @@ mixin EnticementHelper {
     }
   }
 
-  void _addBunqAccount(BuildContext context, Enticement enticement) {
-    showToast("Not yet ready");
+  void _addBunqAccount(BuildContext context, Enticement enticement) async {
+    try {
+        // await authorizeBunqAccount(context);
+    } catch (e) {
+      print("Error Creating new Receiving Account: $e");
+    }
     _dismissEnticement(context, enticement);
   }
 

@@ -46,6 +46,7 @@ dependencies:
   flutter_nfc_reader: ^0.1.0
   location: ^2.3.5
   flutter_blue: ^0.6.3+1
+  connectivity: ^0.4.5+6
   geo_firestore:
     git: git://github.com/chenna-reddy/geo_firestore.git
 

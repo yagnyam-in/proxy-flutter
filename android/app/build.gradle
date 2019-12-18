@@ -80,8 +80,8 @@ android {
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             dependencies {
-	        implementation 'androidx.fragment:fragment:1.1.0'
-	    }
+	            implementation 'androidx.fragment:fragment:1.1.0'
+	        }
         }
         debug {
             signingConfig signingConfigs.release

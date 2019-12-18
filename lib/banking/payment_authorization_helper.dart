@@ -14,11 +14,12 @@ import 'send_payment_page.dart';
 mixin PaymentAuthorizationHelper {
   AppConfiguration get appConfiguration;
 
-  Future<ProxyAccountEntity> fetchOrCreateAccount(
+  Future<ProxyAccountEntity> fetchOrCreateAccount({
     ProxyLocalizations localizations,
     ProxyId ownerProxyId,
+    String bankId,
     String currency,
-  );
+  });
 
   void showToast(String message);
 
@@ -42,9 +43,7 @@ mixin PaymentAuthorizationHelper {
     return null;
   }
 
-  Future<void> launchPaymentAuthorization(
-    BuildContext context,
-    PaymentAuthorizationEntity paymentAuthorization) async {
+  Future<void> launchPaymentAuthorization(BuildContext context, PaymentAuthorizationEntity paymentAuthorization) async {
     if (paymentAuthorization != null) {
       await Navigator.of(context).push(
         MaterialPageRoute<PaymentAuthorizationInput>(
@@ -57,9 +56,7 @@ mixin PaymentAuthorizationHelper {
     }
   }
 
-  Future<bool> sendPaymentAuthorization(
-      BuildContext context,
-      PaymentAuthorizationEntity paymentAuthorization) {
+  Future<bool> sendPaymentAuthorization(BuildContext context, PaymentAuthorizationEntity paymentAuthorization) {
     if (paymentAuthorization != null) {
       return Navigator.of(context).push(
         MaterialPageRoute<bool>(
@@ -72,7 +69,6 @@ mixin PaymentAuthorizationHelper {
     }
     return Future.value(false);
   }
-
 
   Future<PaymentAuthorizationInput> _acceptPaymentInput(
     BuildContext context, {
@@ -101,7 +97,12 @@ mixin PaymentAuthorizationHelper {
     PaymentAuthorizationInput paymentInput,
   ) async {
     ProxyLocalizations localizations = ProxyLocalizations.of(context);
-    final proxyAccount = await fetchOrCreateAccount(localizations, ownerProxyId, paymentInput.currency);
+    final proxyAccount = await fetchOrCreateAccount(
+      localizations: localizations,
+      ownerProxyId: ownerProxyId,
+      bankId: ProxyUniverse.isProduction(appConfiguration.proxyUniverse) ? "wallet" : "test-wallet",// TODO: This is wrong
+      currency: paymentInput.currency,
+    );
     return BankingServiceFactory.paymentAuthorizationService(appConfiguration)
         .createPaymentAuthorization(localizations, proxyAccount, paymentInput);
   }

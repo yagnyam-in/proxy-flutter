@@ -12,14 +12,16 @@ mixin AccountHelper {
 
   void showToast(String message);
 
-  Future<ProxyAccountEntity> fetchOrCreateAccount(
+  Future<ProxyAccountEntity> fetchOrCreateAccount({
     ProxyLocalizations localizations,
     ProxyId ownerProxyId,
+    String bankId,
     String currency,
-  ) async {
+  }) async {
     return BankingServiceFactory.bankingService(appConfiguration).fetchOrCreateProxyWallet(
       ownerProxyId: ownerProxyId,
       proxyUniverse: appConfiguration.proxyUniverse,
+      bankId: bankId,
       currency: currency,
     );
   }

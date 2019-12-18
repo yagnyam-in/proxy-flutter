@@ -141,6 +141,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     final proxyAccount = await BankingServiceFactory.bankingService(appConfiguration).fetchOrCreateProxyWallet(
       ownerProxyId: payeeProxyId,
       proxyUniverse: bank.proxyUniverse,
+      bankId: bank.bankId,
       currency: paymentAuthorization.currency,
     );
 
