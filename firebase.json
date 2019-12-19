@@ -1,0 +1,12 @@
+{
+  "hosting": {
+    "appAssociation": "AUTO",
+    "public": "public",
+    "rewrites": [
+      {
+        "source": "/**",
+        "dynamicLinks": true
+      }
+    ]
+  }
+}
