@@ -13,7 +13,6 @@ import 'package:promo/services/secrets_service.dart';
 import 'package:promo/services/service_factory.dart';
 import 'package:promo/services/service_helper.dart';
 import 'package:promo/url_config.dart';
-import 'package:promo/utils/random_utils.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_messages/authorization.dart';
@@ -44,7 +43,7 @@ class PaymentAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelpe
     @required this.cryptographyService,
     @required this.secretsService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient(),
         _paymentAuthorizationStore = PaymentAuthorizationStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));

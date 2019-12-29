@@ -67,7 +67,7 @@ class AccountService with ProxyUtils, HttpClientUtils, DebugUtils {
     @required this.appUser,
     HttpClientFactory httpClientFactory,
     String appBackendUrl,
-  })  : httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+  })  : httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient(),
         appBackendUrl = "${appBackendUrl ?? UrlConfig.APP_BACKEND}/app/accounts" {
     assert(firebaseUser != null);
     assert(appUser != null);

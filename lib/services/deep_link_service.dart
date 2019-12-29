@@ -9,7 +9,7 @@ class DeepLinkService with ProxyUtils, HttpClientUtils, DebugUtils {
 
   DeepLinkService({
     HttpClientFactory httpClientFactory,
-  }) : httpClientFactory = httpClientFactory ?? ProxyHttpClient.client;
+  }) : httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient();
 
   Future<Uri> createDeepLink(
     Uri link, {

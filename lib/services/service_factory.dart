@@ -32,7 +32,7 @@ class ServiceFactory {
 
   static get proxyKeyFactory => PointyCastleProxyKeyFactory();
 
-  static get proxyRequestFactory => PointyCastleProxyRequestFactory(cryptographyService);
+  static get proxyRequestFactory => PointyCastleProxyRequestFactory(ProxyVersion.latestVersion(), cryptographyService);
 
   static MessageVerificationService messageVerificationService(AppConfiguration appConfiguration) {
     return new MessageVerificationService(

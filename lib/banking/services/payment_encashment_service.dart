@@ -10,7 +10,6 @@ import 'package:promo/banking/services/banking_service_factory.dart';
 import 'package:promo/config/app_configuration.dart';
 import 'package:promo/services/service_helper.dart';
 import 'package:promo/url_config.dart';
-import 'package:promo/utils/random_utils.dart';
 import 'package:proxy_core/core.dart';
 import 'package:proxy_core/services.dart';
 import 'package:proxy_messages/banking.dart';
@@ -35,7 +34,7 @@ class PaymentEncashmentService with ProxyUtils, HttpClientUtils, ServiceHelper, 
     @required this.messageSigningService,
     @required this.cryptographyService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient(),
         _paymentEncashmentStore = PaymentEncashmentStore(appConfiguration) {
     assert(appConfiguration != null);
     assert(isNotEmpty(this.proxyBankingUrl));

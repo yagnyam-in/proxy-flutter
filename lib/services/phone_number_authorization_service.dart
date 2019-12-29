@@ -30,7 +30,7 @@ class PhoneNumberAuthorizationService with ProxyUtils, HttpClientUtils, ServiceH
     String appBackendUrl,
   })  : _phoneNumberAuthorizationStore = PhoneNumberAuthorizationStore(appConfiguration),
         appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client;
+        httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient();
 
   Future<PhoneNumberAuthorizationEntity> authorizePhoneNumber(String phoneNumber) async {
     int verificationIndex = await AccountService.nextPhoneNumberVerificationIndex(appConfiguration);

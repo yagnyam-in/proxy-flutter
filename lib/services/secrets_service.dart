@@ -28,7 +28,7 @@ class SecretsService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUtils
   })  : _phoneNumberAuthorizationStore = PhoneNumberAuthorizationStore(appConfiguration),
         _emailAuthorizationStore = EmailAuthorizationStore(appConfiguration),
         appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client;
+        httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient();
 
   Future<String> fetchSecretForPhoneNumber(String phoneNumber, HashValue secretHash) async {
     final phoneAuthorization = await _phoneNumberAuthorizationStore.fetchActiveAuthorizationByPhoneNumber(

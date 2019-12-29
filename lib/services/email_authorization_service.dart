@@ -30,7 +30,7 @@ class EmailAuthorizationService with ProxyUtils, HttpClientUtils, ServiceHelper,
     String appBackendUrl,
   })  : _emailAuthorizationStore = EmailAuthorizationStore(appConfiguration),
         appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client;
+        httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient();
 
   Future<void> authorizeEmailAddress(String email) async {
     int verificationIndex = await AccountService.nextEmailVerificationIndex(appConfiguration);

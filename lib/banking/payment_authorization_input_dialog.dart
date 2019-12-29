@@ -8,7 +8,6 @@ import 'package:promo/contacts_page.dart';
 import 'package:promo/localizations.dart';
 import 'package:promo/model/contact_entity.dart';
 import 'package:promo/services/account_service.dart';
-import 'package:promo/utils/random_utils.dart';
 import 'package:proxy_messages/payments.dart';
 
 typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
@@ -16,7 +15,6 @@ typedef SetupMasterProxyCallback = void Function(ProxyId proxyId);
 enum PayeeSelectionMode { ANY_ONE_WITH_SECRET, CHOOSE_FROM_CONTACTS }
 
 enum SendPaymentBy { NFC,  }
-
 
 class PaymentAuthorizationPayeeInput with ProxyUtils {
   final String customerPhone;

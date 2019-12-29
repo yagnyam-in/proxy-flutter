@@ -32,7 +32,7 @@ class NotificationService with ProxyUtils, HttpClientUtils {
     HttpClientFactory httpClientFactory,
     @required this.messageSigningService,
   })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
+        httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient() {
     assert(isNotEmpty(this.appBackendUrl));
   }
 

@@ -28,7 +28,7 @@ class WithdrawalService with ProxyUtils, HttpClientUtils, ServiceHelper, DebugUt
     @required this.messageFactory,
     @required this.messageSigningService,
   })  : proxyBankingUrl = proxyBankingUrl ?? "${UrlConfig.PROXY_BANKING}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client,
+        httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient(),
         _withdrawalStore = WithdrawalStore(appConfiguration) {
     assert(isNotEmpty(this.proxyBankingUrl));
   }

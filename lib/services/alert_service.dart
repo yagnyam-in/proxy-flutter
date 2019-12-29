@@ -42,7 +42,7 @@ class AlertService with ProxyUtils, HttpClientUtils {
     @required this.deviceStore,
     @required this.proxyKeyStore,
   })  : appBackendUrl = appBackendUrl ?? "${UrlConfig.APP_BACKEND}/api",
-        httpClientFactory = httpClientFactory ?? ProxyHttpClient.client {
+        httpClientFactory = httpClientFactory ?? HttpClientUtils.httpClient() {
     assert(isNotEmpty(this.appBackendUrl));
   }
 
